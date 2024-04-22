@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1031686623993",
+    "project_id": "novel-3e8ed",
+    "storage_bucket": "novel-3e8ed.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1031686623993:android:d5a1bcb9ac3cc30f7f4828",
+        "android_client_info": {
+          "package_name": "com.softwaredesign.novelreader"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDOR08vLRFJHuxGgFlbqoI8_rczGQ8vdKw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
