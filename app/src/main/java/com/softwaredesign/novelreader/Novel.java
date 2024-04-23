@@ -1,14 +1,27 @@
 package com.softwaredesign.novelreader;
 
-public class Novel {
-    private String Name, Author, Description;
-    private int Image;
+import android.widget.ImageView;
 
-    public Novel(String name, String author, int image, String description) {
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.RequestCreator;
+
+public class Novel {
+    private String Name, Author, Description, ImageUrl, NovelUrl;
+
+    public Novel(String name, String author, String imageUrl, String novelUrl) {
         Name = name;
         Author = author;
-        Image = image;
+        ImageUrl = imageUrl;
+        NovelUrl = novelUrl;
+        Description = "";
+    }
+
+    public Novel(String name, String author, String description, String imageUrl, String novelUrl) {
+        Name = name;
+        Author = author;
         Description = description;
+        ImageUrl = imageUrl;
+        NovelUrl = novelUrl;
     }
 
     public String getName() {
@@ -19,12 +32,24 @@ public class Novel {
         return Author;
     }
 
-    public int getImage() {
-        return Image;
+    public void setAuthor(String author) {
+        Author = author;
     }
 
     public String getDescription() {
         return Description;
+    }
+
+    public void setDescription(String description) {
+        Description = description;
+    }
+
+    public String getImageUrl() {
+        return ImageUrl;
+    }
+
+    public String getNovelUrl() {
+        return NovelUrl;
     }
 
 }

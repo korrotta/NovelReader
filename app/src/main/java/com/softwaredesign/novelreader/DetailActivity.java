@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.squareup.picasso.Picasso;
+
 public class DetailActivity extends AppCompatActivity {
 
     private ImageView detailImage;
@@ -24,10 +26,11 @@ public class DetailActivity extends AppCompatActivity {
         // Get info from selected novel
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
-            detailImage.setImageResource(bundle.getInt("Image"));
+            String ImageUrl, NovelUrl;
+            ImageUrl = bundle.getString("ImageUrl");
+            NovelUrl = bundle.getString("NovelUrl");
+            Picasso.get().load(ImageUrl).placeholder(R.drawable.logo).into(detailImage);
             detailName.setText(bundle.getString("Name"));
-            detailAuthor.setText(bundle.getString("Author"));
-            detailDescription.setText(bundle.getString("Description"));
         }
     }
 }

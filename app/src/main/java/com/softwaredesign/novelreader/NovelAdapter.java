@@ -10,7 +10,10 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
@@ -38,19 +41,18 @@ public class NovelAdapter extends RecyclerView.Adapter<NovelViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull NovelViewHolder holder, int position) {
-        holder.recImage.setImageResource(novelList.get(position).getImage());
+        String ImageUrl = novelList.get(position).getImageUrl();
+        Picasso.get().load(ImageUrl).placeholder(R.drawable.logo).into(holder.recImage);
         holder.recName.setText(novelList.get(position).getName());
-        holder.recAuthor.setText(novelList.get(position).getAuthor());
 
         // Send info to detail activity
         holder.recLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(context, DetailActivity.class);
-                intent.putExtra("Image", novelList.get(holder.getAdapterPosition()).getImage());
                 intent.putExtra("Name", novelList.get(holder.getAdapterPosition()).getName());
-                intent.putExtra("Author", novelList.get(holder.getAdapterPosition()).getAuthor());
-                intent.putExtra("Description", novelList.get(holder.getAdapterPosition()).getDescription());
+                intent.putExtra("ImageUrl", novelList.get(holder.getAdapterPosition()).getImageUrl());
+                intent.putExtra("NovelUrl", novelList.get(holder.getAdapterPosition()).getNovelUrl());
 
                 context.startActivity(intent);
             }
@@ -66,15 +68,14 @@ public class NovelAdapter extends RecyclerView.Adapter<NovelViewHolder> {
 class NovelViewHolder extends RecyclerView.ViewHolder {
 
     ImageView recImage;
-    TextView recName, recAuthor;
-    RelativeLayout recLayout;
+    TextView recName;
+    CardView recLayout;
 
     public NovelViewHolder(@NonNull View itemView) {
         super(itemView);
 
         recImage = itemView.findViewById(R.id.novelImage);
         recName = itemView.findViewById(R.id.novelName);
-        recAuthor = itemView.findViewById(R.id.novelAuthor);
         recLayout = itemView.findViewById(R.id.novelLayout);
     }
 }
