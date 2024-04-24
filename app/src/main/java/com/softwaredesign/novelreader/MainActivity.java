@@ -5,22 +5,26 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.AnimationUtils;
+import android.widget.AdapterView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatSpinner;
 import androidx.appcompat.widget.SearchView;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -30,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
     private NovelAdapter novelAdapter;
     private Novel novel;
     private ProgressBar progressBar;
+    private AppCompatSpinner filterSpinner;
 
     public final static String TRUYENFULL_VN = "https://truyenfull.vn";
     public final static String ItemType = "https://schema.org/Book";
@@ -46,7 +51,51 @@ public class MainActivity extends AppCompatActivity {
         searchView = findViewById(R.id.searchView);
         recyclerView = findViewById(R.id.recyclerView);
         progressBar = findViewById(R.id.progressBar);
+        filterSpinner = findViewById(R.id.filterSpinner);
 
+        // Handle SearchView
+        handleSearchView();
+
+        // Initialize RecyclerView
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(MainActivity.this, 2);
+        recyclerView.setLayoutManager(gridLayoutManager);
+
+        // Initialize novel list adapter
+        novelAdapter = new NovelAdapter(MainActivity.this, novelList);
+        recyclerView.setAdapter(novelAdapter);
+
+        // Fetch novel from web
+        Content content = new Content();
+        content.execute();
+
+        // Handle filter Spinner
+        filterSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selectedFilter = parent.getItemAtPosition(position).toString();
+                // Filter novel list
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        // TODO: Initialize filter Spinner
+        // Get category list from web
+        //typeMap = new HashMap<String, String>();
+        //typeMap = getCategoryList(TRUYENFULL_VN);
+
+        // Get number of pages on a category
+        //numberOfPages = getNumberOfPages(typeMap.get("Tiên Hiệp"));
+
+        //first page of the selected category
+        //getNovelListFromPageLink(typeMap.get("Tiên Hiệp"));
+
+    }
+
+    private void handleSearchView() {
         searchView.clearFocus();
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -60,39 +109,9 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
-
-        GridLayoutManager gridLayoutManager = new GridLayoutManager(MainActivity.this, 1);
-        recyclerView.setLayoutManager(gridLayoutManager);
-
-        // Initialize novel list adapter
-        novelAdapter = new NovelAdapter(MainActivity.this, novelList);
-        recyclerView.setAdapter(novelAdapter);
-
-        // TODO: Add novel parsing from web here
-        Content content = new Content();
-        content.execute();
-
-        /*typeMap = new HashMap<String, String>();
-        typeMap = getCategoryList(TruyenFull);
-        numberOfPages = getNumberOfPages(typeMap.get("Tiên Hiệp"));
-
-        //first page:
-        getNovelListFromPageLink(typeMap.get("Tiên Hiệp"));*/
-
-        /*// Example for testing purposes
-        novel = new Novel("A", "Author A", R.drawable.logo, "1234");
-        novelList.add(novel);
-        novel = new Novel("B", "Author B", R.drawable.logo, "5678");
-        novelList.add(novel);
-        novel = new Novel("C", "Author C", R.drawable.logo, "91011");
-        novelList.add(novel);
-        novel = new Novel("D", "Author D", R.drawable.logo, "121314");
-        novelList.add(novel);
-        novel = new Novel("E", "Author E", R.drawable.logo, "151617");
-        novelList.add(novel);*/
     }
 
-    /*public static HashMap<String, String> getCategoryList(String link) {
+    public HashMap<String, String> getCategoryList(String link) {
         HashMap<String, String> typeMap = new HashMap<String, String>();
         try {
             Document doc = Jsoup.connect(link).get();
@@ -109,13 +128,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public static void printList(HashMap<String, String> l) {
-        for (Map.Entry<String, String> entry : l.entrySet()) {
-            System.out.println(entry.getKey() + ": " + entry.getValue());
-        }
-    }
-
-    public static int getNumberOfPages(String link) {
+    public int getNumberOfPages(String link) {
         try {
             Document pageDoc = Jsoup.connect(link).get();
             Element pagination = pageDoc.select("ul.pagination.pagination-sm").first();
@@ -136,63 +149,46 @@ public class MainActivity extends AppCompatActivity {
         return 0;
     }
 
-    public static void getNovelListFromPageLink(String pageLink) {
+    public void getNovelListFromPageLink(String pageLink) {
         try {
-            Document doc = Jsoup.connect(pageLink).get();
-            Elements rowNodes = doc.select("div.row");
-            for (Element row : rowNodes) {
-                String itemScope = row.attr("itemtype");
-                if (itemScope.equals(ItemType)) {
+            Document document = Jsoup.connect(pageLink)
+                    .timeout(6000)
+                    .get();
 
-                    String novelName = getNovelNameInRowNode(row);
-                    String novelHref = getNovelLinkInRowNode(row);
-                    String novelAuthor = getNovelAuthorInRowNode(row);
-                    String novelThumbnailsUrl = getThumbnailsUrlInRowNode(row);
+            Elements novelElements = document.getElementsByClass("col-xs-4 col-sm-3 col-md-2");
 
-                    Novel novel = new Novel(novelName, novelAuthor, novelThumbnailsUrl, novelHref);
+            for (Element row : novelElements) {
 
-                    novel.printNovelData();
-                    System.out.println();
-                }
+                String name = getNovelNameInRowNode(row);
+                String imageUrl = getThumbnailsUrlInRowNode(row);
+                String novelUrl = getNovelLinkInRowNode(row);
+                String author = getNovelAuthorInRowNode(row);
+
+                novel = new Novel(name, author, imageUrl, novelUrl);
+                novelList.add(novel);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private static String getNovelNameInRowNode(Element row) {
-        Element nameNode = row.select("h3.truyen-title").first();
-        if (nameNode != null) {
-            return nameNode.text();
-        } else return null;
+    private String getNovelNameInRowNode(Element row) {
+        return row.select("a").attr("title");
     }
 
-    private static String getNovelLinkInRowNode(Element row) {
-        Element linkNode = row.select("a[href]").first();
-        if (linkNode != null) {
-            return linkNode.attr("href");
-        }
-        return null;
+    private String getNovelLinkInRowNode(Element row) {
+        return row.select("a").attr("href");
     }
 
-    private static String getNovelAuthorInRowNode(Element row) {
-        Element authorNode = row.select("span.author").first();
-        if (authorNode != null) {
-            return authorNode.text();
-        }
-        return null;
+    private String getNovelAuthorInRowNode(Element row) {
+        return row.select("span.author").text();
     }
 
-    public static String getThumbnailsUrlInRowNode(Element row) {
-        Element imgNode = row.select("div[data-image]").first();
+    private String getThumbnailsUrlInRowNode(Element row) {
+        return row.select("div[data-image]").attr("data-desk-image");
+    }
 
-        if (imgNode != null) {
-            String data = imgNode.attr("data-desk-image");
-            return imgNode.attr("data-desk-image");
-        }
-        return null;
-    }*/
-
+    // Handle fetch novel form web
     private class Content extends AsyncTask<Void, Void, Void> {
 
         @Override
@@ -217,37 +213,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            try {
-                Document document = Jsoup.connect(TRUYENFULL_VN)
-                        .timeout(6000)
-                        .get();
-                Elements novelElements = document.getElementsByClass("col-xs-4 col-sm-3 col-md-2");
-                Log.d("NOVELELEMENTS", String.valueOf(novelElements.size()));
-
-                int size = novelElements.size();
-                for (int i = 0; i < size; i++) {
-                    String name = novelElements.select("a")
-                            .eq(i)
-                            .attr("title");
-
-                    String imageUrl = novelElements.select("div[data-image]")
-                            .eq(i)
-                            .attr("data-desk-image");
-
-                    String novelUrl = novelElements.select("a")
-                            .eq(i)
-                            .attr("href");
-
-                    String author = "";
-                    Log.d("NAME", name);
-                    Log.d("IMAGEURL", imageUrl);
-                    Log.d("NOVELURL", novelUrl);
-                    novel = new Novel(name, "ABC", imageUrl, novelUrl);
-                    novelList.add(novel);
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            getNovelListFromPageLink(TRUYENFULL_VN);
             return null;
         }
     }
