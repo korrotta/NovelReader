@@ -8,10 +8,18 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
+import java.io.IOException;
+
 public class DetailActivity extends AppCompatActivity {
 
     private ImageView detailImage;
     private TextView detailName, detailAuthor, detailDescription;
+    private String NovelUrl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,14 +31,10 @@ public class DetailActivity extends AppCompatActivity {
         detailAuthor = findViewById(R.id.detailAuthor);
         detailDescription = findViewById(R.id.detailDescription);
 
-        // Get info from selected novel
+        // Get novelUrl from selected novel
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
-            String ImageUrl, NovelUrl;
-            ImageUrl = bundle.getString("ImageUrl");
             NovelUrl = bundle.getString("NovelUrl");
-            Picasso.get().load(ImageUrl).placeholder(R.drawable.logo).into(detailImage);
-            detailName.setText(bundle.getString("Name"));
         }
     }
 }
