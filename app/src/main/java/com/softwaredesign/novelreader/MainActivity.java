@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
         searchView = findViewById(R.id.searchView);
         recyclerView = findViewById(R.id.recyclerView);
         progressBar = findViewById(R.id.progressBar);
-        filterSpinner = findViewById(R.id.filterSpinner);
+        //filterSpinner = findViewById(R.id.filterSpinner);
 
         // Handle SearchView
         handleSearchView();
@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
         content.execute();
 
         // Handle filter Spinner
-        filterSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+       /* filterSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String selectedFilter = parent.getItemAtPosition(position).toString();
@@ -80,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
             public void onNothingSelected(AdapterView<?> parent) {
 
             }
-        });
+        });*/
 
         // TODO: Initialize filter Spinner
         // Get category list from web

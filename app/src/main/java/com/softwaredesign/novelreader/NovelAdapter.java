@@ -43,15 +43,12 @@ public class NovelAdapter extends RecyclerView.Adapter<NovelViewHolder> {
     public void onBindViewHolder(@NonNull NovelViewHolder holder, int position) {
         String ImageUrl = novelList.get(position).getImageUrl();
         Picasso.get().load(ImageUrl).placeholder(R.drawable.logo).into(holder.recImage);
-        holder.recName.setText(novelList.get(position).getName());
 
         // Send info to detail activity
         holder.recLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(context, DetailActivity.class);
-                intent.putExtra("Name", novelList.get(holder.getAdapterPosition()).getName());
-                intent.putExtra("ImageUrl", novelList.get(holder.getAdapterPosition()).getImageUrl());
                 intent.putExtra("NovelUrl", novelList.get(holder.getAdapterPosition()).getNovelUrl());
 
                 context.startActivity(intent);
@@ -68,14 +65,12 @@ public class NovelAdapter extends RecyclerView.Adapter<NovelViewHolder> {
 class NovelViewHolder extends RecyclerView.ViewHolder {
 
     ImageView recImage;
-    TextView recName;
     CardView recLayout;
 
     public NovelViewHolder(@NonNull View itemView) {
         super(itemView);
 
         recImage = itemView.findViewById(R.id.novelImage);
-        recName = itemView.findViewById(R.id.novelName);
         recLayout = itemView.findViewById(R.id.novelLayout);
     }
 }
