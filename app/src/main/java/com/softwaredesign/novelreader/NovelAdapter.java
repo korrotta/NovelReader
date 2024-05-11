@@ -49,8 +49,6 @@ public class NovelAdapter extends RecyclerView.Adapter<NovelViewHolder> {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(context, DetailActivity.class);
-                intent.putExtra("NovelName", novelList.get(holder.getAdapterPosition()).getName());
-                intent.putExtra("NovelImageUrl", novelList.get(holder.getAdapterPosition()).getImageUrl());
                 intent.putExtra("NovelUrl", novelList.get(holder.getAdapterPosition()).getNovelUrl());
 
                 context.startActivity(intent);
