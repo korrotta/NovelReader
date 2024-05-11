@@ -28,7 +28,7 @@ public class DetailActivity extends AppCompatActivity {
     private TextView detailName, detailAuthor, detailDescription;
     private String NovelUrl;
     private TruyenfullParser truyenfullParser = new TruyenfullParser();
-    private String data[];
+    private static String data[] = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,13 +52,14 @@ public class DetailActivity extends AppCompatActivity {
 
             DetailActivity.Content content = new DetailActivity.Content();
             content.execute();
-//            Log.d("data", data[0] + " - " + data[1] + data[2] + data[3]);
-//            detailName.setText(data[0]);
-//            detailAuthor.setText(data[1]);
-//            detailDescription.setText(data[2]);
-//            Picasso.get().load(data[3]).placeholder(R.drawable.logo).into(detailImage);
 
         }
+    }
+    private void setUIData(){
+        detailName.setText(data[0]);
+        detailAuthor.setText(data[1]);
+        detailDescription.setText(data[2]);
+        Picasso.get().load(data[3]).placeholder(R.drawable.logo).into(detailImage);
     }
     private class Content extends AsyncTask<Void, Void, Void> {
 
@@ -70,7 +71,7 @@ public class DetailActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(Void unused) {
             super.onPostExecute(unused);
-
+            DetailActivity.this.setUIData();
         }
 
         @Override
@@ -80,11 +81,11 @@ public class DetailActivity extends AppCompatActivity {
 
         @Override
         protected Void doInBackground(Void... voids) {
+
             data = truyenfullParser.novelDetailScrapping(NovelUrl);
             return null;
         }
 
-}
-
+    }
 
 }

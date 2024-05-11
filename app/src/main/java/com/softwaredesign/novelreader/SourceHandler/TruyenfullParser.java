@@ -22,7 +22,9 @@ public class TruyenfullParser implements NovelScrapperFactory{
         ArrayList<NovelModel> novelList = new ArrayList<>();
 
         try {
-            Document doc = Jsoup.connect(searchUrl).get();
+            Document doc = Jsoup.connect(searchUrl)
+                    .timeout(6000)
+                    .get();
             Elements rowNodes = doc.select("div.row");
 
             for (Element row: rowNodes){
@@ -48,30 +50,33 @@ public class TruyenfullParser implements NovelScrapperFactory{
     @Override
     public String[] novelDetailScrapping(String url) {
         try {
-            Document doc = Jsoup.connect(url).get();
+            Document doc = Jsoup.connect(url).timeout(6000).get();
             Element headerNode = doc.getElementById("truyen");
 //            Log.d("headerNode", headerNode.toString());
             String novelName = headerNode.selectFirst("h3.title").text();
             String novelAuthor = headerNode.selectFirst("a[itemprop=author]").text();
-            Elements novelDescriptionNode = headerNode.select("div[itemprop=description]").select("br");
+            Element novelDescriptionNode = headerNode.selectFirst("div[itemprop=description]");
             String novelDeskImgUrl = headerNode.selectFirst("img[itemprop=image]").attr("src");
-            String novelDescription = "";
-            Log.d("text", novelDescriptionNode.first().toString());
+            String content = null;
             if (novelDescriptionNode!=null){
-                for (Element br: novelDescriptionNode){
-                    novelDescription += br.text();
-
-                    novelDescription += "\n";
-                }
+                content = novelDescriptionNode.toString();
+                content = content.replace("<div class=\"desc-text desc-text-full\" itemprop=\"description\">", "");
+                content = content.replaceAll("<b>", "");
+                content = content.replaceAll("</b>", "");
+                content = content.replaceAll("<i>", "");
+                content = content.replaceAll("</i>","");
+                content = content.replaceAll("&nbsp;", "");
+                content = content.replace("</div>", "");
+                content = content.replaceAll("<br>", "");
+//                Log.d("content", content);
             }
 
             String data[] = new String[4];
 
             data[0] = novelName;
             data[1] = novelAuthor;
-            data[2] = novelDescription;
+            data[2] = content;
             data[3] = novelDeskImgUrl;
-
 
             return data;
         } catch (IOException e) {
