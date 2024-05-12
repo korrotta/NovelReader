@@ -2,6 +2,7 @@ package com.softwaredesign.novelreader.SourceHandler;
 
 import android.util.Log;
 
+import com.softwaredesign.novelreader.ChapterListItem;
 import com.softwaredesign.novelreader.Factory.NovelScrapperFactory;
 import com.softwaredesign.novelreader.Models.NovelModel;
 
@@ -12,6 +13,7 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class TruyenfullParser implements NovelScrapperFactory{
     public String SEARCH_DEFAULT_URL = "https://truyenfull.vn/tim-kiem/?tukhoa=";
@@ -65,7 +67,7 @@ public class TruyenfullParser implements NovelScrapperFactory{
                 content = content.replaceAll("</b>", "");
                 content = content.replaceAll("<i>", "");
                 content = content.replaceAll("</i>","");
-                content = content.replaceAll("&nbsp;", "");
+                content = content.replaceAll("&nbsp;", " ");
                 content = content.replace("</div>", "");
                 content = content.replaceAll("<br>", "");
 //                Log.d("content", content);
@@ -85,8 +87,66 @@ public class TruyenfullParser implements NovelScrapperFactory{
     }
 
     @Override
-    public void novelChapterListScrapping(String url) {
+    public List<ChapterListItem> novelChapterListScrapping(String url) {
+        int totalPages = 0;
+        List<ChapterListItem> chapters = new ArrayList<>();
+        String chapterListUrlBefore = url+"trang-";
+        String chapterListUrlAfter = "/#list-chapter";
 
+        try {
+            Document doc = Jsoup.connect(url).get();
+            totalPages = Integer.parseInt(doc.getElementById("total-page").attr("value"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        if (totalPages != 0){
+            for (int i = 1; i <= totalPages; i++) {
+                try {
+                    Document doc = Jsoup.connect(chapterListUrlBefore+i+chapterListUrlAfter).get();
+                    Element chapterListNode = doc.getElementById("list-chapter");
+                    Elements chaptersNode = doc.select("ul.list-chapter");
+
+                    for (Element node: chaptersNode){
+                        Elements chapterData = node.select("a[href]");
+                        for (Element child_node: chapterData){
+
+                            String chapterUrl = child_node.attr("href");
+                            String title = parseTitle(child_node.attr("title"));
+                            int chapterNumber = parseChapterNumber(title);
+                            ChapterListItem chapter = new ChapterListItem(title, chapterUrl, chapterNumber);
+                            chapters.add(chapter);
+                        }
+                    }
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+        return chapters;
+    }
+    //Chapter list support methods:
+    private String parseTitle(String title){
+        String[] carriage = title.split(" - ");
+        if (carriage.length >= 2) return carriage[1];
+        return title;
+    }
+
+    private int parseChapterNumber(String name){
+        int chuongPos = name.indexOf("Chương ");
+        int colonPos = name.indexOf(":");
+
+        if (chuongPos != -1 && colonPos !=-1){
+            String finalString = name.substring(chuongPos + "Chương ".length(), colonPos);
+            try {
+                int number = Integer.parseInt(finalString);
+                return number;
+            }
+            catch (NumberFormatException e){
+                return 0;
+            }
+        }
+        else return 0;
     }
 
     //Novel list support methods
