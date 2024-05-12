@@ -10,7 +10,7 @@ import android.widget.TextView;
 
 public class ReadActivity extends AppCompatActivity {
 
-    private TextView novelNameTV, chapterNameTV;
+    private TextView novelNameTV, chapterNameTV, chapterContentTV;
     private ImageView chapterListIV, prevChapterIV, nextChapterIV, findInChapterIV;
     private Button server1Button, server2Button, themeButton, fontButton;
 
@@ -26,6 +26,7 @@ public class ReadActivity extends AppCompatActivity {
     private void InitializeView() {
         novelNameTV = findViewById(R.id.novelNameRead);
         chapterNameTV = findViewById(R.id.chapterNameRead);
+        chapterContentTV = findViewById(R.id.chapterContentRead);
         chapterListIV = findViewById(R.id.chapterListRead);
         prevChapterIV = findViewById(R.id.previousChapterRead);
         nextChapterIV = findViewById(R.id.nextChapterRead);
