@@ -3,6 +3,7 @@ package com.softwaredesign.novelreader;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -13,6 +14,7 @@ public class ReadActivity extends AppCompatActivity {
     private TextView novelNameTV, chapterNameTV, chapterContentTV;
     private ImageView chapterListIV, prevChapterIV, nextChapterIV, findInChapterIV;
     private Button server1Button, server2Button, themeButton, fontButton;
+    private String ChapterUrl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,6 +22,17 @@ public class ReadActivity extends AppCompatActivity {
         setContentView(R.layout.activity_read);
 
         InitializeView();
+
+        // Get chapter Url from bundle
+        Bundle bundle = getIntent().getExtras();
+        if (bundle != null) {
+            ChapterUrl = bundle.getString("ChapterUrl");
+
+            Log.d("Url", ChapterUrl.toString());
+
+
+
+        }
 
     }
 

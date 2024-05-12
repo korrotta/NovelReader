@@ -22,7 +22,7 @@
                 android:layout_width="200dp"
                 android:layout_height="320dp"
                 android:scaleType="centerCrop"
-                android:src="@drawable/logo" />
+                android:src="@color/gray" />
 
             <TextView
                 android:id="@+id/detailName"
@@ -49,6 +49,14 @@
                 android:textSize="20sp" />
 
         </RelativeLayout>
+
+        <ProgressBar
+            android:id="@+id/progressBarDetail"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:indeterminate="true"
+            android:layout_gravity="center"
+            android:visibility="gone"/>
 
         <TextView
             android:layout_width="match_parent"

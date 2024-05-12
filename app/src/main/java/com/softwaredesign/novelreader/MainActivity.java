@@ -227,7 +227,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (novelSearchList.isEmpty()) {
-            Toast.makeText(this, "Not Found", Toast.LENGTH_SHORT).show();
+            
         } else {
             novelAdapter.setSearchList(novelSearchList);
         }

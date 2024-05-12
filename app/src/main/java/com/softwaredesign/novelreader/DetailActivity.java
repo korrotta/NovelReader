@@ -16,6 +16,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.softwaredesign.novelreader.Models.NovelModel;
@@ -42,6 +43,7 @@ public class DetailActivity extends AppCompatActivity {
     private RecyclerView chapterListRV;
     private static List<ChapterListItem> list;
     private ChapterListItemAdapter chapterListItemAdapter;
+    private ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +55,7 @@ public class DetailActivity extends AppCompatActivity {
         detailAuthor = findViewById(R.id.detailAuthor);
         detailDescription = findViewById(R.id.detailDescription);
         chapterListRV = findViewById(R.id.chapterListRV);
+        progressBar = findViewById(R.id.progressBarDetail);
 
         // Initialize Chapter List RecyclerView
         GridLayoutManager gridLayoutManager = new GridLayoutManager(DetailActivity.this, 1);
@@ -69,15 +72,11 @@ public class DetailActivity extends AppCompatActivity {
             NovelUrl = NovelUrl.replace("chuong-1/", "");
             Log.d("Url", NovelUrl.toString());
 
+            // Fetch novel detail and chapter list
             DetailActivity.Content content = new DetailActivity.Content();
             content.execute();
 
         }
-
-        // TODO: Fetch Chapter List
-        // SOLUTION: in content execute
-
-
 
     }
 
@@ -98,12 +97,17 @@ public class DetailActivity extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+            progressBar.setVisibility(View.VISIBLE);
+            progressBar.startAnimation(AnimationUtils.loadAnimation(DetailActivity.this, android.R.anim.fade_in));
         }
 
         @Override
         protected void onPostExecute(Void unused) {
             super.onPostExecute(unused);
             setUIData();
+            progressBar.setVisibility(View.GONE);
+            progressBar.startAnimation(AnimationUtils.loadAnimation(DetailActivity.this, android.R.anim.fade_out));
+            chapterListItemAdapter.notifyDataSetChanged();
         }
 
         @Override

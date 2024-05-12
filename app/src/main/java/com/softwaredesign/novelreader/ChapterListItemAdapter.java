@@ -46,6 +46,9 @@ public class ChapterListItemAdapter extends RecyclerView.Adapter<ChapterListItem
             @Override
             public void onClick(View v) {
                 // Handle click on chapter list item
+                Intent intent = new Intent(context, ReadActivity.class);
+                intent.putExtra("ChapterUrl", chapterList.get(holder.getAdapterPosition()).getChapterUrl());
+                context.startActivity(intent);
             }
         });
     }
