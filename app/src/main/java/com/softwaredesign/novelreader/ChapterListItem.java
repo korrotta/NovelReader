@@ -2,10 +2,12 @@ package com.softwaredesign.novelreader;
 
 public class ChapterListItem {
     String chapterName, chapterUrl;
+    int chapterNumber;
 
-    public ChapterListItem(String chapterName, String chapterUrl) {
+    public ChapterListItem(String chapterName, String chapterUrl, int chapterNumber) {
         this.chapterName = chapterName;
         this.chapterUrl = chapterUrl;
+        this.chapterNumber = chapterNumber;
     }
 
     public String getChapterName() {
@@ -22,5 +24,13 @@ public class ChapterListItem {
 
     public void setChapterUrl(String chapterUrl) {
         this.chapterUrl = chapterUrl;
+    }
+
+    public int getChapterNumber() {
+        return chapterNumber;
+    }
+
+    public void setChapterNumber(int chapterNumber) {
+        this.chapterNumber = chapterNumber;
     }
 }

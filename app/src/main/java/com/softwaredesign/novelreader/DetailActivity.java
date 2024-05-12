@@ -40,7 +40,7 @@ public class DetailActivity extends AppCompatActivity {
     private TruyenfullParser truyenfullParser = new TruyenfullParser();
     private static String data[] = null;
     private RecyclerView chapterListRV;
-    private ChapterListItem chapterListItem;
+    private static List<ChapterListItem> list;
     private ChapterListItemAdapter chapterListItemAdapter;
 
     @Override
@@ -58,6 +58,9 @@ public class DetailActivity extends AppCompatActivity {
         GridLayoutManager gridLayoutManager = new GridLayoutManager(DetailActivity.this, 1);
         chapterListRV.setLayoutManager(gridLayoutManager);
 
+        //Set list active
+
+
         // Get novelUrl from selected novel
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
@@ -72,17 +75,9 @@ public class DetailActivity extends AppCompatActivity {
         }
 
         // TODO: Fetch Chapter List
-        String[] chapterLists = {"Chapter 1", "Chapter 2"};
-        String[] chapterUrls = {"ABC", "ABC"};
+        // SOLUTION: in content execute
 
-        ArrayList<ChapterListItem> chapterListItemArrayList = new ArrayList<>();
-        chapterListItem = new ChapterListItem(chapterLists[0], chapterUrls[0]);
-        chapterListItemArrayList.add(chapterListItem);
-        chapterListItem = new ChapterListItem(chapterLists[1], chapterUrls[1]);
-        chapterListItemArrayList.add(chapterListItem);
 
-        chapterListItemAdapter = new ChapterListItemAdapter(DetailActivity.this, chapterListItemArrayList);
-        chapterListRV.setAdapter(chapterListItemAdapter);
 
     }
 
@@ -91,6 +86,11 @@ public class DetailActivity extends AppCompatActivity {
         detailAuthor.setText(data[1]);
         detailDescription.setText(data[2]);
         Picasso.get().load(data[3]).placeholder(R.drawable.logo).into(detailImage);
+
+        chapterListItemAdapter = new ChapterListItemAdapter(DetailActivity.this, list);
+        chapterListRV.setAdapter(chapterListItemAdapter);
+        Log.d("list-size", String.valueOf(list.size()));
+        chapterListItemAdapter.notifyDataSetChanged();
     }
 
     private class Content extends AsyncTask<Void, Void, Void> {
@@ -115,6 +115,7 @@ public class DetailActivity extends AppCompatActivity {
         protected Void doInBackground(Void... voids) {
 
             data = truyenfullParser.novelDetailScrapping(NovelUrl);
+            list = truyenfullParser.novelChapterListScrapping(NovelUrl);
             return null;
         }
 
