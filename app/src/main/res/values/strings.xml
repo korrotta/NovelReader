@@ -6,4 +6,9 @@
     <string name="m_t">Mô tả</string>
     <string name="chaptername">ChapterName</string>
     <string name="danh_s_ch_ch_ng">Danh sách chương</string>
+    <string name="server_1">Server 1</string>
+    <string name="server_2">Server 2</string>
+    <string name="theme">Theme</string>
+    <string name="fonts">Fonts</string>
+    <string name="content">Content</string>
 </resources>
