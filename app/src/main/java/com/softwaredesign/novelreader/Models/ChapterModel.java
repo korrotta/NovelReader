@@ -1,10 +1,10 @@
-package com.softwaredesign.novelreader;
+package com.softwaredesign.novelreader.Models;
 
-public class ChapterListItem {
+public class ChapterModel {
     String chapterName, chapterUrl;
     int chapterNumber;
 
-    public ChapterListItem(String chapterName, String chapterUrl, int chapterNumber) {
+    public ChapterModel(String chapterName, String chapterUrl, int chapterNumber) {
         this.chapterName = chapterName;
         this.chapterUrl = chapterUrl;
         this.chapterNumber = chapterNumber;

@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:padding="10dp"
     android:scrollbars="vertical"
-    tools:context=".ReadActivity">
+    tools:context=".Activities.ReadActivity">
 
     <LinearLayout
         android:layout_width="match_parent"

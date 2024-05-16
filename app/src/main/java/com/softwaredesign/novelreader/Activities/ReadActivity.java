@@ -1,4 +1,4 @@
-package com.softwaredesign.novelreader;
+package com.softwaredesign.novelreader.Activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -7,6 +7,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.softwaredesign.novelreader.R;
 
 public class ReadActivity extends AppCompatActivity {
 

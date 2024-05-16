@@ -1,11 +1,8 @@
-package com.softwaredesign.novelreader;
+package com.softwaredesign.novelreader.Activities;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.animation.AnimationUtils;
-import android.widget.AdapterView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -14,6 +11,12 @@ import androidx.appcompat.widget.AppCompatSpinner;
 import androidx.appcompat.widget.SearchView;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.softwaredesign.novelreader.BackgroundTask;
+import com.softwaredesign.novelreader.Models.NovelModel;
+import com.softwaredesign.novelreader.Adapters.NovelAdapter;
+import com.softwaredesign.novelreader.NovelParsers.TruyenfullScraper;
+import com.softwaredesign.novelreader.R;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -24,23 +27,18 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
+    private final String truyenfullUrl = "https://truyenfull.vn/";
     private SearchView searchView;
     private RecyclerView recyclerView;
-    private List<Novel> novelList = new ArrayList<>();
+    private List<NovelModel> novelList = new ArrayList<>();
     private NovelAdapter novelAdapter;
-    private Novel novel;
     private ProgressBar progressBar;
     private AppCompatSpinner filterSpinner;
-
-    public final static String TRUYENFULL_VN = "https://truyenfull.vn";
-    public final static String ItemType = "https://schema.org/Book";
-    public final static String LinkTruyen = "https://truyenfull.vn/bat-diet-kiem-the/";
-
-    private static HashMap<String, String> typeMap;
+    //Parser
+    private TruyenfullScraper truyenfullScraper;
     private static int numberOfPages = 0;
 
     @Override
@@ -52,6 +50,9 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerView);
         progressBar = findViewById(R.id.progressBar);
         //filterSpinner = findViewById(R.id.filterSpinner);
+
+        //create parser
+        truyenfullScraper = new TruyenfullScraper();
 
         // Handle SearchView
         handleSearchView();
@@ -65,8 +66,7 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setAdapter(novelAdapter);
 
         // Fetch novel from web
-        Content content = new Content();
-        content.execute();
+        fetchMainPageNovels();
 
         // Handle filter Spinner
        /* filterSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -128,99 +128,34 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public int getNumberOfPages(String link) {
-        try {
-            Document pageDoc = Jsoup.connect(link).get();
-            Element pagination = pageDoc.select("ul.pagination.pagination-sm").first();
-            if (pagination == null) return -1;
-            Elements pageLinkNodes = pagination.select("a[href]");
-            for (Element item : pageLinkNodes) {
-                if (item.text().equals("Cuối »")) {
-                    String itemTitle = (item.attr("title"));
-                    String[] carriage = itemTitle.split(" ");
-                    String finalPage = carriage[carriage.length - 1];
-                    return Integer.parseInt(finalPage);
-                }
+    private void fetchMainPageNovels(){
+        BackgroundTask task = new BackgroundTask(MainActivity.this) {
+            @Override
+            public void onPreExecute() {
+                progressBar.setVisibility(View.VISIBLE);
+                progressBar.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, android.R.anim.fade_in));
             }
 
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return 0;
-    }
-
-    public void getNovelListFromPageLink(String pageLink) {
-        try {
-            Document document = Jsoup.connect(pageLink)
-                    .timeout(6000)
-                    .get();
-
-            Elements novelElements = document.getElementsByClass("col-xs-4 col-sm-3 col-md-2");
-
-            for (Element row : novelElements) {
-
-                String name = getNovelNameInRowNode(row);
-                String imageUrl = getThumbnailsUrlInRowNode(row);
-                String novelUrl = getNovelLinkInRowNode(row);
-                String author = getNovelAuthorInRowNode(row);
-
-                novel = new Novel(name, author, imageUrl, novelUrl);
-                novelList.add(novel);
+            @Override
+            public void doInBackground() {
+                novelList.clear();
+                novelList.addAll(truyenfullScraper.novelHomePageScraping(truyenfullUrl));
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+
+            @Override
+            public void onPostExecute() {
+                progressBar.setVisibility(View.GONE);
+                progressBar.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, android.R.anim.fade_out));
+                novelAdapter.notifyDataSetChanged();
+            }
+        };
+        task.execute();
     }
 
-    private String getNovelNameInRowNode(Element row) {
-        return row.select("a").attr("title");
-    }
-
-    private String getNovelLinkInRowNode(Element row) {
-        return row.select("a").attr("href");
-    }
-
-    private String getNovelAuthorInRowNode(Element row) {
-        return row.select("span.author").text();
-    }
-
-    private String getThumbnailsUrlInRowNode(Element row) {
-        return row.select("div[data-image]").attr("data-desk-image");
-    }
-
-    // Handle fetch novel form web
-    private class Content extends AsyncTask<Void, Void, Void> {
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            progressBar.setVisibility(View.VISIBLE);
-            progressBar.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, android.R.anim.fade_in));
-        }
-
-        @Override
-        protected void onPostExecute(Void unused) {
-            super.onPostExecute(unused);
-            progressBar.setVisibility(View.GONE);
-            progressBar.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, android.R.anim.fade_out));
-            novelAdapter.notifyDataSetChanged();
-        }
-
-        @Override
-        protected void onCancelled() {
-            super.onCancelled();
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            getNovelListFromPageLink(TRUYENFULL_VN);
-            return null;
-        }
-    }
 
     private void searchList(String text) {
-        List<Novel> novelSearchList = new ArrayList<>();
-        for (Novel n : novelList) {
+        List<NovelModel> novelSearchList = new ArrayList<>();
+        for (NovelModel n : novelList) {
             if (n.getName().toLowerCase().contains(text.toLowerCase())) {
                 novelSearchList.add(n);
             }

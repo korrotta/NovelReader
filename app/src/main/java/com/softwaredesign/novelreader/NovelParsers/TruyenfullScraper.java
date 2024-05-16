@@ -1,9 +1,10 @@
-package com.softwaredesign.novelreader.SourceHandler;
+package com.softwaredesign.novelreader.NovelParsers;
 
 import android.util.Log;
 
-import com.softwaredesign.novelreader.ChapterListItem;
-import com.softwaredesign.novelreader.Factory.NovelScrapperFactory;
+import com.example.novelscraperfactory.NovelScraperFactory;
+import com.softwaredesign.novelreader.Models.ChapterModel;
+import com.softwaredesign.novelreader.Models.NovelDescriptionModel;
 import com.softwaredesign.novelreader.Models.NovelModel;
 
 import org.jsoup.Jsoup;
@@ -15,11 +16,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TruyenfullParser implements NovelScrapperFactory{
+public class TruyenfullScraper implements NovelScraperFactory {
     public String SEARCH_DEFAULT_URL = "https://truyenfull.vn/tim-kiem/?tukhoa=";
     public String ITEM_TYPE = "https://schema.org/Book";
     @Override
-    public ArrayList<NovelModel> searchPageScrapping(String keyword) {
+    public ArrayList<NovelModel> searchPageScraping(String keyword) {
         String searchUrl = this.SEARCH_DEFAULT_URL + keyword;
         ArrayList<NovelModel> novelList = new ArrayList<>();
 
@@ -50,7 +51,7 @@ public class TruyenfullParser implements NovelScrapperFactory{
     }
 
     @Override
-    public String[] novelDetailScrapping(String url) {
+    public NovelDescriptionModel novelDetailScraping(String url) {
         try {
             Document doc = Jsoup.connect(url).timeout(6000).get();
             Element headerNode = doc.getElementById("truyen");
@@ -63,14 +64,14 @@ public class TruyenfullParser implements NovelScrapperFactory{
             if (novelDescriptionNode!=null){
                 content = novelDescriptionNode.toString();
                 content = content.replace("<div class=\"desc-text desc-text-full\" itemprop=\"description\">", "");
-                content = content.replaceAll("<b>", "");
-                content = content.replaceAll("</b>", "");
-                content = content.replaceAll("<i>", "");
-                content = content.replaceAll("</i>","");
-                content = content.replaceAll("&nbsp;", " ");
-                content = content.replace("</div>", "");
-                content = content.replaceAll("<br>", "");
-//                Log.d("content", content);
+//                content = content.replaceAll("<b>", "");
+//                content = content.replaceAll("</b>", "");
+//                content = content.replaceAll("<i>", "");
+//                content = content.replaceAll("</i>","");
+//                content = content.replaceAll("&nbsp;", " ");
+//                content = content.replace("</div>", "");
+//                content = content.replaceAll("<br>", "");
+                Log.d("content", content);
             }
 
             String data[] = new String[4];
@@ -80,50 +81,79 @@ public class TruyenfullParser implements NovelScrapperFactory{
             data[2] = content;
             data[3] = novelDeskImgUrl;
 
-            return data;
+            NovelDescriptionModel ndm = new NovelDescriptionModel(novelName, novelAuthor, content, novelDeskImgUrl);
+            return ndm;
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public List<ChapterListItem> novelChapterListScrapping(String url) {
-        int totalPages = 0;
-        List<ChapterListItem> chapters = new ArrayList<>();
-        String chapterListUrlBefore = url+"trang-";
-        String chapterListUrlAfter = "/#list-chapter";
+    public List<NovelModel> novelHomePageScraping(String url) {
+        List<NovelModel> novels = new ArrayList<>();
 
+        try{
+            Document doc = Jsoup.connect(url).get();
+            Element novelHolderTag = doc.selectFirst("div.index-intro");
+            Elements novelListTag = novelHolderTag.select("div.item");
+            for (Element novel: novelListTag) {
+                if (novel.attr("itemtype").equals(this.ITEM_TYPE)){
+                    String name = novel.selectFirst("h3").text();
+                    String imgUrl = novel.selectFirst("img[src]").attr("src");
+                    String novelUrl = novel.selectFirst("a[href]").attr("href");
+                    String author = "";
+
+                    NovelModel novelToAdd = new NovelModel(name, novelUrl, author, imgUrl);
+                    logToCheck(novelToAdd);
+                    novels.add(novelToAdd);
+                }
+            }
+        }   catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return novels;
+    }
+
+    @Override
+    public List<ChapterModel> novelChapterListScraping(String url) {
+
+        List<ChapterModel> chapters = new ArrayList<>();
+
+        try {
+            Document doc = Jsoup.connect(url).get();
+            Element chapterListNode = doc.getElementById("list-chapter");
+            Elements chaptersNode = doc.select("ul.list-chapter");
+
+            for (Element node: chaptersNode){
+                Elements chapterData = node.select("a[href]");
+                for (Element child_node: chapterData){
+
+                    String chapterUrl = child_node.attr("href");
+                    String title = parseTitle(child_node.attr("title"));
+                    int chapterNumber = parseChapterNumber(title);
+                    ChapterModel chapter = new ChapterModel(title, chapterUrl, chapterNumber);
+                    Log.d("chapter: ", chapter.getChapterName());
+                    chapters.add(chapter);
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        return chapters;
+    }
+
+    @Override
+    public int chapterListNumberOfPages(String url) {
+        int totalPages = 0;
         try {
             Document doc = Jsoup.connect(url).get();
             totalPages = Integer.parseInt(doc.getElementById("total-page").attr("value"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-        if (totalPages != 0){
-            for (int i = 1; i <= totalPages; i++) {
-                try {
-                    Document doc = Jsoup.connect(chapterListUrlBefore+i+chapterListUrlAfter).get();
-                    Element chapterListNode = doc.getElementById("list-chapter");
-                    Elements chaptersNode = doc.select("ul.list-chapter");
-
-                    for (Element node: chaptersNode){
-                        Elements chapterData = node.select("a[href]");
-                        for (Element child_node: chapterData){
-
-                            String chapterUrl = child_node.attr("href");
-                            String title = parseTitle(child_node.attr("title"));
-                            int chapterNumber = parseChapterNumber(title);
-                            ChapterListItem chapter = new ChapterListItem(title, chapterUrl, chapterNumber);
-                            chapters.add(chapter);
-                        }
-                    }
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        }
-        return chapters;
+        return totalPages;
     }
     //Chapter list support methods:
     private String parseTitle(String title){
@@ -183,4 +213,11 @@ public class TruyenfullParser implements NovelScrapperFactory{
     }
 
     //Novel description support methods
+
+    //Other methods
+    private void logToCheck(NovelModel n){
+        Log.d("Novel Model object", n.getName() + " src: " + n.getUrl() + " " + n.getAuthor() + " img: " + n.getImageDesk());
+    }
+
+
 }
