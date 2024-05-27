@@ -107,10 +107,10 @@
             android:visibility="gone"
             android:drawableEnd="@drawable/drop_down"
             android:layout_gravity="center"
-            android:text="Page 1 of N"
+            android:text="Page 1 of "
             android:textColor="@color/white"
             android:textSize="18sp" />
- 
+
     </LinearLayout>
 
 </ScrollView>
