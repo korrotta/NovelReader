@@ -12,6 +12,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -20,6 +21,7 @@ import android.widget.LinearLayout;
 import android.widget.ListPopupWindow;
 import android.widget.PopupMenu;
 import android.widget.PopupWindow;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -36,7 +38,7 @@ public class ReadActivity extends AppCompatActivity {
     private ImageView chapterListIV, prevChapterIV, nextChapterIV, findInChapterIV, settingsIV, serverIV;
     private String chapterUrl, chapterTitle, content;
     private TruyenfullScraper truyenfullScraper = new TruyenfullScraper();
-    private Spinner serverSpinner;
+    private ProgressBar progressBar;
     private BottomAppBar bottomAppBar;
 
     // List of servers
@@ -59,15 +61,6 @@ public class ReadActivity extends AppCompatActivity {
 
         getChapterContent.execute();
 
-
-        // Handle Server Source Button
-        serverIV.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showServerMenu(v);
-            }
-        });
-
         // Handle Previous Chapter Button
         prevChapterIV.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -78,6 +71,38 @@ public class ReadActivity extends AppCompatActivity {
 
         // Handle Next Chapter Button
         nextChapterIV.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
+        // Handle Server Source Button
+        serverIV.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showServerMenu(v);
+            }
+        });
+
+        // Handle Find text in page Button
+        findInChapterIV.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
+        // Hanlde chapterList Button
+        chapterListIV.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
+        // Handle Settings Button
+        settingsIV.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
@@ -157,12 +182,14 @@ public class ReadActivity extends AppCompatActivity {
         serverIV = findViewById(R.id.serverSourceRead);
         settingsIV = findViewById(R.id.settingsRead);
         bottomAppBar = findViewById(R.id.bottomNavRead);
+        progressBar = findViewById(R.id.readProgressBar);
     }
 
     private final BackgroundTask getChapterContent = new BackgroundTask(ReadActivity.this) {
         @Override
         public void onPreExecute() {
-
+            progressBar.setVisibility(View.VISIBLE);
+            progressBar.startAnimation(AnimationUtils.loadAnimation(ReadActivity.this, android.R.anim.fade_in));
         }
 
         @Override
@@ -178,6 +205,8 @@ public class ReadActivity extends AppCompatActivity {
             // Update UI after fetch
             chapterNameTV.setText(chapterTitle);
             chapterContentTV.setText(content);
+            progressBar.setVisibility(View.GONE);
+            progressBar.startAnimation(AnimationUtils.loadAnimation(ReadActivity.this, android.R.anim.fade_out));
         }
     };
 
