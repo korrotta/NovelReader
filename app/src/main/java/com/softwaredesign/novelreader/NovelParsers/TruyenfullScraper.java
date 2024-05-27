@@ -211,8 +211,49 @@ public class TruyenfullScraper implements NovelScraperFactory {
         }
         return null;
     }
+    public String getChapterTitleAndName(String url) {
+        Document doc = null;
+        try {
+            doc = Jsoup.connect(url).get();
+            String title = doc.select("a.truyen-title").first().text();
+            String chapterName = doc.select("a.chapter-title").first().text();
+            Log.d("TITLE", title);
+            Log.d("CHAPTERNAME", chapterName);
+
+            return chapterName;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     //Novel description support methods
+
+    // Chapter content support methods
+    public String chapterContent(String url) {
+        try {
+            String content;
+            Document doc = Jsoup.connect(url).get();
+
+            Element chapterBody = doc.getElementById("chapter-c");
+            Log.d("CHAPTER BODY", chapterBody.html());
+            content = chapterBody.html();
+
+            // Replace <br> tags with newline characters
+            String formattedContent = content.replaceAll("(?i)<br[^>]*>", "\n");
+
+            // Strip other HTML tags
+            formattedContent = formattedContent.replaceAll("<[^>]+>", "");
+
+            // Replace multiple consecutive newline characters with a single newline
+            formattedContent = formattedContent.replaceAll("\n+", "\n\n");
+
+            Log.d(" CONTENT", formattedContent);
+            return formattedContent;
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     //Other methods
     private void logToCheck(NovelModel n){

@@ -58,4 +58,8 @@ dependencies {
 
     // Import JSoup
     implementation ("org.jsoup:jsoup:1.17.2")
+
+    // Import Android Paging Runtime
+    implementation ("androidx.paging:paging-runtime:3.3.0")
+
 }

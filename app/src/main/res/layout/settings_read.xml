@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="250dp"
+    android:background="@drawable/rounded_corner_black_bg"
+    android:padding="20dp">
+
+    <TextView
+        android:id="@+id/settingsTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/settings"
+        android:textColor="@color/white"
+        android:textSize="24sp"
+        android:textStyle="bold" />
+
+    <ImageView
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:scaleType="centerCrop"
+        android:layout_marginStart="250dp"
+        android:layout_toEndOf="@id/settingsTitle"
+        android:src="@drawable/close" />
+
+    <TextView
+        android:id="@+id/theme"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/settingsTitle"
+        android:layout_marginTop="30dp"
+        android:text="@string/theme"
+        android:textColor="@color/white"
+        android:textSize="20sp" />
+
+    <ImageView
+        android:id="@+id/settingsLightTheme"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_below="@id/settingsTitle"
+        android:layout_marginStart="50dp"
+        android:layout_marginTop="25dp"
+        android:layout_toEndOf="@id/theme"
+        android:src="@drawable/light_mode" />
+
+    <ImageView
+        android:id="@+id/settingsDarkTheme"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_below="@id/settingsTitle"
+        android:layout_marginStart="80dp"
+        android:layout_marginTop="25dp"
+        android:layout_toEndOf="@id/settingsLightTheme"
+        android:src="@drawable/dark_mode" />
+
+    <TextView
+        android:id="@+id/font"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/theme"
+        android:layout_marginTop="30dp"
+        android:text="@string/font"
+        android:textColor="@color/white"
+        android:textSize="20sp" />
+
+    <TextView
+        android:id="@+id/font_size"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/font"
+        android:layout_marginTop="30dp"
+        android:text="@string/text_size"
+        android:textColor="@color/white"
+        android:textSize="20sp" />
+
+</RelativeLayout>

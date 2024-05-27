@@ -1,164 +1,147 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="10dp"
-    android:scrollbars="vertical"
     tools:context=".Activities.ReadActivity">
 
-    <LinearLayout
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/topNavRead"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <TextView
-            android:id="@+id/novelNameRead"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="@string/name"
-            android:textAlignment="center"
-            android:textColor="@color/white"
-            android:textSize="30sp"
-            android:textStyle="bold" />
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:gravity="center_horizontal"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
             android:orientation="horizontal">
-
-            <ImageView
-                android:id="@+id/chapterListRead"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:layout_marginHorizontal="10dp"
-                android:background="@drawable/rounded_corner_bg"
-                android:rotationY="180"
-                android:src="@drawable/toc"
-                app:tint="@color/black" />
 
             <ImageView
                 android:id="@+id/previousChapterRead"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:layout_marginStart="3dp"
                 android:layout_marginEnd="10dp"
-                android:background="@drawable/rounded_corner_bg"
                 android:src="@drawable/before"
-                app:tint="@color/black" />
+                app:tint="@color/white" />
 
             <TextView
                 android:id="@+id/chapterNameRead"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:text="@string/chaptername"
+                android:layout_weight="2"
+                android:fontFamily="@font/roboto"
+                android:maxLines="1"
+                android:ellipsize="end"
                 android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="22sp" />
+                android:clickable="true"
+                android:textSize="20sp"
+                android:focusable="true" />
 
             <ImageView
                 android:id="@+id/nextChapterRead"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:layout_marginHorizontal="10dp"
-                android:background="@drawable/rounded_corner_bg"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="3dp"
                 android:src="@drawable/next"
-                app:tint="@color/black" />
-
-            <ImageView
-                android:id="@+id/findTextRead"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:layout_marginEnd="10dp"
-                android:background="@drawable/rounded_corner_bg"
-                android:src="@drawable/search"
-                app:tint="@color/black" />
+                app:tint="@color/white" />
 
         </LinearLayout>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="10dp"
+        android:scrollbars="vertical"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:gravity="center_horizontal"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/server1Read"
-                android:layout_width="wrap_content"
-                android:layout_height="30dp"
+            <TextView
+                android:id="@+id/chapterContentRead"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_marginHorizontal="10dp"
-                android:background="@drawable/rounded_corner_bg"
-                android:backgroundTint="@color/white"
-                android:drawableStart="@drawable/server"
-                android:drawableTint="@color/black"
-                android:paddingHorizontal="2dp"
-                android:text="@string/server_1"
-                android:textAllCaps="false"
-                android:textColor="@color/black"
-                android:textSize="12sp" />
-
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/server2Read"
-                android:layout_width="wrap_content"
-                android:layout_height="30dp"
-                android:layout_marginEnd="10dp"
-                android:background="@drawable/rounded_corner_bg"
-                android:backgroundTint="@color/white"
-                android:drawableStart="@drawable/server"
-                android:drawableTint="@color/black"
-                android:paddingHorizontal="2dp"
-                android:text="@string/server_2"
-                android:textAllCaps="false"
-                android:textColor="@color/black"
-                android:textSize="12sp" />
-
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/themeRead"
-                android:layout_width="wrap_content"
-                android:layout_height="30dp"
-                android:layout_marginEnd="10dp"
-                android:background="@drawable/rounded_corner_bg"
-                android:backgroundTint="@color/white"
-                android:drawableStart="@drawable/paint"
-                android:drawableTint="@color/black"
-                android:paddingHorizontal="2dp"
-                android:text="@string/theme"
-                android:textAllCaps="false"
-                android:textColor="@color/black"
-                android:textSize="12sp" />
-
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/fontFormatRead"
-                android:layout_width="wrap_content"
-                android:layout_height="30dp"
-                android:layout_marginEnd="10dp"
-                android:background="@drawable/rounded_corner_bg"
-                android:backgroundTint="@color/white"
-                android:drawableStart="@drawable/font"
-                android:drawableTint="@color/black"
-                android:paddingHorizontal="2dp"
-                android:text="@string/fonts"
-                android:textAllCaps="false"
-                android:textColor="@color/black"
-                android:textSize="12sp" />
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="60dp"
+                android:lineSpacingMultiplier="1.15"
+                android:fontFamily="@font/palatino"
+                android:inputType="textMultiLine"
+                android:textColor="@color/white"
+                android:textSize="22sp" />
 
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/chapterContentRead"
-            android:layout_margin="20dp"
+    </ScrollView>
+
+    <include layout="@layout/settings_read" android:visibility="gone" />
+
+    <com.google.android.material.bottomappbar.BottomAppBar
+        android:id="@+id/bottomNavRead"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_gravity="bottom"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="20sp"
-            android:text="@string/content"
-            android:textColor="@color/white"
-            android:inputType="textMultiLine" />
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:weightSum="4">
 
-    </LinearLayout>
+            <ImageView
+                android:id="@+id/serverSourceRead"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginEnd="10dp"
+                android:layout_weight="1"
+                android:rotationY="180"
+                android:src="@drawable/server"
+                android:clickable="true"
+                android:focusable="true"
+                app:tint="@color/white" />
 
-</ScrollView>
+            <ImageView
+                android:id="@+id/chapterListRead"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginEnd="10dp"
+                android:layout_weight="1"
+                android:rotationY="180"
+                android:scaleY="1.3"
+                android:src="@drawable/toc"
+                app:tint="@color/white" />
+
+            <ImageView
+                android:id="@+id/settingsRead"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginHorizontal="10dp"
+                android:layout_weight="1"
+                android:src="@drawable/settings"
+                app:tint="@color/white" />
+
+            <ImageView
+                android:id="@+id/findTextRead"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginHorizontal="10dp"
+                android:layout_weight="1"
+                android:src="@drawable/search"
+                app:tint="@color/white" />
+
+        </LinearLayout>
+
+    </com.google.android.material.bottomappbar.BottomAppBar>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
