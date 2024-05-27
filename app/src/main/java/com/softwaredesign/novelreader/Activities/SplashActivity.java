@@ -1,4 +1,4 @@
-package com.softwaredesign.novelreader;
+package com.softwaredesign.novelreader.Activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 

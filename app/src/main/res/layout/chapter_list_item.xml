@@ -10,6 +10,7 @@
         android:textSize="20sp"
         android:text="@string/chaptername"
         android:fontFamily="@font/roboto"
+        android:textColor="@color/white"
         android:textStyle="bold"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />

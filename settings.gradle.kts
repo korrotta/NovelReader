@@ -15,4 +15,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "NovelReader"
 include(":app")
- 
+include(":novelscraperfactory")

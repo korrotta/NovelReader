@@ -8,7 +8,7 @@
     android:scrollbars="none"
     android:fillViewport="true"
     android:background="@color/cardview_dark_background"
-    tools:context=".MainActivity">
+    tools:context=".Activities.MainActivity">
 
    <androidx.constraintlayout.widget.ConstraintLayout
        android:padding="10dp"
@@ -19,7 +19,7 @@
            android:layout_width="0dp"
            android:layout_height="wrap_content"
            android:layout_margin="8dp"
-           android:background="@drawable/white_rounded_corner_bg"
+           android:background="@drawable/white_transparent_rounded_corner_bg"
            android:queryHint="Search Here..."
            app:iconifiedByDefault="false"
            app:layout_constraintEnd_toEndOf="parent"
