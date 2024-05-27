@@ -7,6 +7,8 @@ import androidx.core.content.ContextCompat;
 import android.content.Context;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -40,6 +42,7 @@ public class ReadActivity extends AppCompatActivity {
     private TruyenfullScraper truyenfullScraper = new TruyenfullScraper();
     private ProgressBar progressBar;
     private BottomAppBar bottomAppBar;
+    private Handler handler = new Handler(Looper.getMainLooper());
 
     // List of servers
     String[] servers = new String[]{"Server 1", "Server 2"};
@@ -188,8 +191,13 @@ public class ReadActivity extends AppCompatActivity {
     private final BackgroundTask getChapterContent = new BackgroundTask(ReadActivity.this) {
         @Override
         public void onPreExecute() {
-            progressBar.setVisibility(View.VISIBLE);
-            progressBar.startAnimation(AnimationUtils.loadAnimation(ReadActivity.this, android.R.anim.fade_in));
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    progressBar.setVisibility(View.VISIBLE);
+                    progressBar.startAnimation(AnimationUtils.loadAnimation(ReadActivity.this, android.R.anim.fade_in));
+                }
+            });
         }
 
         @Override
@@ -202,11 +210,16 @@ public class ReadActivity extends AppCompatActivity {
 
         @Override
         public void onPostExecute() {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    progressBar.setVisibility(View.GONE);
+                    progressBar.startAnimation(AnimationUtils.loadAnimation(ReadActivity.this, android.R.anim.fade_out));
+                }
+            });
             // Update UI after fetch
             chapterNameTV.setText(chapterTitle);
             chapterContentTV.setText(content);
-            progressBar.setVisibility(View.GONE);
-            progressBar.startAnimation(AnimationUtils.loadAnimation(ReadActivity.this, android.R.anim.fade_out));
         }
     };
 
