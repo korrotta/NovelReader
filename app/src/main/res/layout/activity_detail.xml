@@ -110,7 +110,7 @@
             android:text="Page 1 of N"
             android:textColor="@color/white"
             android:textSize="18sp" />
-
+ 
     </LinearLayout>
 
 </ScrollView>
