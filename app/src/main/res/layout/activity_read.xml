@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Activities.ReadActivity">
+    tools:context=".Activities.ReadActivity"
+    >
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/topNavRead"
@@ -90,9 +91,27 @@
         </LinearLayout>
 
     </ScrollView>
+    <View
+        android:id="@+id/overlay_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/transparent"
+        android:visibility="gone" />
 
     <include layout="@layout/settings_read" android:visibility="gone" />
-
+    <EditText
+        android:id="@+id/search_edit_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Search"
+        android:visibility="gone"
+        android:imeOptions="actionSearch"
+        android:inputType="text"
+        android:background="@android:color/white"
+        android:padding="8dp"
+        android:textColor="@android:color/black"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="40dp" />
     <com.google.android.material.bottomappbar.BottomAppBar
         android:id="@+id/bottomNavRead"
         android:layout_width="match_parent"

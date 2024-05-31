@@ -2,8 +2,10 @@ package com.softwaredesign.novelreader.Activities;
 
 import androidx.annotation.RequiresPermission;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.content.ContextCompat;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -13,11 +15,14 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AnimationUtils;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListPopupWindow;
@@ -37,6 +42,8 @@ import com.softwaredesign.novelreader.R;
 public class ReadActivity extends AppCompatActivity {
 
     private TextView chapterNameTV, chapterContentTV;
+    private View overlayView;
+    private EditText searchEditText;
     private ImageView chapterListIV, prevChapterIV, nextChapterIV, findInChapterIV, settingsIV, serverIV;
     private String chapterUrl, chapterTitle, content;
     private TruyenfullScraper truyenfullScraper = new TruyenfullScraper();
@@ -48,6 +55,7 @@ public class ReadActivity extends AppCompatActivity {
     String[] servers = new String[]{"Server 1", "Server 2"};
     String selectedServer = servers[0]; // Initially, select the first server
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -92,9 +100,24 @@ public class ReadActivity extends AppCompatActivity {
         findInChapterIV.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                searchEditText.setVisibility(View.VISIBLE);
+                searchEditText.requestFocus();
+                overlayView.setVisibility(View.VISIBLE);  // Hiển thị overlay khi EditText hiển thị
+                InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                imm.showSoftInput(searchEditText, InputMethodManager.SHOW_IMPLICIT);
             }
         });
+
+        overlayView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                searchEditText.setVisibility(View.GONE);
+                overlayView.setVisibility(View.GONE);  // Ẩn overlay khi nhấp vào
+                InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(searchEditText.getWindowToken(), 0);
+            }
+        });
+
 
         // Hanlde chapterList Button
         chapterListIV.setOnClickListener(new View.OnClickListener() {
@@ -186,6 +209,8 @@ public class ReadActivity extends AppCompatActivity {
         settingsIV = findViewById(R.id.settingsRead);
         bottomAppBar = findViewById(R.id.bottomNavRead);
         progressBar = findViewById(R.id.readProgressBar);
+        searchEditText = findViewById(R.id.search_edit_text);
+        overlayView = findViewById(R.id.overlay_view);
     }
 
     private final BackgroundTask getChapterContent = new BackgroundTask(ReadActivity.this) {
