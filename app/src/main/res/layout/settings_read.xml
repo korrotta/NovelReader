@@ -14,13 +14,13 @@
         android:textSize="24sp"
         android:textStyle="bold" />
 
-    <ImageView
+<!--    <ImageView
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:scaleType="centerCrop"
         android:layout_marginStart="250dp"
         android:layout_toEndOf="@id/settingsTitle"
-        android:src="@drawable/close" />
+        android:src="@drawable/close" />-->
 
     <TextView
         android:id="@+id/theme"
