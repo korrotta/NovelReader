@@ -106,26 +106,32 @@ public class DetailActivity extends AppCompatActivity {
             getNumberOfChapterPagesTask.execute(); //executed novelchapterlist task
         }
 
+
         //Set list active after fetch
         // Initialize and set the adapter for the chapter list RecyclerView
         chapterListItemAdapter = new ChapterListItemAdapter(DetailActivity.this, list);
         chapterListRV.setAdapter(chapterListItemAdapter);
 
+
     }
 
     // Method to load a specific page of chapters
     private void loadPage(int page) {
+
         currentPage = page;
         int start = (page - 1) * PAGE_SIZE;
         int end = Math.min(start + PAGE_SIZE, list.size());
+
         Log.d("LIST SIZE", String.valueOf(list.size()));
         Log.d("START / END", start + " / " + String.valueOf(end));
+
         pageItems = list.subList(start, end);
         chapterListItemAdapter.updateList(pageItems);
     }
 
     // Method to set up pagination controls
     private void setupPageControls() {
+
         pageTextView.setVisibility(View.VISIBLE);
         int totalPages = (int) Math.ceil((double) list.size() / PAGE_SIZE);
         pageTextView.setText("Page 1 of " + totalPages);
@@ -166,6 +172,7 @@ public class DetailActivity extends AppCompatActivity {
 
     // Background task to fetch novel details
     private BackgroundTask getNovelDetailTask = new BackgroundTask(DetailActivity.this) {
+
         NovelDescriptionModel ndm;
         @Override
         public void onPreExecute() {
@@ -184,6 +191,7 @@ public class DetailActivity extends AppCompatActivity {
             // Update UI with the fetched novel details
             DetailActivity.this.setUIData(ndm);
         }
+
     };
 
     // Background task to fetch chapter list
@@ -195,6 +203,7 @@ public class DetailActivity extends AppCompatActivity {
 
         @Override
         public void doInBackground() {
+
             // Fetch chapters for each page
             for (int i = 1; i <= numberOfPages; i++){
                 String finalUrl = preOfFinalUrlForm + i + aftOfFileUrlForm;
@@ -205,6 +214,7 @@ public class DetailActivity extends AppCompatActivity {
 
         @Override
         public void onPostExecute() {
+
             // Notify adapter that data has changed
             chapterListItemAdapter.notifyDataSetChanged();
         }
@@ -214,10 +224,12 @@ public class DetailActivity extends AppCompatActivity {
     private BackgroundTask getNumberOfChapterPagesTask  = new BackgroundTask(DetailActivity.this) {
         @Override
         public void onPreExecute() {
+
             // Show progress bar with fade-in animation
             handler.post(new Runnable() {
                 @Override
                 public void run() {
+
                     progressBar.setVisibility(View.VISIBLE);
                     progressBar.startAnimation(AnimationUtils.loadAnimation(DetailActivity.this, android.R.anim.fade_in));
                 }
@@ -227,6 +239,7 @@ public class DetailActivity extends AppCompatActivity {
         // Fetch the number of chapter pages using the scraper
         @Override
         public void doInBackground() {
+
             numberOfPages = truyenfullScraper.chapterListNumberOfPages(NovelUrl);
             Log.d("NUMBER OF PAGES", String.valueOf(numberOfPages));
         }
@@ -255,6 +268,7 @@ public class DetailActivity extends AppCompatActivity {
 
     // Method to update UI with fetched novel details
     private void setUIData(NovelDescriptionModel ndm){
+
         detailName.setText(ndm.getName());
         detailAuthor.setText(ndm.getAuthor());
         detailDescription.setText(HtmlCompat.fromHtml(ndm.getDescription(), HtmlCompat.FROM_HTML_MODE_LEGACY));

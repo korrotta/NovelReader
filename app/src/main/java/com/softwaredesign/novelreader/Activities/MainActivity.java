@@ -107,15 +107,18 @@ public class MainActivity extends AppCompatActivity {
     private void handleSearchView() {
         // Clear focus to avoid automatic keyboard pop-up
         searchView.clearFocus();
+
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
+
                 // No action on query submission
                 return false;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
+
                 // Filter the list based on search text
                 searchList(newText);
                 return false;
@@ -124,8 +127,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public HashMap<String, String> getCategoryList(String link) {
+
         HashMap<String, String> typeMap = new HashMap<String, String>();
         try {
+
             // Fetch the document from the link
             Document doc = Jsoup.connect(link).get();
 
@@ -178,6 +183,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void searchList(String text) {
+
         List<NovelModel> novelSearchList = new ArrayList<>();
         for (NovelModel n : novelList) {
             // Check if the novel name contains the search text
