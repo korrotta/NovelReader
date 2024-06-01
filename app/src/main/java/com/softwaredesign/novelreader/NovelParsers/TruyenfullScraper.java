@@ -21,24 +21,35 @@ public class TruyenfullScraper implements NovelScraperFactory {
     public String ITEM_TYPE = "https://schema.org/Book";
     @Override
     public ArrayList<NovelModel> searchPageScraping(String keyword) {
+
+        // Construct the search URL using the keyword
         String searchUrl = this.SEARCH_DEFAULT_URL + keyword;
         ArrayList<NovelModel> novelList = new ArrayList<>();
 
         try {
+
+            // Fetch and parse the search result page
             Document doc = Jsoup.connect(searchUrl)
                     .timeout(6000)
                     .get();
+
+            // Select rows containing novel information
             Elements rowNodes = doc.select("div.row");
 
             for (Element row: rowNodes){
+
                 String itemScope = row.attr("itemtype");
+
+                // Check if the item type matches the novel item type
                 if (itemScope.equals(this.ITEM_TYPE)){
 
+                    // Extract novel details
                     String novelName = getNovelNameInRowNode(row);
                     String novelHref = getNovelLinkInRowNode(row);
                     String novelAuthor = getNovelAuthorInRowNode(row);
                     String novelThumbnailsUrl = getThumbnailsUrlInRowNode(row);
 
+                    // Create a new NovelModel object and add it to the list
                     NovelModel novel = new NovelModel(novelName, novelHref, novelAuthor, novelThumbnailsUrl);
                     novelList.add(novel);
                     Log.d("Novel data", novel.toString());
@@ -53,9 +64,13 @@ public class TruyenfullScraper implements NovelScraperFactory {
     @Override
     public NovelDescriptionModel novelDetailScraping(String url) {
         try {
+
+            // Fetch and parse the novel detail page
             Document doc = Jsoup.connect(url).timeout(6000).get();
             Element headerNode = doc.getElementById("truyen");
 //            Log.d("headerNode", headerNode.toString());
+
+            // Extract novel details
             String novelName = headerNode.selectFirst("h3.title").text();
             String novelAuthor = headerNode.selectFirst("a[itemprop=author]").text();
             Element novelDescriptionNode = headerNode.selectFirst("div[itemprop=description]");
@@ -81,10 +96,12 @@ public class TruyenfullScraper implements NovelScraperFactory {
             data[2] = content;
             data[3] = novelDeskImgUrl;
 
+            // Create and return a new NovelDescriptionModel object
             NovelDescriptionModel ndm = new NovelDescriptionModel(novelName, novelAuthor, content, novelDeskImgUrl);
             return ndm;
 
         } catch (IOException e) {
+
             throw new RuntimeException(e);
         }
     }
@@ -94,22 +111,28 @@ public class TruyenfullScraper implements NovelScraperFactory {
         List<NovelModel> novels = new ArrayList<>();
 
         try{
+
+            // Fetch and parse the home page
             Document doc = Jsoup.connect(url).get();
             Element novelHolderTag = doc.selectFirst("div.index-intro");
             Elements novelListTag = novelHolderTag.select("div.item");
             for (Element novel: novelListTag) {
                 if (novel.attr("itemtype").equals(this.ITEM_TYPE)){
+
+                    // Extract novel details
                     String name = novel.selectFirst("h3").text();
                     String imgUrl = novel.selectFirst("img[src]").attr("src");
                     String novelUrl = novel.selectFirst("a[href]").attr("href");
                     String author = "";
 
+                    // Create a new NovelModel object and add it to the list
                     NovelModel novelToAdd = new NovelModel(name, novelUrl, author, imgUrl);
                     logToCheck(novelToAdd);
                     novels.add(novelToAdd);
                 }
             }
         }   catch (IOException e) {
+            // Handle exceptions
             throw new RuntimeException(e);
         }
         return novels;
