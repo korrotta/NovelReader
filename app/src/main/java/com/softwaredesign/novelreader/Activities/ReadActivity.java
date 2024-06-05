@@ -244,7 +244,7 @@ public class ReadActivity extends AppCompatActivity {
 
     // clear all highlight text function
     private void clearHighlight() {
-        chapterContentTV.setText(content);  // Đặt lại nội dung văn bản gốc không có highlight
+        chapterContentTV.setText(content);
     }
 
     // scroll to search result function
