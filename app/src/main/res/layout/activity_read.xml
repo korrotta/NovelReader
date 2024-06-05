@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Activities.ReadActivity">
+    tools:context=".Activities.ReadActivity"
+    >
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/topNavRead"
@@ -63,11 +64,13 @@
         android:visibility="gone" />
 
     <ScrollView
+        android:id="@+id/contentScrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:padding="10dp"
         android:scrollbars="vertical"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        >
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -83,16 +86,96 @@
                 android:layout_marginBottom="60dp"
                 android:lineSpacingMultiplier="1.15"
                 android:fontFamily="@font/palatino"
-                android:inputType="textMultiLine"
+                android:inputType="textMultiLine|textNoSuggestions"
                 android:textColor="@color/white"
                 android:textSize="22sp" />
 
         </LinearLayout>
 
     </ScrollView>
+    <!--<View
+        android:id="@+id/overlay_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/transparent"
+        android:visibility="gone" />-->
 
     <include layout="@layout/settings_read" android:visibility="gone" />
+    <LinearLayout
+        android:id="@+id/search_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="40dp"
+        android:visibility="gone"
+        android:background="@drawable/search_layout_backgound">
+        <EditText
+            android:id="@+id/search_edit_text"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:hint="Search"
+            android:textColorHint="@color/gray"
+            android:imeOptions="actionSearch"
+            android:background="@android:color/transparent"
+            android:inputType="text"
+            android:padding="8dp"
+            android:textColor="@android:color/black"
+            android:layout_gravity="bottom"
+            android:layout_weight="10"/>
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="#444444"
+            />
+        <TextView
+            android:id="@+id/search_status"
+            android:layout_width="50dp"
+            android:layout_height="30dp"
+            android:text=""
+            android:layout_weight="1"
+            android:layout_gravity="center"
+            android:textColor="#000000"
+            android:gravity="center"
+            />
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="#444444"
+            />
+        <ImageButton
+            android:id="@+id/search_up"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_search_up"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="8dp"
+            android:layout_weight="1"
+            android:alpha="0.2"
+            android:clickable="false"/>
 
+        <ImageButton
+            android:id="@+id/search_down"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_search_down"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="8dp"
+            android:layout_weight="1"
+            android:alpha="0.2"
+            android:clickable="false"/>
+
+        <ImageButton
+            android:id="@+id/search_close"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/close"
+            app:tint="@color/black"
+            android:background="@android:color/transparent"
+            android:padding="8dp"
+            android:layout_weight="1"
+            />
+    </LinearLayout>
     <com.google.android.material.bottomappbar.BottomAppBar
         android:id="@+id/bottomNavRead"
         android:layout_width="match_parent"

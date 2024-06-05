@@ -2,31 +2,34 @@ package com.softwaredesign.novelreader.Activities;
 
 import androidx.annotation.RequiresPermission;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.content.ContextCompat;
 
-import android.content.Context;
-import android.graphics.drawable.ColorDrawable;
+import android.annotation.SuppressLint;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.Layout;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.style.BackgroundColorSpan;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.AnimationUtils;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListPopupWindow;
-import android.widget.PopupMenu;
 import android.widget.PopupWindow;
 import android.widget.ProgressBar;
-import android.widget.Spinner;
+import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.material.bottomappbar.BottomAppBar;
 import com.softwaredesign.novelreader.BackgroundTask;
@@ -34,9 +37,18 @@ import com.softwaredesign.novelreader.Models.NovelDescriptionModel;
 import com.softwaredesign.novelreader.NovelParsers.TruyenfullScraper;
 import com.softwaredesign.novelreader.R;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.SplittableRandom;
+
 public class ReadActivity extends AppCompatActivity {
 
-    private TextView chapterNameTV, chapterContentTV;
+    private TextView chapterNameTV, chapterContentTV, searchStatusTV;
+    private View overlayView;
+    private ScrollView contentScrollView;
+    private EditText searchEditText;
+    private ImageButton searchUpIV, searchDownIV, searchCloseButton;
+    private LinearLayout search_layout;
     private ImageView chapterListIV, prevChapterIV, nextChapterIV, findInChapterIV, settingsIV, serverIV;
     private String chapterUrl, chapterTitle, content;
     private TruyenfullScraper truyenfullScraper = new TruyenfullScraper();
@@ -44,10 +56,15 @@ public class ReadActivity extends AppCompatActivity {
     private BottomAppBar bottomAppBar;
     private Handler handler = new Handler(Looper.getMainLooper());
 
+    private List<Integer> searchResults = new ArrayList<>();
+    private int currentSearchIndex = 0;
+
     // List of servers
     String[] servers = new String[]{"Server 1", "Server 2"};
     String selectedServer = servers[0]; // Initially, select the first server
 
+
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -92,7 +109,74 @@ public class ReadActivity extends AppCompatActivity {
         findInChapterIV.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //searchEditText.setVisibility(View.VISIBLE);
+                search_layout.setVisibility(View.VISIBLE);
+                searchEditText.requestFocus();
+                //overlayView.setVisibility(View.VISIBLE);  // Hiển thị overlay khi EditText hiển thị
+                InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                imm.showSoftInput(searchEditText, InputMethodManager.SHOW_IMPLICIT);
+            }
+        });
 
+        /*overlayView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //searchEditText.setVisibility(View.GONE);
+                search_layout.setVisibility(View.GONE);
+                overlayView.setVisibility(View.GONE);  // Ẩn overlay khi nhấp vào
+                InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(searchEditText.getWindowToken(), 0);
+            }
+        });*/
+
+        // Hanlde search EditText
+        searchEditText.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_SEARCH || event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
+                String searchText = searchEditText.getText().toString();
+                if (!searchText.isEmpty()) {
+                    performSearch();
+                    highlightText(searchText);
+                }
+                return true;
+            }
+            return false;
+        });
+
+        // Hanlde searchUp Button
+        searchUpIV.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!searchResults.isEmpty()) {
+                    currentSearchIndex = (currentSearchIndex - 1 + searchResults.size()) % searchResults.size();
+                    scrollToSearchResult(false);
+                }
+            }
+        });
+
+        // Hanlde searchDown Button
+        searchDownIV.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!searchResults.isEmpty()) {
+                    currentSearchIndex = (currentSearchIndex + 1) % searchResults.size();
+                    scrollToSearchResult(false);
+                }
+            }
+        });
+
+        // Hanlde searchClose Button
+        searchCloseButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                searchResults.clear();
+                searchEditText.setText("");
+                search_layout.setVisibility(View.GONE);
+                clearHighlight();
+                searchUpIV.setAlpha(searchResults.size() > 1 ? 1.0f : 0.2f);
+                searchDownIV.setAlpha(searchResults.size() > 1 ? 1.0f : 0.2f);
+                searchUpIV.setClickable(searchResults.size() > 1);
+                searchDownIV.setClickable(searchResults.size() > 1);
+                searchStatusTV.setText("");
             }
         });
 
@@ -112,6 +196,104 @@ public class ReadActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    // search text in content function
+    private void performSearch() {
+        String query = searchEditText.getText().toString();
+        String content = chapterContentTV.getText().toString();
+
+        searchResults = new ArrayList<>();
+        int index = content.indexOf(query);
+        while (index >= 0) {
+            searchResults.add(index);
+            index = content.indexOf(query, index + query.length());
+        }
+
+        if (!searchResults.isEmpty()) {
+            currentSearchIndex = 0;
+            scrollToSearchResult(true);
+            searchStatusTV.setText((currentSearchIndex + 1) + "/" + searchResults.size());
+        } else {
+            searchStatusTV.setText("0/0");
+        }
+
+        searchUpIV.setAlpha(searchResults.size() > 1 ? 1.0f : 0.2f);
+        searchDownIV.setAlpha(searchResults.size() > 1 ? 1.0f : 0.2f);
+        searchUpIV.setClickable(searchResults.size() > 1);
+        searchDownIV.setClickable(searchResults.size() > 1);
+    }
+
+    // highlight text after found function
+    private void highlightText(String searchText) {
+        if (searchResults.isEmpty()){
+            clearHighlight();
+            return;
+        }
+        int highlightColor = ContextCompat.getColor(this, R.color.saddle_brown);
+
+        Spannable spannable = new SpannableString(content);
+
+        for (int i = 0; i < searchResults.size(); i++) {
+            spannable.setSpan(new BackgroundColorSpan(highlightColor), searchResults.get(i), searchResults.get(i) + searchText.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        chapterContentTV.setText(spannable);
+
+        highlightTextWithCurrentHighlight(searchResults.get(currentSearchIndex));
+    }
+
+    // clear all highlight text function
+    private void clearHighlight() {
+        chapterContentTV.setText(content);
+    }
+
+    // scroll to search result function
+    private void scrollToSearchResult(boolean forceScroll) {
+        if (!searchResults.isEmpty() && currentSearchIndex < searchResults.size()) {
+            int position = searchResults.get(currentSearchIndex);
+
+            // Highlight current search result with a different color
+            highlightTextWithCurrentHighlight(position);
+
+            chapterContentTV.post(() -> {
+                Layout layout = chapterContentTV.getLayout();
+                if (layout != null) {
+                    int line = layout.getLineForOffset(position);
+                    int y = layout.getLineTop(line);
+
+                    int scrollY = contentScrollView.getScrollY();
+                    int scrollViewHeight = contentScrollView.getHeight() - bottomAppBar.getHeight() - searchEditText.getHeight();
+
+                    // Only scroll if the result is not fully visible
+                    if (forceScroll || y < scrollY || y > scrollY + scrollViewHeight - chapterContentTV.getLineHeight()) {
+                        int targetScrollY = y - scrollViewHeight / 2 + chapterContentTV.getLineHeight() / 2;
+                        contentScrollView.smoothScrollTo(0, targetScrollY);
+                    }
+                }
+            });
+
+            searchStatusTV.setText((currentSearchIndex + 1) + "/" + searchResults.size());
+        }
+    }
+
+
+    // highlight text current result, with other color
+    private void highlightTextWithCurrentHighlight(int currentPosition) {
+        int highlightColor = ContextCompat.getColor(this, R.color.saddle_brown);
+        int currentHighlightColor = ContextCompat.getColor(this, R.color.slate_blue);;
+        String content = chapterContentTV.getText().toString();
+        Spannable spannable = new SpannableString(content);
+
+        for (int i = 0; i < searchResults.size(); i++) {
+            int start = searchResults.get(i);
+            int end = start + searchEditText.getText().toString().length();
+            if (start == currentPosition) {
+                spannable.setSpan(new BackgroundColorSpan(currentHighlightColor), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            } else {
+                spannable.setSpan(new BackgroundColorSpan(highlightColor), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+        }
+        chapterContentTV.setText(spannable);
     }
 
     private void showServerMenu(View view) {
@@ -186,6 +368,14 @@ public class ReadActivity extends AppCompatActivity {
         settingsIV = findViewById(R.id.settingsRead);
         bottomAppBar = findViewById(R.id.bottomNavRead);
         progressBar = findViewById(R.id.readProgressBar);
+        searchEditText = findViewById(R.id.search_edit_text);
+        //overlayView = findViewById(R.id.overlay_view);
+        search_layout = findViewById(R.id.search_layout);
+        searchDownIV = findViewById(R.id.search_down);
+        searchUpIV = findViewById(R.id.search_up);
+        searchStatusTV = findViewById(R.id.search_status);
+        contentScrollView = findViewById(R.id.contentScrollView);
+        searchCloseButton = findViewById(R.id.search_close);
     }
 
     private final BackgroundTask getChapterContent = new BackgroundTask(ReadActivity.this) {

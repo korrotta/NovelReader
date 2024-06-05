@@ -14,13 +14,13 @@
         android:textSize="24sp"
         android:textStyle="bold" />
 
-    <ImageView
+<!--    <ImageView
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:scaleType="centerCrop"
         android:layout_marginStart="250dp"
         android:layout_toEndOf="@id/settingsTitle"
-        android:src="@drawable/close" />
+        android:src="@drawable/close" />-->
 
     <TextView
         android:id="@+id/theme"
@@ -32,25 +32,35 @@
         android:textColor="@color/white"
         android:textSize="20sp" />
 
-    <ImageView
-        android:id="@+id/settingsLightTheme"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+    <RadioGroup
+        android:id="@+id/modeRadioGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
         android:layout_below="@id/settingsTitle"
-        android:layout_marginStart="50dp"
-        android:layout_marginTop="25dp"
         android:layout_toEndOf="@id/theme"
-        android:src="@drawable/light_mode" />
+        android:layout_marginTop="25dp">
+        <RadioButton
+            android:id="@+id/settingsLightTheme"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_below="@id/settingsTitle"
+            android:layout_marginStart="50dp"
+            android:layout_toEndOf="@id/theme"
+            android:button="@android:color/transparent"
+            android:background="@drawable/light_mode_selector"
+            />
 
-    <ImageView
-        android:id="@+id/settingsDarkTheme"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_below="@id/settingsTitle"
-        android:layout_marginStart="80dp"
-        android:layout_marginTop="25dp"
-        android:layout_toEndOf="@id/settingsLightTheme"
-        android:src="@drawable/dark_mode" />
+        <RadioButton
+            android:id="@+id/settingsDarkTheme"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_below="@id/settingsTitle"
+            android:layout_marginStart="80dp"
+            android:layout_toEndOf="@id/settingsLightTheme"
+            android:button="@android:color/transparent"
+            android:background="@drawable/dark_mode_selector"/>
+    </RadioGroup>
 
     <TextView
         android:id="@+id/font"
@@ -62,6 +72,88 @@
         android:textColor="@color/white"
         android:textSize="20sp" />
 
+    <!--<Spinner
+        android:id="@+id/fontSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/theme"
+        android:layout_toEndOf="@+id/font"
+        android:layout_marginTop="30dp"
+        android:layout_marginStart="20dp"/>-->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/theme"
+        android:layout_toEndOf="@+id/font"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="10dp"
+        android:scrollbars="none">
+        <RadioGroup
+            android:id="@+id/fontRadioGroup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <!--android:layout_below="@+id/theme"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="30dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginBottom="10dp"
+            android:layout_toEndOf="@+id/font"-->
+
+
+            <RadioButton
+                android:id="@+id/fontPalatino"
+                android:layout_width="80dp"
+                android:layout_height="25dp"
+                android:layout_marginHorizontal="5dp"
+                android:background="@drawable/font_button_selector"
+                android:button="@android:color/transparent"
+                android:text="Palatino"
+                android:textSize="15sp"
+                android:gravity="center"
+                android:textColor="@drawable/font_text_color_selector"/>
+
+            <RadioButton
+                android:id="@+id/fontTimes"
+                android:layout_width="80dp"
+                android:layout_height="25dp"
+                android:layout_marginHorizontal="5dp"
+                android:background="@drawable/font_button_selector"
+                android:button="@android:color/transparent"
+                android:text="Times"
+                android:textSize="15sp"
+                android:gravity="center"
+                android:textColor="@drawable/font_text_color_selector"
+                />
+
+            <RadioButton
+                android:id="@+id/fontArial"
+                android:layout_width="80dp"
+                android:layout_height="25dp"
+                android:layout_marginHorizontal="5dp"
+                android:background="@drawable/font_button_selector"
+                android:button="@android:color/transparent"
+                android:text="Arial"
+                android:textSize="15sp"
+                android:gravity="center"
+                android:textColor="@drawable/font_text_color_selector"/>
+
+            <RadioButton
+                android:id="@+id/fontGeorgia"
+                android:layout_width="80dp"
+                android:layout_height="25dp"
+                android:layout_marginHorizontal="5dp"
+                android:background="@drawable/font_button_selector"
+                android:button="@android:color/transparent"
+                android:text="Georgia"
+                android:textSize="15sp"
+                android:gravity="center"
+                android:textColor="@drawable/font_text_color_selector"/>
+        </RadioGroup>
+    </HorizontalScrollView>
+
     <TextView
         android:id="@+id/font_size"
         android:layout_width="wrap_content"
@@ -71,5 +163,61 @@
         android:text="@string/text_size"
         android:textColor="@color/white"
         android:textSize="20sp" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_below="@+id/font"
+        android:layout_marginTop="30dp"
+        android:layout_toEndOf="@+id/font_size"
+        android:layout_marginStart="20dp"
+        android:background="@drawable/font_size_backgound">
+
+        <!-- Button A- -->
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/button_decrease"
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:text="A-"
+            android:textSize="15sp"
+            android:background="@drawable/font_size_button_background_selector_left"
+            android:textColor="@drawable/font_text_color_selector"
+            />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="#444444"
+            />
+
+        <!-- TextView for displaying the current size -->
+        <TextView
+            android:id="@+id/text_size"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="26"
+            android:textSize="15sp"
+            android:layout_marginHorizontal="10dp"
+            android:textColor="@color/black"
+            />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="#444444"
+            />
+
+        <!-- Button A+ -->
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/button_increase"
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:text="A+"
+            android:textSize="15sp"
+            android:background="@drawable/font_size_button_background_selector_right"
+            android:textColor="@drawable/font_text_color_selector"/>
+    </LinearLayout>
 
 </RelativeLayout>
