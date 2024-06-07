@@ -14,5 +14,7 @@ public interface NovelScraperFactory {
 
     <T>List<T> novelHomePageScraping(String url);
 
+    int getNumberOfChaptersPerPage();
+
 
 }
