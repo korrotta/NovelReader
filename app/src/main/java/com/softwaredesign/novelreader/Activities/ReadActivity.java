@@ -1,12 +1,10 @@
 package com.softwaredesign.novelreader.Activities;
 
-import androidx.annotation.RequiresPermission;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.content.ContextCompat;
+import androidx.core.text.HtmlCompat;
 
 import android.annotation.SuppressLint;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -30,16 +28,16 @@ import android.widget.PopupWindow;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.material.bottomappbar.BottomAppBar;
 import com.softwaredesign.novelreader.BackgroundTask;
-import com.softwaredesign.novelreader.Models.NovelDescriptionModel;
+import com.softwaredesign.novelreader.Global.ReusableFunction;
 import com.softwaredesign.novelreader.NovelParsers.TruyenfullScraper;
 import com.softwaredesign.novelreader.R;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.SplittableRandom;
 
 public class ReadActivity extends AppCompatActivity {
 
@@ -58,6 +56,9 @@ public class ReadActivity extends AppCompatActivity {
 
     private List<Integer> searchResults = new ArrayList<>();
     private int currentSearchIndex = 0;
+
+    private String nextChapterUrl, previousChapterUrl;
+
 
     // List of servers
     String[] servers = new String[]{"Server 1", "Server 2"};
@@ -79,13 +80,21 @@ public class ReadActivity extends AppCompatActivity {
             Log.d("Tag", "ChapterURL: " + chapterUrl);
         }
 
+
+
+        //execute chapter content
         getChapterContent.execute();
 
         // Handle Previous Chapter Button
         prevChapterIV.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                if (previousChapterUrl== null) {
+                    Toast.makeText(ReadActivity.this, "Không có chương trước", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                chapterUrl = previousChapterUrl;
+                getChapterContent.execute();
             }
         });
 
@@ -93,7 +102,12 @@ public class ReadActivity extends AppCompatActivity {
         nextChapterIV.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                if (nextChapterUrl == null) {
+                    Toast.makeText(ReadActivity.this, "Không có chương tiếp", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                chapterUrl = nextChapterUrl;
+                getChapterContent.execute();
             }
         });
 
@@ -376,6 +390,12 @@ public class ReadActivity extends AppCompatActivity {
         searchStatusTV = findViewById(R.id.search_status);
         contentScrollView = findViewById(R.id.contentScrollView);
         searchCloseButton = findViewById(R.id.search_close);
+
+        //Gone View
+        if (nextChapterIV.getVisibility() == View.VISIBLE || prevChapterIV.getVisibility() == View.VISIBLE) return;
+
+        nextChapterIV.setVisibility(View.GONE);
+        prevChapterIV.setVisibility(View.GONE);
     }
 
     private final BackgroundTask getChapterContent = new BackgroundTask(ReadActivity.this) {
@@ -394,8 +414,10 @@ public class ReadActivity extends AppCompatActivity {
         public void doInBackground() {
             //Fetch from chapterURL
             chapterTitle = truyenfullScraper.getChapterTitleAndName(chapterUrl);
-            content = truyenfullScraper.chapterContent(chapterUrl);
-            Log.d("FETCHED CONTENT", content);
+            content = truyenfullScraper.getChapterContent(chapterUrl);
+            ReadActivity.this.nextChapterUrl = truyenfullScraper.getNextChapterUrl(ReadActivity.this.chapterUrl);
+            ReadActivity.this.previousChapterUrl = truyenfullScraper.getPreviousChapterUrl(ReadActivity.this.chapterUrl);
+//            Log.d("FETCHED CONTENT", content);
         }
 
         @Override
@@ -409,7 +431,12 @@ public class ReadActivity extends AppCompatActivity {
             });
             // Update UI after fetch
             chapterNameTV.setText(chapterTitle);
-            chapterContentTV.setText(content);
+            chapterContentTV.setText(HtmlCompat.fromHtml(content, HtmlCompat.FROM_HTML_MODE_LEGACY));
+
+            nextChapterIV.setVisibility(View.VISIBLE);
+            prevChapterIV.setVisibility(View.VISIBLE);
+
+            contentScrollView.fullScroll(ScrollView.FOCUS_UP);
         }
     };
 
