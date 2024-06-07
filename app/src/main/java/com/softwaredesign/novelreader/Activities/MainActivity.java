@@ -1,5 +1,6 @@
 package com.softwaredesign.novelreader.Activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.animation.AnimationUtils;
@@ -76,51 +77,22 @@ public class MainActivity extends AppCompatActivity {
         // Fetch the novels to display on the main page
         fetchMainPageNovels();
 
-        // Handle filter Spinner
-       /* filterSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String selectedFilter = parent.getItemAtPosition(position).toString();
-                // Filter novel list
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
-        });*/
-
-        // TODO: Initialize filter Spinner
-        // Get category list from web
-        //typeMap = new HashMap<String, String>();
-        //typeMap = getCategoryList(TRUYENFULL_VN);
-
-        // Get number of pages on a category
-        //numberOfPages = getNumberOfPages(typeMap.get("Tiên Hiệp"));
-
-        //first page of the selected category
-        //getNovelListFromPageLink(typeMap.get("Tiên Hiệp"));
-
     }
 
 
     private void handleSearchView() {
-        // Clear focus to avoid automatic keyboard pop-up
-        searchView.clearFocus();
-
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-
-                // No action on query submission
+                Intent intent = new Intent(MainActivity.this, SearchActivity.class);
+                intent.putExtra("searchQuery", query);
+                startActivity(intent);
                 return false;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
-
-                // Filter the list based on search text
-                searchList(newText);
+                // No action on query text change
                 return false;
             }
         });
@@ -179,27 +151,5 @@ public class MainActivity extends AppCompatActivity {
         };
         // Execute the background task
         task.execute();
-    }
-
-
-    private void searchList(String text) {
-
-        List<NovelModel> novelSearchList = new ArrayList<>();
-        for (NovelModel n : novelList) {
-            // Check if the novel name contains the search text
-            if (n.getName().toLowerCase().contains(text.toLowerCase())) {
-                novelSearchList.add(n);
-            }
-        }
-
-        if (novelSearchList.isEmpty()) {
-
-            // If no results found, show a toast message (commented out)
-            // Toast.makeText(this, "No results found", Toast.LENGTH_SHORT).show();
-
-        } else {
-            // Update the adapter with the search results
-            novelAdapter.setSearchList(novelSearchList);
-        }
     }
 }

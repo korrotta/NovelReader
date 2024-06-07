@@ -34,7 +34,7 @@ public class TruyenfullScraper implements NovelScraperFactory {
 
             // Fetch and parse the search result page
             Document doc = Jsoup.connect(searchUrl)
-                    .timeout(6000)
+                    .timeout(10000)
                     .get();
 
             // Select rows containing novel information
