@@ -19,6 +19,8 @@ import java.util.List;
 public class TruyenfullScraper implements NovelScraperFactory {
     public String SEARCH_DEFAULT_URL = "https://truyenfull.vn/tim-kiem/?tukhoa=";
     public String ITEM_TYPE = "https://schema.org/Book";
+
+    private final int CHAPTERS_PER_PAGE = 50;
     @Override
     public ArrayList<NovelModel> searchPageScraping(String keyword) {
 
@@ -178,6 +180,12 @@ public class TruyenfullScraper implements NovelScraperFactory {
         }
         return totalPages;
     }
+
+    @Override
+    public int getNumberOfChaptersPerPage() {
+        return this.CHAPTERS_PER_PAGE;
+    }
+
     //Chapter list support methods:
     private String parseTitle(String title){
         String[] carriage = title.split(" - ");

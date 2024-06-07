@@ -34,6 +34,7 @@ import android.widget.Toast;
 
 import com.softwaredesign.novelreader.Adapters.ChapterListItemAdapter;
 import com.softwaredesign.novelreader.BackgroundTask;
+import com.softwaredesign.novelreader.GlobalConfig;
 import com.softwaredesign.novelreader.Models.ChapterModel;
 import com.softwaredesign.novelreader.Models.NovelDescriptionModel;
 import com.softwaredesign.novelreader.NovelParsers.TruyenfullScraper;
@@ -50,29 +51,36 @@ public class DetailActivity extends AppCompatActivity {
     private ImageView detailImage;
     private TextView detailName, detailAuthor, detailDescription, pageTextView;
     private static String NovelUrl;
-    private TruyenfullScraper truyenfullScraper = new TruyenfullScraper();
+    private TruyenfullScraper truyenfullScraper;
     private NovelDescriptionModel ndm;
     private RecyclerView chapterListRV;
-    private static List<ChapterModel> list, pageItems;
     private ChapterListItemAdapter chapterListItemAdapter;
-    private static int numberOfPages;
-    private String preOfFinalUrlForm;
-    private String aftOfFileUrlForm;
+
     private ProgressBar progressBar;
-    private int currentPage = 1;
-    private int PAGE_SIZE = 10;
+
     private Handler handler = new Handler(Looper.getMainLooper());
+    private static volatile int numberOfPages, currentPage, pageSize;
+    private static volatile List<ChapterModel> pageItems;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
 
+        truyenfullScraper = new TruyenfullScraper();
+        pageSize = truyenfullScraper.getNumberOfChaptersPerPage();
+        currentPage = 1;
+
         //clear static variable:
         // Clear static variable and initialize list if null
         NovelUrl = "";
-        if (list != null) list.clear();
-        else list = new ArrayList<>();
+        if (pageItems !=null){
+            pageItems.clear();
+        }
+        else {
+            pageItems = new ArrayList<>();
+        }
+
         numberOfPages = 0;
 
         // Initialize UI elements by finding their IDs
@@ -97,10 +105,6 @@ public class DetailActivity extends AppCompatActivity {
             NovelUrl = NovelUrl.replace("chuong-1/", "");
             Log.d("Tag", "onCreate: " + NovelUrl);
 
-            // Set URL parts for chapter pagination
-            this.preOfFinalUrlForm = NovelUrl + "/trang-";
-            this.aftOfFileUrlForm = "/#list-chapter";
-
             // Execute tasks to fetch novel details and chapters
             getNovelDetailTask.execute();
             getNumberOfChapterPagesTask.execute(); //executed novelchapterlist task
@@ -109,7 +113,7 @@ public class DetailActivity extends AppCompatActivity {
 
         //Set list active after fetch
         // Initialize and set the adapter for the chapter list RecyclerView
-        chapterListItemAdapter = new ChapterListItemAdapter(DetailActivity.this, list);
+        chapterListItemAdapter = new ChapterListItemAdapter(DetailActivity.this, pageItems);
         chapterListRV.setAdapter(chapterListItemAdapter);
 
 
@@ -119,22 +123,16 @@ public class DetailActivity extends AppCompatActivity {
     private void loadPage(int page) {
 
         currentPage = page;
-        int start = (page - 1) * PAGE_SIZE;
-        int end = Math.min(start + PAGE_SIZE, list.size());
+        // Execute task to fetch chapters
+        getChapterListTask.execute();
 
-        Log.d("LIST SIZE", String.valueOf(list.size()));
-        Log.d("START / END", start + " / " + String.valueOf(end));
-
-        pageItems = list.subList(start, end);
-        chapterListItemAdapter.updateList(pageItems);
     }
 
     // Method to set up pagination controls
     private void setupPageControls() {
 
         pageTextView.setVisibility(View.VISIBLE);
-        int totalPages = (int) Math.ceil((double) list.size() / PAGE_SIZE);
-        pageTextView.setText("Page 1 of " + totalPages);
+        pageTextView.setText("Page 1 of " + numberOfPages);
 
         // Set click listener to show a popup menu for page selection
         pageTextView.setOnClickListener(new View.OnClickListener() {
@@ -145,7 +143,7 @@ public class DetailActivity extends AppCompatActivity {
                 PopupMenu popupMenu = new PopupMenu(DetailActivity.this, pageTextView);
 
                 // Add pages to the PopupMenu
-                for (int i = 1; i <= totalPages; i++) {
+                for (int i = 1; i <= numberOfPages; i++) {
                     popupMenu.getMenu().add(0, i, i, "Page " + i);
                 }
 
@@ -155,7 +153,7 @@ public class DetailActivity extends AppCompatActivity {
                     public boolean onMenuItemClick(MenuItem item) {
                         // Handle page selection
                         loadPage(item.getItemId());
-                        pageTextView.setText("Page " + item.getItemId() + " of " + totalPages);
+                        pageTextView.setText("Page " + item.getItemId() + " of " + numberOfPages);
                         return true;
                     }
                 });
@@ -173,29 +171,31 @@ public class DetailActivity extends AppCompatActivity {
     // Background task to fetch novel details
     private BackgroundTask getNovelDetailTask = new BackgroundTask(DetailActivity.this) {
 
-        NovelDescriptionModel ndm;
+        NovelDescriptionModel novelDescModel;
         @Override
         public void onPreExecute() {
             // No pre-execution actions needed
+
         }
 
         @Override
         public void doInBackground() {
             //Fetch from scraped
             // Fetch novel details using the scraper
-            ndm = truyenfullScraper.novelDetailScraping(NovelUrl);
+            novelDescModel = truyenfullScraper.novelDetailScraping(NovelUrl);
         }
 
         @Override
         public void onPostExecute() {
             // Update UI with the fetched novel details
-            DetailActivity.this.setUIData(ndm);
+            DetailActivity.this.setUIData(novelDescModel);
         }
 
     };
 
     // Background task to fetch chapter list
     private BackgroundTask getChapterListTask = new BackgroundTask(DetailActivity.this) {
+        private String preOfFinalUrlForm, aftOfFileUrlForm;
         @Override
         public void onPreExecute() {
             // No pre-execution actions needed
@@ -205,17 +205,29 @@ public class DetailActivity extends AppCompatActivity {
         public void doInBackground() {
 
             // Fetch chapters for each page
-            for (int i = 1; i <= numberOfPages; i++){
-                String finalUrl = preOfFinalUrlForm + i + aftOfFileUrlForm;
-                Log.d("TAG", "doInBackground: " + finalUrl);
-                list.addAll(truyenfullScraper.novelChapterListScraping(finalUrl));
-            }
+//            for (int i = 1; i <= numberOfPages; i++){
+//                String finalUrl = preOfFinalUrlForm + i + aftOfFileUrlForm;
+//                Log.d("TAG", "doInBackground: " + finalUrl);
+//                list.addAll(truyenfullScraper.novelChapterListScraping(finalUrl));
+//            }
+
+            // Set URL parts for chapter pagination
+            this.preOfFinalUrlForm = NovelUrl + "/trang-";
+            this.aftOfFileUrlForm = "/#list-chapter";
+
+            //Fetch chapter list of that page.
+            String pageUrl = this.preOfFinalUrlForm + currentPage + this.aftOfFileUrlForm;
+            GlobalConfig.logVariable(pageUrl);
+
+            List<ChapterModel> tempPageList = truyenfullScraper.novelChapterListScraping(pageUrl);
+            replaceList(pageItems, tempPageList);
         }
 
         @Override
         public void onPostExecute() {
 
             // Notify adapter that data has changed
+            chapterListItemAdapter.updateList(pageItems);
             chapterListItemAdapter.notifyDataSetChanged();
         }
     };
@@ -246,9 +258,6 @@ public class DetailActivity extends AppCompatActivity {
 
         @Override
         public void onPostExecute() {
-
-            // Execute task to fetch chapters
-            getChapterListTask.execute();
             // Hide progress bar with fade-out animation after a delay
             handler.postDelayed(new Runnable() {
                 @Override
@@ -275,4 +284,8 @@ public class DetailActivity extends AppCompatActivity {
         Picasso.get().load(ndm.getImgUrl()).placeholder(R.drawable.logo).into(detailImage);
     }
 
+    private void replaceList(List destinationList, List dataList){
+        destinationList.clear();
+        destinationList.addAll(dataList);
+    }
 }
