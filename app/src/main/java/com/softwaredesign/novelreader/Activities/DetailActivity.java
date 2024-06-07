@@ -121,7 +121,6 @@ public class DetailActivity extends AppCompatActivity {
 
     // Method to load a specific page of chapters
     private void loadPage(int page) {
-
         currentPage = page;
         // Execute task to fetch chapters
         getChapterListTask.execute();

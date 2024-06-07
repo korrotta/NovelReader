@@ -60,7 +60,7 @@ public class NovelAdapter extends RecyclerView.Adapter<NovelViewHolder> {
         String ImageUrl = novelList.get(position).getImageDesk();
 
         // Load the image into the ImageView using Picasso
-        Picasso.get().load(ImageUrl).placeholder(R.drawable.logo).into(holder.recImage);
+        Picasso.get().load(ImageUrl).into(holder.recImage);
 
         // Send info to detail activity
         // Set an onClickListener to handle clicks on the novel item
