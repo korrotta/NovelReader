@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
     private AppCompatSpinner filterSpinner; // Spinner for filtering novels
     //Parser
     private TruyenfullScraper truyenfullScraper; // Scraper object to fetch novels
-    private static int numberOfPages = 0; // Variable to hold number of pages
+    private static int NumberOfPages = 0; // Variable to hold number of pages
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -137,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
 
                 // Clear the current list and fetch new data
                 novelList.clear();
-                novelList.addAll(truyenfullScraper.novelHomePageScraping(truyenfullUrl));
+                novelList.addAll(truyenfullScraper.getHomePage(truyenfullUrl));
             }
 
             @Override
