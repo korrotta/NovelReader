@@ -107,7 +107,7 @@ public class SearchActivity extends AppCompatActivity {
         @Override
         public void doInBackground() {
             // Fetch novel List
-            novelList = truyenfullScraper.searchPageScraping(searchQuery);
+            novelList = truyenfullScraper.getSearchPageFromKeyword(searchQuery);
             Log.d("SEARCH NOVE LIST FETCHED", novelList.toString());
         }
 
