@@ -4,11 +4,17 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.PopupMenu;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
@@ -30,7 +36,11 @@ public class SearchActivity extends AppCompatActivity {
     private ProgressBar searchProgressBar;
     private final TruyenfullScraper truyenfullScraper = new TruyenfullScraper();
     private String searchQuery;
+    private LinearLayout searchPageControlLayout;
+    private ImageView prevSearchPage, nextSearchPage;
+    private TextView searchPageTextView;
     private Handler handler = new Handler();
+    private static volatile int numberOfPages, currentPage, maxPage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +50,10 @@ public class SearchActivity extends AppCompatActivity {
         searchSearchView = findViewById(R.id.searchSearchView);
         novelSearchListView = findViewById(R.id.searchListView);
         searchProgressBar = findViewById(R.id.searchProgressBar);
+        searchPageControlLayout = findViewById(R.id.searchPageControlLayout);
+        prevSearchPage = findViewById(R.id.previousSearchPage);
+        nextSearchPage = findViewById(R.id.nextSearchPage);
+        searchPageTextView = findViewById(R.id.searchPageTextView);
 
         // Handle fetch Novel from query
         Bundle bundle = getIntent().getExtras();
@@ -72,6 +86,80 @@ public class SearchActivity extends AppCompatActivity {
             }
         });
 
+        // Setup search pagination
+        setupPageControls();
+
+        // Handle Paginagtion
+        handlePagination();
+    }
+
+    private void handlePagination() {
+        // Set click listener to show a popup menu for page selection
+        searchPageTextView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                // Create a PopupMenu
+                PopupMenu popupMenu = new PopupMenu(SearchActivity.this, searchPageTextView);
+
+                // Add pages to the PopupMenu
+                for (int i = 1; i <= numberOfPages; i++) {
+                    popupMenu.getMenu().add(0, i, i, "Page " + i);
+                }
+
+                // Set a click listener for PopupMenu items
+                popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        // Handle page selection
+                        loadPage(item.getItemId());
+                        searchPageTextView.setText("Page " + item.getItemId() + " of " + numberOfPages);
+                        return true;
+                    }
+                });
+
+                // Set the gravity of the PopupMenu
+                popupMenu.setGravity(Gravity.START);
+
+                // Show the PopupMenu
+                popupMenu.show();
+
+            }
+        });
+
+        // Handle Previous Page Button
+        prevSearchPage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
+        // Handle Next Page Button
+        nextSearchPage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+    }
+
+    private void setupPageControls() {
+        currentPage = 1;
+        maxPage = novelList.size();
+
+        // TODO: Get total search results pages
+        numberOfPages = maxPage / 5;
+
+        // Set Search Page TextView
+        searchPageControlLayout.setVisibility(View.VISIBLE);
+        searchPageTextView.setText("Page 1 of " + numberOfPages);
+    }
+
+    // Method to load a specific page of search results
+    private void loadPage(int page) {
+        currentPage = page;
+        //TODO: Fetch search results list of that page.
     }
 
     private void searchView() {

@@ -109,7 +109,6 @@ public class DetailActivity extends AppCompatActivity {
         currentPage = page;
         // Execute task to fetch chapters
         getChapterListTask.execute();
-
     }
 
     // Method to set up pagination controls

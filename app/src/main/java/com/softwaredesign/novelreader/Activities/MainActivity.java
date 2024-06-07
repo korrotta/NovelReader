@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.animation.AnimationUtils;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -38,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private List<NovelModel> novelList = new ArrayList<>(); // List to hold novel data
     private NovelAdapter novelAdapter; // Adapter for the RecyclerView
     private ProgressBar progressBar; // ProgressBar to indicate loading
-    private AppCompatSpinner filterSpinner; // Spinner for filtering novels
+    private AppCompatSpinner serverSpinner; // Spinner for server sources
     //Parser
     private TruyenfullScraper truyenfullScraper; // Scraper object to fetch novels
     private static int NumberOfPages = 0; // Variable to hold number of pages
@@ -52,8 +54,7 @@ public class MainActivity extends AppCompatActivity {
         searchView = findViewById(R.id.searchView);
         recyclerView = findViewById(R.id.recyclerView);
         progressBar = findViewById(R.id.progressBar);
-
-        //filterSpinner = findViewById(R.id.filterSpinner);
+        serverSpinner = findViewById(R.id.serverSpinner);
 
         //create parser
         // Initialize the scraper
@@ -76,6 +77,28 @@ public class MainActivity extends AppCompatActivity {
         // Fetch novel from web
         // Fetch the novels to display on the main page
         fetchMainPageNovels();
+
+        // Handle Server Spinner
+        serverSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String item = parent.getItemAtPosition(position).toString();
+                Toast.makeText(MainActivity.this, "You pick " + item, Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        ArrayList<String> serverList = new ArrayList<>();
+        serverList.add("Server 1");
+        serverList.add("Server 2");
+
+        ArrayAdapter<String> serverAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, serverList);
+        serverAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        serverSpinner.setAdapter(serverAdapter);
 
     }
 

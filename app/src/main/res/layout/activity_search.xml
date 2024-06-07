@@ -1,19 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/cardview_dark_background"
-    android:fillViewport="true"
-    android:orientation="vertical"
-    android:scrollbars="none"
     tools:context=".Activities.SearchActivity">
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="10dp">
 
         <androidx.appcompat.widget.SearchView
             android:id="@+id/searchSearchView"
@@ -30,15 +22,16 @@
 
         <ListView
             android:id="@+id/searchListView"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
+            android:layout_width="match_parent"
+            android:layout_height="600dp"
             android:layout_marginTop="8dp"
             android:divider="@android:color/transparent"
-            android:scrollbars="none"
+            android:scrollbars="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/searchSearchView"
+            app:layout_constraintVertical_bias="0"
             tools:listitem="@layout/novel_search_item" />
 
         <ProgressBar
@@ -51,6 +44,48 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
 
-</ScrollView>
+        <LinearLayout
+            android:id="@+id/searchPageControlLayout"
+            android:layout_width="match_parent"
+            android:layout_height="35dp"
+            android:layout_marginTop="5dp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/searchListView">
+
+            <ImageView
+                android:id="@+id/previousSearchPage"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_marginStart="3dp"
+                android:layout_marginEnd="10dp"
+                android:src="@drawable/before"
+                app:tint="@color/white" />
+
+            <TextView
+                android:id="@+id/searchPageTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:drawableEnd="@drawable/drop_down"
+                android:padding="5dp"
+                android:text="Page 1 of "
+                android:textAlignment="center"
+                android:textColor="@color/white"
+                android:textSize="18sp" />
+
+            <ImageView
+                android:id="@+id/nextSearchPage"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="3dp"
+                android:src="@drawable/next"
+                app:tint="@color/white" />
+        </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
