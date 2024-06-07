@@ -3,6 +3,7 @@ package com.softwaredesign.novelreader.NovelParsers;
 import android.util.Log;
 
 import com.example.novelscraperfactory.NovelScraperFactory;
+import com.softwaredesign.novelreader.Global.ReusableFunction;
 import com.softwaredesign.novelreader.Models.ChapterModel;
 import com.softwaredesign.novelreader.Models.NovelDescriptionModel;
 import com.softwaredesign.novelreader.Models.NovelModel;
@@ -17,12 +18,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TruyenfullScraper implements NovelScraperFactory {
-    public String SEARCH_DEFAULT_URL = "https://truyenfull.vn/tim-kiem/?tukhoa=";
-    public String ITEM_TYPE = "https://schema.org/Book";
+    private final String SEARCH_DEFAULT_URL = "https://truyenfull.vn/tim-kiem/?tukhoa=";
+    private final String ITEM_TYPE = "https://schema.org/Book";
 
     private final int CHAPTERS_PER_PAGE = 50;
+    private final String SOURCE_NAME = "Truyenfull";
     @Override
-    public ArrayList<NovelModel> searchPageScraping(String keyword) {
+    public ArrayList<NovelModel> getSearchPageFromKeyword(String keyword) {
 
         // Construct the search URL using the keyword
         String searchUrl = this.SEARCH_DEFAULT_URL + keyword;
@@ -64,7 +66,7 @@ public class TruyenfullScraper implements NovelScraperFactory {
     }
 
     @Override
-    public NovelDescriptionModel novelDetailScraping(String url) {
+    public NovelDescriptionModel getNovelDetail(String url) {
         try {
 
             // Fetch and parse the novel detail page
@@ -109,7 +111,7 @@ public class TruyenfullScraper implements NovelScraperFactory {
     }
 
     @Override
-    public List<NovelModel> novelHomePageScraping(String url) {
+    public List<NovelModel> getHomePage(String url) {
         List<NovelModel> novels = new ArrayList<>();
 
         try{
@@ -141,7 +143,7 @@ public class TruyenfullScraper implements NovelScraperFactory {
     }
 
     @Override
-    public List<ChapterModel> novelChapterListScraping(String url) {
+    public List<ChapterModel> getChapterListFromUrl(String url) {
 
         List<ChapterModel> chapters = new ArrayList<>();
 
@@ -170,7 +172,7 @@ public class TruyenfullScraper implements NovelScraperFactory {
     }
 
     @Override
-    public int chapterListNumberOfPages(String url) {
+    public int getChapterListNumberOfPages(String url) {
         int totalPages = 0;
         try {
             Document doc = Jsoup.connect(url).get();
@@ -182,10 +184,84 @@ public class TruyenfullScraper implements NovelScraperFactory {
     }
 
     @Override
+    public String getChapterContent(String url) {
+        try {
+            Document doc = Jsoup.connect(url).get();
+            Element chapterBody = doc.select("div.chapter-c").first();
+//            content = chapterBody.html();
+//
+//            // Replace <br> tags with newline characters
+//            String formattedContent = content.replaceAll("(?i)<br[^>]*>", "\n");
+//
+//            // Strip other HTML tags
+//            formattedContent = formattedContent.replaceAll("<[^>]+>", "");
+//
+//            // Replace multiple consecutive newline characters with a single newline
+//            formattedContent = formattedContent.replaceAll("\n+", "\n\n");
+//
+//            Log.d(" CONTENT", formattedContent);
+            return chapterBody.toString();
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    @Override
+    public String getNextChapterUrl(String url) {
+        try {
+            Document doc = Jsoup.connect(url).get();
+            Element nextChapElement = doc.getElementById("next_chap");
+            if (nextChapElement!= null) {
+                String nextChapUrl = nextChapElement.attr("href");
+                ReusableFunction.LogVariable(nextChapUrl);
+                if (!nextChapUrl.equals("javascript:void(0)")){
+                    return nextChapUrl;
+                }
+                return null;
+            }
+            return null;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public String getPreviousChapterUrl(String url) {
+        try {
+            Document doc = Jsoup.connect(url).get();
+            Element prevChapElement = doc.getElementById("prev_chap");
+            if (prevChapElement!= null) {
+                String prevChapUrl = prevChapElement.attr("href");
+                ReusableFunction.LogVariable(prevChapUrl);
+                if (!prevChapUrl.equals("javascript:void(0)")){
+                    return prevChapUrl;
+                }
+                return null;
+            }
+            return null;
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    //Final variable fetching.
+    @Override
     public int getNumberOfChaptersPerPage() {
         return this.CHAPTERS_PER_PAGE;
     }
 
+    @Override
+    public String getSourceName() {
+        return this.SOURCE_NAME;
+    }
+
+
+
+
+    //0----------------------------------0
     //Chapter list support methods:
     private String parseTitle(String title){
         String[] carriage = title.split(" - ");
@@ -258,34 +334,6 @@ public class TruyenfullScraper implements NovelScraperFactory {
     }
 
     //Novel description support methods
-
-    // Chapter content support methods
-    public String chapterContent(String url) {
-        try {
-            String content;
-            Document doc = Jsoup.connect(url).get();
-
-            Element chapterBody = doc.getElementById("chapter-c");
-            Log.d("CHAPTER BODY", chapterBody.html());
-            content = chapterBody.html();
-
-            // Replace <br> tags with newline characters
-            String formattedContent = content.replaceAll("(?i)<br[^>]*>", "\n");
-
-            // Strip other HTML tags
-            formattedContent = formattedContent.replaceAll("<[^>]+>", "");
-
-            // Replace multiple consecutive newline characters with a single newline
-            formattedContent = formattedContent.replaceAll("\n+", "\n\n");
-
-            Log.d(" CONTENT", formattedContent);
-            return formattedContent;
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     //Other methods
     private void logToCheck(NovelModel n){
         Log.d("Novel Model object", n.getName() + " src: " + n.getUrl() + " " + n.getAuthor() + " img: " + n.getImageDesk());
