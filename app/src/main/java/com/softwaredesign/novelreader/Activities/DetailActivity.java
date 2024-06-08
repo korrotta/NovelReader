@@ -9,11 +9,16 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+
 import android.util.Log;
+import java.util.ArrayList;
+import java.util.List;
+
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.AnimationUtils;
+
 import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.ProgressBar;
@@ -24,28 +29,22 @@ import com.softwaredesign.novelreader.BackgroundTask;
 import com.softwaredesign.novelreader.Global.ReusableFunction;
 import com.softwaredesign.novelreader.Models.ChapterModel;
 import com.softwaredesign.novelreader.Models.NovelDescriptionModel;
-import com.softwaredesign.novelreader.NovelParsers.TruyenfullScraper;
-
+import com.softwaredesign.novelreader.Scrapers.TruyenfullScraper;
 import com.softwaredesign.novelreader.R;
-import com.squareup.picasso.Picasso;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.squareup.picasso.Picasso;
 
 public class DetailActivity extends AppCompatActivity {
 
-    // Declare UI elements and other necessary variables
     private ImageView detailImage;
     private TextView detailName, detailAuthor, detailDescription, pageTextView;
-    private static String NovelUrl;
     private TruyenfullScraper truyenfullScraper;
-    private NovelDescriptionModel ndm;
     private RecyclerView chapterListRV;
     private ChapterListItemAdapter chapterListItemAdapter;
-
     private ProgressBar progressBar;
-
     private Handler handler = new Handler(Looper.getMainLooper());
+
+    private static String NovelUrl;
     private static volatile int numberOfPages, currentPage, pageSize;
     private static volatile List<ChapterModel> pageItems;
 
@@ -54,21 +53,24 @@ public class DetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
 
-        truyenfullScraper = new TruyenfullScraper();
-        pageSize = truyenfullScraper.getNumberOfChaptersPerPage();
-        currentPage = 1;
+        classVarInit();
+        viewInit();
 
-        NovelUrl = "";
-        if (pageItems !=null){
-            pageItems.clear();
+        Bundle bundle = getIntent().getExtras();
+        if (bundle != null) {
+            getNovelUrlFromPreviousIntent(bundle);
+            getNovelDetailTask.execute();
+            getNumberOfChapterPagesTask.execute();
         }
-        else {
-            pageItems = new ArrayList<>();
-        }
+    }
 
-        numberOfPages = 0;
+    private void getNovelUrlFromPreviousIntent(Bundle bundle) {
+        NovelUrl = bundle.getString("NovelUrl");
+        NovelUrl = NovelUrl.replace("chuong-1/", "");
+        Log.d("Tag", "onCreate: " + NovelUrl);
+    }
 
-        // Initialize UI elements by finding their IDs
+    private void viewInit() {
         detailImage = findViewById(R.id.detailImage);
         detailName = findViewById(R.id.detailName);
         detailAuthor = findViewById(R.id.detailAuthor);
@@ -77,31 +79,28 @@ public class DetailActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.detailProgressBar);
         pageTextView = findViewById(R.id.pageTextView);
 
-        // Initialize Chapter List RecyclerView
-
-        // Set up RecyclerView with a GridLayoutManager
         GridLayoutManager gridLayoutManager = new GridLayoutManager(DetailActivity.this, 1);
         chapterListRV.setLayoutManager(gridLayoutManager);
-
-        // Get novelUrl from selected novel
-        Bundle bundle = getIntent().getExtras();
-        if (bundle != null) {
-            NovelUrl = bundle.getString("NovelUrl");
-            NovelUrl = NovelUrl.replace("chuong-1/", "");
-            Log.d("Tag", "onCreate: " + NovelUrl);
-
-            // Execute tasks to fetch novel details and chapters
-            getNovelDetailTask.execute();
-            getNumberOfChapterPagesTask.execute(); //executed novelchapterlist task
-        }
-
-
-        //Set list active after fetch
-        // Initialize and set the adapter for the chapter list RecyclerView
         chapterListItemAdapter = new ChapterListItemAdapter(DetailActivity.this, pageItems);
         chapterListRV.setAdapter(chapterListItemAdapter);
+    }
 
+    private void classVarInit() {
+        truyenfullScraper = new TruyenfullScraper();
+        pageSize = truyenfullScraper.getNumberOfChaptersPerPage();
 
+        currentPage = 1;
+
+        NovelUrl = "";
+
+        if (pageItems !=null){
+            pageItems.clear();
+        }
+        else {
+            pageItems = new ArrayList<>();
+        }
+
+        numberOfPages = 0;
     }
 
     // Method to load a specific page of chapters
@@ -113,7 +112,6 @@ public class DetailActivity extends AppCompatActivity {
 
     // Method to set up pagination controls
     private void setupPageControls() {
-
         pageTextView.setVisibility(View.VISIBLE);
         pageTextView.setText("Page 1 of " + numberOfPages);
 
@@ -203,7 +201,7 @@ public class DetailActivity extends AppCompatActivity {
             ReusableFunction.LogVariable(pageUrl);
 
             List<ChapterModel> tempPageList = truyenfullScraper.getChapterListFromUrl(pageUrl);
-            replaceList(pageItems, tempPageList);
+            ReusableFunction.ReplaceList(pageItems, tempPageList);
         }
 
         @Override
@@ -267,8 +265,5 @@ public class DetailActivity extends AppCompatActivity {
         Picasso.get().load(ndm.getImgUrl()).placeholder(R.drawable.logo).into(detailImage);
     }
 
-    private void replaceList(List destinationList, List dataList){
-        destinationList.clear();
-        destinationList.addAll(dataList);
-    }
+
 }

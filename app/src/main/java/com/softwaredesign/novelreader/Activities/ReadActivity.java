@@ -32,8 +32,7 @@ import android.widget.Toast;
 
 import com.google.android.material.bottomappbar.BottomAppBar;
 import com.softwaredesign.novelreader.BackgroundTask;
-import com.softwaredesign.novelreader.Global.ReusableFunction;
-import com.softwaredesign.novelreader.NovelParsers.TruyenfullScraper;
+import com.softwaredesign.novelreader.Scrapers.TruyenfullScraper;
 import com.softwaredesign.novelreader.R;
 
 import java.util.ArrayList;

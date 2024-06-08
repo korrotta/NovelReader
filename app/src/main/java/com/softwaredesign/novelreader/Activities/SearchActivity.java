@@ -3,7 +3,6 @@ package com.softwaredesign.novelreader.Activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
@@ -21,9 +20,10 @@ import androidx.appcompat.widget.SearchView;
 
 import com.softwaredesign.novelreader.Adapters.NovelSearchAdapter;
 import com.softwaredesign.novelreader.BackgroundTask;
+import com.softwaredesign.novelreader.Global.ReusableFunction;
 import com.softwaredesign.novelreader.Models.NovelModel;
-import com.softwaredesign.novelreader.NovelParsers.TruyenfullScraper;
 import com.softwaredesign.novelreader.R;
+import com.softwaredesign.novelreader.Scrapers.TruyenfullScraper;
 
 import java.util.ArrayList;
 
@@ -32,16 +32,17 @@ public class SearchActivity extends AppCompatActivity {
     private SearchView searchSearchView;
     private ListView novelSearchListView;
     private NovelSearchAdapter novelSearchAdapter;
-    private ArrayList<NovelModel> novelList = new ArrayList<>();
+
     private ProgressBar searchProgressBar;
     private final TruyenfullScraper truyenfullScraper = new TruyenfullScraper();
     private String searchQuery;
     private LinearLayout searchPageControlLayout;
     private ImageView prevSearchPage, nextSearchPage;
     private TextView searchPageTextView;
-    private Handler handler = new Handler();
     private static volatile int numberOfPages, currentPage, maxPage;
+    private static ArrayList<NovelModel> novelList;
 
+    private Handler handler = new Handler();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,17 +60,22 @@ public class SearchActivity extends AppCompatActivity {
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
             searchQuery = bundle.getString("searchQuery");
-            Log.d("SEARCH QUERY", searchQuery);
-            fetchSearchNovels.execute();
         }
 
         // Handle Search View
         searchView();
 
+        if (novelList == null){
+            novelList = new ArrayList<>();
+        }
+        novelList.clear();
+
         // Set Adapter and ListView
         novelSearchAdapter = new NovelSearchAdapter(SearchActivity.this, novelList);
         novelSearchListView.setAdapter(novelSearchAdapter);
         novelSearchListView.setClickable(true);
+
+        getTotalPagesThenResult.execute();
 
         // Handle Item Click
         novelSearchListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -113,7 +119,6 @@ public class SearchActivity extends AppCompatActivity {
                     public boolean onMenuItemClick(MenuItem item) {
                         // Handle page selection
                         loadPage(item.getItemId());
-                        searchPageTextView.setText("Page " + item.getItemId() + " of " + numberOfPages);
                         return true;
                     }
                 });
@@ -131,6 +136,9 @@ public class SearchActivity extends AppCompatActivity {
         prevSearchPage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (currentPage <= 1) return;
+                currentPage--;
+                loadPage(currentPage);
 
             }
         });
@@ -139,6 +147,9 @@ public class SearchActivity extends AppCompatActivity {
         nextSearchPage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (currentPage >= numberOfPages) return;
+                currentPage++;
+                loadPage(currentPage);
 
             }
         });
@@ -146,20 +157,16 @@ public class SearchActivity extends AppCompatActivity {
 
     private void setupPageControls() {
         currentPage = 1;
-        maxPage = novelList.size();
 
-        // TODO: Get total search results pages
-        numberOfPages = maxPage / 5;
-
-        // Set Search Page TextView
-        searchPageControlLayout.setVisibility(View.VISIBLE);
-        searchPageTextView.setText("Page 1 of " + numberOfPages);
+        SearchActivity.this.searchPageControlLayout.setVisibility(View.VISIBLE);
+        SearchActivity.this.searchPageTextView.setText("Page 1 of " + numberOfPages);
     }
 
     // Method to load a specific page of search results
     private void loadPage(int page) {
         currentPage = page;
-        //TODO: Fetch search results list of that page.
+        getSearchResult();
+
     }
 
     private void searchView() {
@@ -167,7 +174,7 @@ public class SearchActivity extends AppCompatActivity {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 searchQuery = query;
-                fetchSearchNovels.execute();
+                getTotalPagesThenResult.execute();
                 return false;
             }
 
@@ -179,38 +186,66 @@ public class SearchActivity extends AppCompatActivity {
         });
     }
 
-    private final BackgroundTask fetchSearchNovels = new BackgroundTask(SearchActivity.this) {
+
+    //Pre-execute needed, renew instance every load
+    private void getSearchResult(){
+        new BackgroundTask(SearchActivity.this) {
+            @Override
+            public void onPreExecute () {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        searchProgressBar.setVisibility(View.VISIBLE);
+                        searchProgressBar.startAnimation(AnimationUtils.loadAnimation(SearchActivity.this, android.R.anim.fade_in));
+                    }
+                });
+            }
+
+            @Override
+            public void doInBackground () {
+                //get data from source
+                ReusableFunction.ReplaceList(novelList, truyenfullScraper.getSearchPageFromKeywordAndPageNumber(searchQuery, currentPage));
+            }
+
+            @Override
+            public void onPostExecute () {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        searchProgressBar.setVisibility(View.GONE);
+                        searchProgressBar.startAnimation(AnimationUtils.loadAnimation(SearchActivity.this, android.R.anim.fade_out));
+                    }
+                });
+                novelSearchAdapter.notifyDataSetChanged();
+                novelSearchListView.smoothScrollToPosition(0);
+                SearchActivity.this.searchPageTextView.setText("Page " + currentPage + " of " + numberOfPages);
+            }
+        }.execute();
+    }
+
+
+
+
+    //No pre-execute needed
+    private final BackgroundTask getTotalPagesThenResult = new BackgroundTask(SearchActivity.this) {
         @Override
         public void onPreExecute() {
-            // Show and animate the progress bar before starting the task
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    searchProgressBar.setVisibility(View.VISIBLE);
-                    searchProgressBar.startAnimation(AnimationUtils.loadAnimation(SearchActivity.this, android.R.anim.fade_in));
-                }
-            });
+            //Do nothing
         }
 
         @Override
         public void doInBackground() {
-            // Fetch novel List
-            novelList = truyenfullScraper.getSearchPageFromKeyword(searchQuery);
-            Log.d("SEARCH NOVE LIST FETCHED", novelList.toString());
+            numberOfPages = truyenfullScraper.getNumberOfSearchResultPage(searchQuery);
         }
 
         @Override
         public void onPostExecute() {
-            // Hide and animate the progress bar after the task is completed
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    searchProgressBar.setVisibility(View.GONE);
-                    searchProgressBar.startAnimation(AnimationUtils.loadAnimation(SearchActivity.this, android.R.anim.fade_out));
-                    novelSearchAdapter.notifyDataSetChanged();
-                }
-            });
+            setupPageControls();
+            if (numberOfPages > 0) loadPage(currentPage);
+            else {
+                novelList.clear();
+                novelSearchAdapter.notifyDataSetChanged();
+            }
         }
     };
-
 }
