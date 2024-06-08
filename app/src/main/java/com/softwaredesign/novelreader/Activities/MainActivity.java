@@ -18,7 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.softwaredesign.novelreader.BackgroundTask;
 import com.softwaredesign.novelreader.Models.NovelModel;
 import com.softwaredesign.novelreader.Adapters.NovelAdapter;
-import com.softwaredesign.novelreader.NovelParsers.TruyenfullScraper;
+import com.softwaredesign.novelreader.Scrapers.TruyenfullScraper;
 import com.softwaredesign.novelreader.R;
 
 import org.jsoup.Jsoup;

@@ -4,8 +4,9 @@ package com.example.novelscraperfactory;
 import java.util.ArrayList;
 import java.util.List;
 
-public interface NovelScraperFactory {
-    <T> ArrayList<T> getSearchPageFromKeyword(String keyword);
+public interface INovelScraper {
+    <T> ArrayList<T> getSearchPageFromKeywordAndPageNumber(String keyword, int page);
+    int getNumberOfSearchResultPage(String keyword);
 
     // 0 - Name, 1 - Author, 2 - Description
     <T> T getNovelDetail(String url);

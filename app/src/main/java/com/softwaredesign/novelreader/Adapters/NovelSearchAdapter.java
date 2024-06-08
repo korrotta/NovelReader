@@ -1,6 +1,7 @@
 package com.softwaredesign.novelreader.Adapters;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -44,4 +45,5 @@ public class NovelSearchAdapter extends ArrayAdapter<NovelModel> {
 
         return view;
     }
+
 }
