@@ -1,8 +1,8 @@
-package com.softwaredesign.novelreader.NovelParsers;
+package com.softwaredesign.novelreader.Scrapers;
 
 import android.util.Log;
 
-import com.example.novelscraperfactory.NovelScraperFactory;
+import com.example.novelscraperfactory.INovelScraper;
 import com.softwaredesign.novelreader.Global.ReusableFunction;
 import com.softwaredesign.novelreader.Models.ChapterModel;
 import com.softwaredesign.novelreader.Models.NovelDescriptionModel;
@@ -17,26 +17,22 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TruyenfullScraper implements NovelScraperFactory {
+public class TruyenfullScraper implements INovelScraper {
     private final String SEARCH_DEFAULT_URL = "https://truyenfull.vn/tim-kiem/?tukhoa=";
     private final String ITEM_TYPE = "https://schema.org/Book";
 
     private final int CHAPTERS_PER_PAGE = 50;
     private final String SOURCE_NAME = "Truyenfull";
     @Override
-    public ArrayList<NovelModel> getSearchPageFromKeyword(String keyword) {
+    public ArrayList<NovelModel> getSearchPageFromKeywordAndPageNumber(String keyword, int page) {
 
         // Construct the search URL using the keyword
-        String searchUrl = this.SEARCH_DEFAULT_URL + keyword;
+        String searchUrl = this.SEARCH_DEFAULT_URL + keyword + "&page=" + page;
         ArrayList<NovelModel> novelList = new ArrayList<>();
 
         try {
-
             // Fetch and parse the search result page
-            Document doc = Jsoup.connect(searchUrl)
-                    .timeout(10000)
-                    .get();
-
+            Document doc = Jsoup.connect(searchUrl).get();
             // Select rows containing novel information
             Elements rowNodes = doc.select("div.row");
 
@@ -56,7 +52,7 @@ public class TruyenfullScraper implements NovelScraperFactory {
                     // Create a new NovelModel object and add it to the list
                     NovelModel novel = new NovelModel(novelName, novelHref, novelAuthor, novelThumbnailsUrl);
                     novelList.add(novel);
-                    Log.d("Novel data", novel.toString());
+//                    Log.d("Novel data", novel.toString());
                 }
             }
             return novelList;
@@ -83,22 +79,8 @@ public class TruyenfullScraper implements NovelScraperFactory {
             if (novelDescriptionNode!=null){
                 content = novelDescriptionNode.toString();
                 content = content.replace("<div class=\"desc-text desc-text-full\" itemprop=\"description\">", "");
-//                content = content.replaceAll("<b>", "");
-//                content = content.replaceAll("</b>", "");
-//                content = content.replaceAll("<i>", "");
-//                content = content.replaceAll("</i>","");
-//                content = content.replaceAll("&nbsp;", " ");
-//                content = content.replace("</div>", "");
-//                content = content.replaceAll("<br>", "");
                 Log.d("content", content);
             }
-
-            String data[] = new String[4];
-
-            data[0] = novelName;
-            data[1] = novelAuthor;
-            data[2] = content;
-            data[3] = novelDeskImgUrl;
 
             // Create and return a new NovelDescriptionModel object
             NovelDescriptionModel ndm = new NovelDescriptionModel(novelName, novelAuthor, content, novelDeskImgUrl);
@@ -149,7 +131,6 @@ public class TruyenfullScraper implements NovelScraperFactory {
 
         try {
             Document doc = Jsoup.connect(url).get();
-            Element chapterListNode = doc.getElementById("list-chapter");
             Elements chaptersNode = doc.select("ul.list-chapter");
 
             for (Element node: chaptersNode){
@@ -169,6 +150,44 @@ public class TruyenfullScraper implements NovelScraperFactory {
         }
 
         return chapters;
+    }
+
+    @Override
+    public int getNumberOfSearchResultPage(String keyword) {
+        String searchUrl = this.SEARCH_DEFAULT_URL + keyword;
+        int numberOfPages = 0;
+
+        try {
+            Document doc = Jsoup.connect(searchUrl).get();
+            Element paginationElement = doc.select("ul.pagination.pagination-sm").first();
+
+            if (paginationElement!=null){
+                //Case > a number
+                Elements pageElements = paginationElement.select("a[href]");
+                int finalMax = 0;
+                for (Element pageElement: pageElements){
+
+                    String rightAnd = pageElement.attr("href").split("&")[1];
+                    String finalPage = rightAnd.split("=")[1];
+                    int pageId = Integer.parseInt(finalPage);
+                    if (pageElement.text().contains("Cuối")){
+                        return pageId;
+                    }
+
+                    if (pageId > finalMax) finalMax = pageId;
+                }
+                return finalMax;
+            }
+
+            Element listResult = doc.selectFirst("div.list.list-truyen.col-xs-12");
+            assert listResult != null;
+            if (listResult.text().contains("Không tìm thấy")){
+                return 0;
+            }
+            return 1;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

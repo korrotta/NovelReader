@@ -46,4 +46,5 @@ public class NovelModel{
     public void setImageDesk(String imageDesk) {
         this.imageDesk = imageDesk;
     }
+
 }

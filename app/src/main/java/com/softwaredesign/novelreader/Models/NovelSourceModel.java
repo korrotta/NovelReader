@@ -1,12 +1,12 @@
 package com.softwaredesign.novelreader.Models;
 
-import com.example.novelscraperfactory.NovelScraperFactory;
+import com.example.novelscraperfactory.INovelScraper;
 
 public class NovelSourceModel{
     String name;
-    NovelScraperFactory scrapperInstance;
+    INovelScraper scrapperInstance;
 
-    public NovelSourceModel(String name, NovelScraperFactory scrapperInstance) {
+    public NovelSourceModel(String name, INovelScraper scrapperInstance) {
         this.name = name;
         this.scrapperInstance = scrapperInstance;
     }
@@ -19,11 +19,11 @@ public class NovelSourceModel{
         this.name = name;
     }
 
-    public NovelScraperFactory getScrapperInstance() {
+    public INovelScraper getScrapperInstance() {
         return scrapperInstance;
     }
 
-    public void setScrapperInstance(NovelScraperFactory scrapperInstance) {
+    public void setScrapperInstance(INovelScraper scrapperInstance) {
         this.scrapperInstance = scrapperInstance;
     }
 }
