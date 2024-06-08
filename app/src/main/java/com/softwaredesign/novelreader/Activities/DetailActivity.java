@@ -1,10 +1,6 @@
 package com.softwaredesign.novelreader.Activities;
 
 // Import necessary Android and Java libraries
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.text.HtmlCompat;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
 import android.os.Handler;
@@ -19,13 +15,23 @@ import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.text.HtmlCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.recyclerview.widget.GridLayoutManager;
+
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.navigation.NavigationBarView;
 import com.softwaredesign.novelreader.Adapters.ChapterListItemAdapter;
 import com.softwaredesign.novelreader.BackgroundTask;
+import com.softwaredesign.novelreader.Fragments.ChapterListFragment;
+import com.softwaredesign.novelreader.Fragments.DetailNovelFragment;
 import com.softwaredesign.novelreader.Global.ReusableFunction;
 import com.softwaredesign.novelreader.Models.ChapterModel;
 import com.softwaredesign.novelreader.Models.NovelDescriptionModel;
 import com.softwaredesign.novelreader.NovelParsers.TruyenfullScraper;
-
 import com.softwaredesign.novelreader.R;
 import com.squareup.picasso.Picasso;
 
@@ -36,17 +42,15 @@ public class DetailActivity extends AppCompatActivity {
 
     // Declare UI elements and other necessary variables
     private ImageView detailImage;
-    private TextView detailName, detailAuthor, detailDescription, pageTextView;
+    private TextView detailName, detailAuthor, detailDescription;
     private static String NovelUrl;
     private TruyenfullScraper truyenfullScraper;
     private NovelDescriptionModel ndm;
-    private RecyclerView chapterListRV;
     private ChapterListItemAdapter chapterListItemAdapter;
-
     private ProgressBar progressBar;
-
+    private BottomNavigationView bottomNavigationView;
     private Handler handler = new Handler(Looper.getMainLooper());
-    private static volatile int numberOfPages, currentPage, pageSize;
+    private static volatile int numberOfPages, currentPage;
     private static volatile List<ChapterModel> pageItems;
 
     @Override
@@ -55,14 +59,12 @@ public class DetailActivity extends AppCompatActivity {
         setContentView(R.layout.activity_detail);
 
         truyenfullScraper = new TruyenfullScraper();
-        pageSize = truyenfullScraper.getNumberOfChaptersPerPage();
         currentPage = 1;
 
         NovelUrl = "";
-        if (pageItems !=null){
+        if (pageItems != null) {
             pageItems.clear();
-        }
-        else {
+        } else {
             pageItems = new ArrayList<>();
         }
 
@@ -72,13 +74,20 @@ public class DetailActivity extends AppCompatActivity {
         detailImage = findViewById(R.id.detailImage);
         detailName = findViewById(R.id.detailName);
         detailAuthor = findViewById(R.id.detailAuthor);
-        detailDescription = findViewById(R.id.detailDescription);
-        chapterListRV = findViewById(R.id.chapterListRV);
         progressBar = findViewById(R.id.detailProgressBar);
-        pageTextView = findViewById(R.id.pageTextView);
+        bottomNavigationView = findViewById(R.id.detailBottomNav);
+
+        /*
+        ATTENTION:
+        detailDescription moved to DetailNovelFragment
+        chapterListRV moved to ChapterListFragment
+        pageTextView moved to ChapterListFragment
+         */
+
+        // Initially load the Detail Fragment
+        loadFragment(new DetailNovelFragment());
 
         // Initialize Chapter List RecyclerView
-
         // Set up RecyclerView with a GridLayoutManager
         GridLayoutManager gridLayoutManager = new GridLayoutManager(DetailActivity.this, 1);
         chapterListRV.setLayoutManager(gridLayoutManager);
@@ -95,13 +104,54 @@ public class DetailActivity extends AppCompatActivity {
             getNumberOfChapterPagesTask.execute(); //executed novelchapterlist task
         }
 
-
         //Set list active after fetch
         // Initialize and set the adapter for the chapter list RecyclerView
         chapterListItemAdapter = new ChapterListItemAdapter(DetailActivity.this, pageItems);
         chapterListRV.setAdapter(chapterListItemAdapter);
 
+        // Handle Bottom Navigation View Events
+        handleBottomNav();
 
+    }
+
+    private void handleBottomNav() {
+        bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                Fragment selectedFragment = null;
+                int itemId = item.getItemId();
+                if (itemId == R.id.detailBottomNavChapterList) {
+                    // Handle Chapter List Option
+                    selectedFragment = new ChapterListFragment();
+                }
+                else if (itemId == R.id.detailBottomNavDetail) {
+                    // Handle Detail Option
+                    selectedFragment = new DetailNovelFragment();
+                }
+                else if (itemId == R.id.detailBottomNavExport) {
+                    // Handle Export Option
+
+                }
+                else if (itemId == R.id.detailBottomNavServer) {
+                    // Handle Server Option
+
+                }
+
+                // Switch to selected Fragment
+                if (selectedFragment != null) {
+                    loadFragment(selectedFragment);
+                }
+
+                return true;
+            }
+        });
+    }
+
+    private void loadFragment(Fragment fragment) {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction()
+                .replace(R.id.detailFrameLayout, fragment)
+                .commit();
     }
 
     // Method to load a specific page of chapters
@@ -155,6 +205,7 @@ public class DetailActivity extends AppCompatActivity {
     private BackgroundTask getNovelDetailTask = new BackgroundTask(DetailActivity.this) {
 
         NovelDescriptionModel novelDescModel;
+
         @Override
         public void onPreExecute() {
             // No pre-execution actions needed
@@ -179,6 +230,7 @@ public class DetailActivity extends AppCompatActivity {
     // Background task to fetch chapter list
     private BackgroundTask getChapterListTask = new BackgroundTask(DetailActivity.this) {
         private String preOfFinalUrlForm, aftOfFileUrlForm;
+
         @Override
         public void onPreExecute() {
             // No pre-execution actions needed
@@ -216,7 +268,7 @@ public class DetailActivity extends AppCompatActivity {
     };
 
     // Background task to fetch the number of chapter pages
-    private BackgroundTask getNumberOfChapterPagesTask  = new BackgroundTask(DetailActivity.this) {
+    private BackgroundTask getNumberOfChapterPagesTask = new BackgroundTask(DetailActivity.this) {
         @Override
         public void onPreExecute() {
 
@@ -259,7 +311,7 @@ public class DetailActivity extends AppCompatActivity {
 
 
     // Method to update UI with fetched novel details
-    private void setUIData(NovelDescriptionModel ndm){
+    private void setUIData(NovelDescriptionModel ndm) {
 
         detailName.setText(ndm.getName());
         detailAuthor.setText(ndm.getAuthor());
@@ -267,7 +319,7 @@ public class DetailActivity extends AppCompatActivity {
         Picasso.get().load(ndm.getImgUrl()).placeholder(R.drawable.logo).into(detailImage);
     }
 
-    private void replaceList(List destinationList, List dataList){
+    private void replaceList(List destinationList, List dataList) {
         destinationList.clear();
         destinationList.addAll(dataList);
     }
