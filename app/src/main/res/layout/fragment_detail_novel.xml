@@ -16,6 +16,14 @@
         android:textSize="26sp"
         android:textStyle="bold" />
 
+    <ProgressBar
+        android:id="@+id/detailNovelFragmentPB"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_gravity="center"
+        android:indeterminate="true"
+        android:visibility="gone" />
+
     <TextView
         android:id="@+id/detailDescription"
         android:layout_width="match_parent"

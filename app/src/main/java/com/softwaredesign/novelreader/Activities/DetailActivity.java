@@ -2,52 +2,39 @@ package com.softwaredesign.novelreader.Activities;
 
 // Import necessary Android and Java libraries
 
+import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-
 import android.util.Log;
-import java.util.ArrayList;
-import java.util.List;
-
-import android.view.Gravity;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.animation.AnimationUtils;
-
 import android.widget.ImageView;
-import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.text.HtmlCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
-import androidx.recyclerview.widget.GridLayoutManager;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
-import com.softwaredesign.novelreader.Adapters.ChapterListItemAdapter;
 import com.softwaredesign.novelreader.BackgroundTask;
 import com.softwaredesign.novelreader.Fragments.ChapterListFragment;
 import com.softwaredesign.novelreader.Fragments.DetailNovelFragment;
-import com.softwaredesign.novelreader.Global.ReusableFunction;
-import com.softwaredesign.novelreader.Models.ChapterModel;
 import com.softwaredesign.novelreader.Models.NovelDescriptionModel;
-import com.softwaredesign.novelreader.Scrapers.TruyenfullScraper;
 import com.softwaredesign.novelreader.R;
-
+import com.softwaredesign.novelreader.Scrapers.TruyenfullScraper;
 import com.squareup.picasso.Picasso;
+
+import java.util.List;
 
 public class DetailActivity extends AppCompatActivity {
 
     private ImageView detailImage;
-    private TextView detailName, detailAuthor, detailDescription, pgeTextView;
+    private TextView detailName, detailAuthor;
     private TruyenfullScraper truyenfullScraper;
-    private ProgressBar progressBar;
-    private Handler handler = new Handler(Looper.getMainLooper());
     private BottomNavigationView bottomNavigationView;
     private static String NovelUrl;
 
@@ -58,13 +45,24 @@ public class DetailActivity extends AppCompatActivity {
 
         viewInit();
 
+        truyenfullScraper = new TruyenfullScraper();
+
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
             getNovelUrlFromPreviousIntent(bundle);
+            // Initially load the Detail Fragment
+            loadFragment(DetailNovelFragment.newInstance(NovelUrl));
+            getNovelDetailTask.execute();
         }
 
         // Handle Bottom Navigation View Events
         handleBottomNav();
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        finish();
     }
 
     private void getNovelUrlFromPreviousIntent(Bundle bundle) {
@@ -77,14 +75,13 @@ public class DetailActivity extends AppCompatActivity {
         detailImage = findViewById(R.id.detailImage);
         detailName = findViewById(R.id.detailName);
         detailAuthor = findViewById(R.id.detailAuthor);
-        progressBar = findViewById(R.id.detailProgressBar);
         bottomNavigationView = findViewById(R.id.detailBottomNav);
-
-        // Initially load the Detail Fragment
-        loadFragment(new DetailNovelFragment());
     }
 
     private void handleBottomNav() {
+        // Initially select the detail tab
+        bottomNavigationView.setSelectedItemId(R.id.detailBottomNavDetail);
+
         bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -92,17 +89,14 @@ public class DetailActivity extends AppCompatActivity {
                 int itemId = item.getItemId();
                 if (itemId == R.id.detailBottomNavChapterList) {
                     // Handle Chapter List Option
-                    selectedFragment = new ChapterListFragment();
-                }
-                else if (itemId == R.id.detailBottomNavDetail) {
+                    selectedFragment = ChapterListFragment.newInstance(NovelUrl);
+                } else if (itemId == R.id.detailBottomNavDetail) {
                     // Handle Detail Option
-                    selectedFragment = new DetailNovelFragment();
-                }
-                else if (itemId == R.id.detailBottomNavExport) {
+                    selectedFragment = DetailNovelFragment.newInstance(NovelUrl);
+                } else if (itemId == R.id.detailBottomNavExport) {
                     // Handle Export Option
 
-                }
-                else if (itemId == R.id.detailBottomNavServer) {
+                } else if (itemId == R.id.detailBottomNavServer) {
                     // Handle Server Option
 
                 }
@@ -118,9 +112,9 @@ public class DetailActivity extends AppCompatActivity {
     }
 
     private void loadFragment(Fragment fragment) {
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        fragmentManager.beginTransaction()
+        getSupportFragmentManager().beginTransaction()
                 .replace(R.id.detailFrameLayout, fragment)
+                .addToBackStack(null)
                 .commit();
     }
 
@@ -137,7 +131,7 @@ public class DetailActivity extends AppCompatActivity {
     }
 
     // Background task to fetch novel details
-    private BackgroundTask getNovelDetailTask = new BackgroundTask(DetailActivity.this) {
+    private final BackgroundTask getNovelDetailTask = new BackgroundTask(DetailActivity.this) {
 
         NovelDescriptionModel novelDescModel;
 
@@ -157,7 +151,7 @@ public class DetailActivity extends AppCompatActivity {
         @Override
         public void onPostExecute() {
             // Update UI with the fetched novel details
-            detailDescription.setText(HtmlCompat.fromHtml(novelDescModel.getDescription(), HtmlCompat.FROM_HTML_MODE_LEGACY));
+            setUIData(novelDescModel);
         }
 
     };
