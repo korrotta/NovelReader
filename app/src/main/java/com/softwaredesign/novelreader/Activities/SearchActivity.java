@@ -20,6 +20,7 @@ import androidx.appcompat.widget.SearchView;
 
 import com.softwaredesign.novelreader.Adapters.NovelSearchAdapter;
 import com.softwaredesign.novelreader.BackgroundTask;
+import com.softwaredesign.novelreader.Global.GlobalConfig;
 import com.softwaredesign.novelreader.Global.ReusableFunction;
 import com.softwaredesign.novelreader.Models.NovelModel;
 import com.softwaredesign.novelreader.R;
@@ -34,7 +35,6 @@ public class SearchActivity extends AppCompatActivity {
     private NovelSearchAdapter novelSearchAdapter;
 
     private ProgressBar searchProgressBar;
-    private final TruyenfullScraper truyenfullScraper = new TruyenfullScraper();
     private String searchQuery;
     private LinearLayout searchPageControlLayout;
     private ImageView prevSearchPage, nextSearchPage;
@@ -224,7 +224,7 @@ public class SearchActivity extends AppCompatActivity {
             @Override
             public void doInBackground () {
                 //get data from source
-                ReusableFunction.ReplaceList(novelList, truyenfullScraper.getSearchPageFromKeywordAndPageNumber(searchQuery, currentPage));
+                ReusableFunction.ReplaceList(novelList, GlobalConfig.Global_Current_Scraper.getSearchPageFromKeywordAndPageNumber(searchQuery, currentPage));
             }
 
             @Override
@@ -244,8 +244,6 @@ public class SearchActivity extends AppCompatActivity {
     }
 
 
-
-
     //No pre-execute needed
     private final BackgroundTask getTotalPagesThenResult = new BackgroundTask(SearchActivity.this) {
         @Override
@@ -255,7 +253,7 @@ public class SearchActivity extends AppCompatActivity {
 
         @Override
         public void doInBackground() {
-            numberOfPages = truyenfullScraper.getNumberOfSearchResultPage(searchQuery);
+            numberOfPages = GlobalConfig.Global_Current_Scraper.getNumberOfSearchResultPage(searchQuery);
         }
 
         @Override
