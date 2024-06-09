@@ -20,6 +20,7 @@ import androidx.appcompat.widget.SearchView;
 
 import com.softwaredesign.novelreader.Adapters.NovelSearchAdapter;
 import com.softwaredesign.novelreader.BackgroundTask;
+import com.softwaredesign.novelreader.Global.GlobalConfig;
 import com.softwaredesign.novelreader.Global.ReusableFunction;
 import com.softwaredesign.novelreader.Models.NovelModel;
 import com.softwaredesign.novelreader.R;
@@ -34,7 +35,6 @@ public class SearchActivity extends AppCompatActivity {
     private NovelSearchAdapter novelSearchAdapter;
 
     private ProgressBar searchProgressBar;
-    private final TruyenfullScraper truyenfullScraper = new TruyenfullScraper();
     private String searchQuery;
     private LinearLayout searchPageControlLayout;
     private ImageView prevSearchPage, nextSearchPage;
@@ -67,27 +67,6 @@ public class SearchActivity extends AppCompatActivity {
 
         if (novelList == null){
             novelList = new ArrayList<>();
-            NovelModel novelModel = null;
-            novelModel = new NovelModel("Cuộc Đấu Tình Yêu Tàn Khốc","https://truyenfull.vn/cuoc-dau-tinh-yeu-tan-khoc/","Mai Tử","https://static.8cache.com/cover/o/eJzLyTDV13X39Eyv8LZ0LDOL1A8LDvAOMg0xMizz1HeEgtwwE_1ECyOjFD_d0vxCR_1yQwsD3QwLAwAlvxFj/cuoc-dau-tinh-yeu-tan-khoc.jpg");
-            novelList.add(novelModel);
-            novelModel = new NovelModel("Duyên Tình Một Đêm","https://truyenfull.vn/duyen-tinh-mot-dem/","Đậu Toa","https://static.8cache.com/cover/o/eJzLyTDW1y108sorKfXzi_Ap1w8LDvD2MfYrr4z01HeEgtzQdH3dQOcco3KTtPiScv1yQwsD3QwLAwBWGRLG/duyen-tinh-mot-dem.jpg");
-            novelList.add(novelModel);
-            novelModel = new NovelModel("Yêu Phu Quân Keo Kiệt","https://truyenfull.vn/yeu-phu-quan-keo-kiet/","Đậu Toa","https://static.8cache.com/cover/o/eJzLyTDV13U2rPJKcjMwLs9z1Q8LDjWOMnfKD_Dw1HeEgty0bH0X3Wwv38ggv1KndP1yQwsD3QwLAwArchHA/yeu-phu-quan-keo-kiet.jpg");
-            novelList.add(novelModel);
-            novelModel = new NovelModel("Yêu Em Từ Cái Nhìn Đầu Tiên","https://truyenfull.vn/yeu-em-tu-cai-nhin-dau-tien/","Cố Mạn","https://static.8cache.com/cover/o/eJzLyTDT1zWL8EtMLi8Nskwu1g8LDjX2DgjzdS301HeEgtwkX_00zxwPd1dDD92Mcv1yQwsD3QwLAwBFOhIj/yeu-em-tu-cai-nhin-dau-tien.jpg");
-            novelList.add(novelModel);
-            novelModel = new NovelModel("Cô Dâu Của Trung Tá","https://truyenfull.vn/co-dau-cua-trung-ta/","Hồ Ly","https://static.8cache.com/cover/o/eJzLyTDW1_XOLqrIKnevDPDJ1w8L9vZ0CY0sM_D21HeEgtwgC_0C94x0C3e_-DTnfP1yQwsD3QwLAwBafBKr/co-dau-cua-trung-ta.jpg");
-            novelList.add(novelModel);
-            novelModel = new NovelModel("Quay Lại Mỉm Cười, Bắt Đầu JQ","https://truyenfull.vn/quay-lai-mim-cuoi-bat-dau-jq/","Đông Bôn Tây Cố","https://static.8cache.com/cover/o/eJzLyTDW1zXQLc2rSPQoTwr31Q8LDjVOzHdJc9L11HeEgty0cn2DCDPPCmeDeN_Kcv1yQwsD3QwLAwBEihJO/quay-lai-mim-cuoi-bat-dau-jq.jpg");
-            novelList.add(novelModel);
-            novelModel = new NovelModel("Hào Môn Kinh Mộng: 99 Ngày Làm Cô Dâu","https://truyenfull.vn/hao-mon-kinh-mong-99-ngay-lam-co-dau/","Ân Tầm","https://static.8cache.com/cover/o/eJzLyTDT1zUtzszKLsipqrRM1w8LDjUOcsqN9PP01HeEgtwUT_3ASue0LEfTjCAfA_1yQwsD3QwLAwBc9RKb/hao-mon-kinh-mong-99-ngay-lam-co-dau.jpg");
-            novelList.add(novelModel);
-            novelModel = new NovelModel("Vợ Cũ Của Tổng Tài Lạnh Lùng","https://truyenfull.vn/vo-cu-cua-tong-tai-lanh-lung/","Đậu Đậu Thiền","https://static.8cache.com/cover/o/eJzLyTDW1zVzC9ItynBNLckK1A8L9vb0DIv0Ccj01HeEgtxgC_1A_8BcP93ckAq3UP1yQwsD3QwLAwA6ZxIL/vo-cu-cua-tong-tai-lanh-lung.jpg");
-            novelList.add(novelModel);
-            novelModel = new NovelModel("Minh Hôn Cái Đầu Anh Á","https://truyenfull.vn/minh-hon-cai-dau-anh-a/","Mị Tinh Nhân","https://static.8cache.com/cover/o/eJzLyTDV1w0pNcn28nUOC0kt1w8L9vb0qvQJyXbz1HeEgtyQSP2QcPfSiNLMpIC0UP1yQwsD3QwLAwBNUhK9/minh-hon-cai-dau-anh-a.jpg");
-            novelList.add(novelModel);
-            novelModel = new NovelModel("Đấu Thần","https://truyenfull.vn/dau-than/","Yêu Yêu","https://static.8cache.com/cover/o/eJzLyTDW1y2LL3MOiK-IdK301A_zKsuvLDNOKdH11HeEgpzMUP20MOfKgJLIwCLTfP1yQwsD3QwLAwBteRNl/dau-than.jpg");
-            novelList.add(novelModel);
         }
 
         // Set Adapter and ListView
@@ -224,7 +203,7 @@ public class SearchActivity extends AppCompatActivity {
             @Override
             public void doInBackground () {
                 //get data from source
-                ReusableFunction.ReplaceList(novelList, truyenfullScraper.getSearchPageFromKeywordAndPageNumber(searchQuery, currentPage));
+                ReusableFunction.ReplaceList(novelList, GlobalConfig.Global_Current_Scraper.getSearchPageFromKeywordAndPageNumber(searchQuery, currentPage));
             }
 
             @Override
@@ -244,8 +223,6 @@ public class SearchActivity extends AppCompatActivity {
     }
 
 
-
-
     //No pre-execute needed
     private final BackgroundTask getTotalPagesThenResult = new BackgroundTask(SearchActivity.this) {
         @Override
@@ -255,7 +232,7 @@ public class SearchActivity extends AppCompatActivity {
 
         @Override
         public void doInBackground() {
-            numberOfPages = truyenfullScraper.getNumberOfSearchResultPage(searchQuery);
+            numberOfPages = GlobalConfig.Global_Current_Scraper.getNumberOfSearchResultPage(searchQuery);
         }
 
         @Override

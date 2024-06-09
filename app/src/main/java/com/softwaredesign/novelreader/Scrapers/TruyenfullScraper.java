@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.example.novelscraperfactory.INovelScraper;
 import com.softwaredesign.novelreader.Global.ReusableFunction;
+import com.softwaredesign.novelreader.Models.ChapterContentModel;
 import com.softwaredesign.novelreader.Models.ChapterModel;
 import com.softwaredesign.novelreader.Models.NovelDescriptionModel;
 import com.softwaredesign.novelreader.Models.NovelModel;
@@ -19,6 +20,7 @@ import java.util.List;
 
 public class TruyenfullScraper implements INovelScraper {
     private final String SEARCH_DEFAULT_URL = "https://truyenfull.vn/tim-kiem/?tukhoa=";
+    private final String HOME_PAGE_URL = "https://truyenfull.vn";
     private final String ITEM_TYPE = "https://schema.org/Book";
 
     private final int CHAPTERS_PER_PAGE = 50;
@@ -93,13 +95,12 @@ public class TruyenfullScraper implements INovelScraper {
     }
 
     @Override
-    public List<NovelModel> getHomePage(String url) {
+    public List<NovelModel> getHomePage() {
         List<NovelModel> novels = new ArrayList<>();
 
         try{
-
             // Fetch and parse the home page
-            Document doc = Jsoup.connect(url).get();
+            Document doc = Jsoup.connect(this.HOME_PAGE_URL).get();
             Element novelHolderTag = doc.selectFirst("div.index-intro");
             Elements novelListTag = novelHolderTag.select("div.item");
             for (Element novel: novelListTag) {
@@ -113,7 +114,7 @@ public class TruyenfullScraper implements INovelScraper {
 
                     // Create a new NovelModel object and add it to the list
                     NovelModel novelToAdd = new NovelModel(name, novelUrl, author, imgUrl);
-                    logToCheck(novelToAdd);
+//                    logToCheck(novelToAdd);
                     novels.add(novelToAdd);
                 }
             }
@@ -125,12 +126,17 @@ public class TruyenfullScraper implements INovelScraper {
     }
 
     @Override
-    public List<ChapterModel> getChapterListFromUrl(String url) {
+    public List<ChapterModel> getChapterListInPage(String novelUrl, int pageNumber) {
 
         List<ChapterModel> chapters = new ArrayList<>();
 
+        // Set URL parts for chapter pagination
+        final String preOfFinalUrlForm = novelUrl + "/trang-";
+        final String aftOfFileUrlForm = "/#list-chapter";
+        String pageUrl = preOfFinalUrlForm + pageNumber + aftOfFileUrlForm;
+
         try {
-            Document doc = Jsoup.connect(url).get();
+            Document doc = Jsoup.connect(pageUrl).get();
             Elements chaptersNode = doc.select("ul.list-chapter");
 
             for (Element node: chaptersNode){
@@ -203,24 +209,18 @@ public class TruyenfullScraper implements INovelScraper {
     }
 
     @Override
-    public String getChapterContent(String url) {
+    public ChapterContentModel getChapterContent(String url) {
         try {
             Document doc = Jsoup.connect(url).get();
-            Element chapterBody = doc.select("div.chapter-c").first();
-//            content = chapterBody.html();
-//
-//            // Replace <br> tags with newline characters
-//            String formattedContent = content.replaceAll("(?i)<br[^>]*>", "\n");
-//
-//            // Strip other HTML tags
-//            formattedContent = formattedContent.replaceAll("<[^>]+>", "");
-//
-//            // Replace multiple consecutive newline characters with a single newline
-//            formattedContent = formattedContent.replaceAll("\n+", "\n\n");
-//
-//            Log.d(" CONTENT", formattedContent);
-            return chapterBody.toString();
 
+            String title = doc.select("a.truyen-title").first().text();
+            String chapterName = doc.select("a.chapter-title").first().text();
+            Log.d("TITLE", title);
+            Log.d("CHAPTERNAME", chapterName);
+
+            Element chapterBody = doc.select("div.chapter-c").first();
+            ChapterContentModel content = new ChapterContentModel(chapterName, url, chapterBody.toString(), title);
+            return content;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -345,6 +345,8 @@ public class TruyenfullScraper implements INovelScraper {
             String chapterName = doc.select("a.chapter-title").first().text();
             Log.d("TITLE", title);
             Log.d("CHAPTERNAME", chapterName);
+
+
 
             return chapterName;
         } catch (IOException e) {

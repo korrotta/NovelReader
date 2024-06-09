@@ -15,6 +15,7 @@ import androidx.core.text.HtmlCompat;
 import androidx.fragment.app.Fragment;
 
 import com.softwaredesign.novelreader.BackgroundTask;
+import com.softwaredesign.novelreader.Global.GlobalConfig;
 import com.softwaredesign.novelreader.Models.NovelDescriptionModel;
 import com.softwaredesign.novelreader.R;
 import com.softwaredesign.novelreader.Scrapers.TruyenfullScraper;
@@ -22,7 +23,6 @@ import com.softwaredesign.novelreader.Scrapers.TruyenfullScraper;
 public class DetailNovelFragment extends Fragment {
 
     private TextView detailDescription;
-    private final TruyenfullScraper truyenfullScraper = new TruyenfullScraper();
     private Handler handler = new Handler();
     private ProgressBar detailNovelFragmentPB;
 
@@ -99,7 +99,7 @@ public class DetailNovelFragment extends Fragment {
     }
 
     // Background task to fetch novel details
-    private BackgroundTask getNovelDetailTask = new DetailNovelFragment.BackgroundTask() {
+    private final BackgroundTask getNovelDetailTask = new DetailNovelFragment.BackgroundTask() {
         NovelDescriptionModel novelDescModel;
 
         @Override
@@ -117,8 +117,7 @@ public class DetailNovelFragment extends Fragment {
         @Override
         public void doInBackground() {
             // Fetch novel details using the scraper in the background
-            Log.d("BACKGROUND TASK NOVELURL", NovelUrl);
-            novelDescModel = truyenfullScraper.getNovelDetail(NovelUrl);
+            novelDescModel = GlobalConfig.Global_Current_Scraper.getNovelDetail(NovelUrl);
         }
 
         @Override

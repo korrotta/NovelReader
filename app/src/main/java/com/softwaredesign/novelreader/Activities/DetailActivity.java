@@ -9,18 +9,26 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.text.HtmlCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 import com.softwaredesign.novelreader.BackgroundTask;
+import com.softwaredesign.novelreader.Global.GlobalConfig;
+import com.softwaredesign.novelreader.Global.ReusableFunction;
+import com.softwaredesign.novelreader.Models.ChapterModel;
+import com.softwaredesign.novelreader.Models.NovelDescriptionModel;
+import com.softwaredesign.novelreader.Models.NovelModel;
 import com.softwaredesign.novelreader.Fragments.ChapterListFragment;
 import com.softwaredesign.novelreader.Fragments.DetailNovelFragment;
 import com.softwaredesign.novelreader.Models.NovelDescriptionModel;
@@ -34,7 +42,7 @@ public class DetailActivity extends AppCompatActivity {
 
     private ImageView detailImage;
     private TextView detailName, detailAuthor;
-    private TruyenfullScraper truyenfullScraper;
+    private Handler handler = new Handler(Looper.getMainLooper());
     private BottomNavigationView bottomNavigationView;
     private static String NovelUrl;
 
@@ -44,8 +52,6 @@ public class DetailActivity extends AppCompatActivity {
         setContentView(R.layout.activity_detail);
 
         viewInit();
-
-        truyenfullScraper = new TruyenfullScraper();
 
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
@@ -125,11 +131,6 @@ public class DetailActivity extends AppCompatActivity {
         Picasso.get().load(ndm.getImgUrl()).placeholder(R.drawable.logo).into(detailImage);
     }
 
-    private void replaceList(List destinationList, List dataList) {
-        destinationList.clear();
-        destinationList.addAll(dataList);
-    }
-
     // Background task to fetch novel details
     private final BackgroundTask getNovelDetailTask = new BackgroundTask(DetailActivity.this) {
 
@@ -145,7 +146,7 @@ public class DetailActivity extends AppCompatActivity {
         public void doInBackground() {
             //Fetch from scraped
             // Fetch novel details using the scraper
-            novelDescModel = truyenfullScraper.getNovelDetail(NovelUrl);
+            novelDescModel = GlobalConfig.Global_Current_Scraper.getNovelDetail(NovelUrl);
         }
 
         @Override
