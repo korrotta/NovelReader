@@ -1,6 +1,7 @@
 package com.softwaredesign.novelreader.Activities;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatSpinner;
 import androidx.core.content.ContextCompat;
 import androidx.core.text.HtmlCompat;
 
@@ -8,7 +9,6 @@ import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.provider.Settings;
 import android.text.Layout;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -21,6 +21,7 @@ import android.view.View;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -31,12 +32,15 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.novelscraperfactory.INovelScraper;
 import com.google.android.material.bottomappbar.BottomAppBar;
+import com.softwaredesign.novelreader.Adapters.ServerSpinnerAdapter;
 import com.softwaredesign.novelreader.BackgroundTask;
 import com.softwaredesign.novelreader.Global.GlobalConfig;
 import com.softwaredesign.novelreader.Models.ChapterContentModel;
-import com.softwaredesign.novelreader.Scrapers.TruyenfullScraper;
 import com.softwaredesign.novelreader.R;
+import com.softwaredesign.novelreader.Scrapers.TangthuvienScraper;
+import com.softwaredesign.novelreader.Scrapers.TruyenfullScraper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,9 +53,10 @@ public class ReadActivity extends AppCompatActivity {
     private EditText searchEditText;
     private ImageButton searchUpIV, searchDownIV, searchCloseButton;
     private LinearLayout search_layout;
-    private ImageView chapterListIV, prevChapterIV, nextChapterIV, findInChapterIV, settingsIV, serverIV;
+    private ImageView chapterListIV, prevChapterIV, nextChapterIV, findInChapterIV, settingsIV;
     private String chapterUrl, chapterTitle, content;
     private ProgressBar progressBar;
+    private AppCompatSpinner serverSpinner;
     private BottomAppBar bottomAppBar;
     private Handler handler = new Handler(Looper.getMainLooper());
 
@@ -60,12 +65,6 @@ public class ReadActivity extends AppCompatActivity {
 
     private String nextChapterUrl, previousChapterUrl;
 
-
-    // List of servers
-    String[] servers = new String[]{"Server 1", "Server 2"};
-    String selectedServer = servers[0]; // Initially, select the first server
-
-
     @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +72,10 @@ public class ReadActivity extends AppCompatActivity {
         setContentView(R.layout.activity_read);
 
         InitializeView();
+
+        // Initialize Server Spinner Adapter
+        ServerSpinnerAdapter serverAdapter = new ServerSpinnerAdapter(this, android.R.layout.simple_spinner_item, GlobalConfig.Global_Source_List);
+        serverSpinner.setAdapter(serverAdapter);
 
         // Get Chapter Url from bundle
         Bundle bundle = getIntent().getExtras();
@@ -111,10 +114,17 @@ public class ReadActivity extends AppCompatActivity {
         });
 
         // Handle Server Source Button
-        serverIV.setOnClickListener(new View.OnClickListener() {
+        serverSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
-            public void onClick(View v) {
-                showServerMenu(v);
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                INovelScraper scraperInstance = (INovelScraper) parent.getItemAtPosition(position);
+                GlobalConfig.Global_Current_Scraper = scraperInstance;
+
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
             }
         });
 
@@ -309,10 +319,10 @@ public class ReadActivity extends AppCompatActivity {
         chapterContentTV.setText(spannable);
     }
 
-    private void showServerMenu(View view) {
+/*    private void showServerMenu(View view) {
         // Inflate the layout of the popup window
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
-        View popupView = inflater.inflate(R.layout.server_items, null);
+        View popupView = inflater.inflate(R.layout.server_spinner, null);
 
         // Create the popup window
         int width = LinearLayout.LayoutParams.WRAP_CONTENT;
@@ -327,26 +337,7 @@ public class ReadActivity extends AppCompatActivity {
         // Update the text and background color based on the selected server
         updateSelection(server1, server2);
 
-        // Set click listener for the TextViews
-        server1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Handle server 1 click
-                selectedServer = servers[0];
-                updateSelection(server1, server2);
-                popupWindow.dismiss(); // Close the popup window
-            }
-        });
 
-        server2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Handle server 2 click
-                selectedServer = servers[1];
-                updateSelection(server1, server2);
-                popupWindow.dismiss(); // Close the popup window
-            }
-        });
 
         // Show the popup window above the ServerImageView
         int[] location = new int[2];
@@ -354,9 +345,9 @@ public class ReadActivity extends AppCompatActivity {
         int yOffset = location[1] - view.getHeight() - popupView.getMeasuredHeight();
 
         popupWindow.showAtLocation(view, Gravity.NO_GRAVITY, location[0] - 200, yOffset - 130);
-    }
+    }*/
 
-    private void updateSelection(TextView server1, TextView server2) {
+/*    private void updateSelection(TextView server1, TextView server2) {
         if (selectedServer.equals(servers[0])) {
             server1.setBackground(ContextCompat.getDrawable(this, R.drawable.selected_rounded_corner_bg));
             server1.setTextColor(ContextCompat.getColor(this, R.color.white));
@@ -368,7 +359,7 @@ public class ReadActivity extends AppCompatActivity {
             server1.setBackground(ContextCompat.getDrawable(this, R.drawable.rounded_corner_bg));
             server1.setTextColor(ContextCompat.getColor(this, R.color.black));
         }
-    }
+    }*/
 
     private void InitializeView() {
         chapterNameTV = findViewById(R.id.chapterNameRead);
@@ -377,10 +368,10 @@ public class ReadActivity extends AppCompatActivity {
         prevChapterIV = findViewById(R.id.previousChapterRead);
         nextChapterIV = findViewById(R.id.nextChapterRead);
         findInChapterIV = findViewById(R.id.findTextRead);
-        serverIV = findViewById(R.id.serverSourceRead);
         settingsIV = findViewById(R.id.settingsRead);
         bottomAppBar = findViewById(R.id.bottomNavRead);
         progressBar = findViewById(R.id.readProgressBar);
+        serverSpinner = findViewById(R.id.serverSourceRead);
         searchEditText = findViewById(R.id.search_edit_text);
         //overlayView = findViewById(R.id.overlay_view);
         search_layout = findViewById(R.id.search_layout);

@@ -61,11 +61,11 @@ public class MainActivity extends AppCompatActivity {
 
         //Init server adapter
         ServerSpinnerAdapter serverAdapter = new ServerSpinnerAdapter(this, android.R.layout.simple_spinner_item, GlobalConfig.Global_Source_List);
-        serverAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         serverSpinner.setAdapter(serverAdapter);
 
-        //Add source truyenfull
+        // Add source truyenfull
         INovelScraper truyenfull = new TruyenfullScraper();
+        // Add source tangthuvien
         INovelScraper tangthuvien = new TangthuvienScraper();
 
 
