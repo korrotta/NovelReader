@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.softwaredesign.novelreader.Activities.DetailActivity;
 import com.softwaredesign.novelreader.Adapters.ChapterListItemAdapter;
 import com.softwaredesign.novelreader.BackgroundTask;
+import com.softwaredesign.novelreader.Global.GlobalConfig;
 import com.softwaredesign.novelreader.Global.ReusableFunction;
 import com.softwaredesign.novelreader.Models.ChapterModel;
 import com.softwaredesign.novelreader.R;
@@ -31,7 +32,6 @@ import java.util.List;
 
 public class ChapterListFragment extends Fragment {
 
-    private TruyenfullScraper truyenfullScraper;
     private TextView pageTextView;
     private RecyclerView chapterListRV;
     private ChapterListItemAdapter chapterListItemAdapter;
@@ -125,10 +125,8 @@ public class ChapterListFragment extends Fragment {
     }
 
     private void classVarInit() {
-        // Initialize the scraper
-        truyenfullScraper = new TruyenfullScraper();
         // Get the number of chapters per page
-        pageSize = truyenfullScraper.getNumberOfChaptersPerPage();
+        pageSize = GlobalConfig.Global_Current_Scraper.getNumberOfChaptersPerPage();
         // Set the current page to 1
         currentPage = 1;
 
@@ -193,8 +191,6 @@ public class ChapterListFragment extends Fragment {
 
     // Background task to fetch chapter list
     private final BackgroundTask getChapterListTask = new ChapterListFragment.BackgroundTask() {
-        private String preOfFinalUrlForm, aftOfFileUrlForm;
-
         @Override
         public void onPreExecute() {
             // No pre-execution actions needed
@@ -202,16 +198,8 @@ public class ChapterListFragment extends Fragment {
 
         @Override
         public void doInBackground() {
-            // Set URL parts for chapter pagination
-            this.preOfFinalUrlForm = NovelUrl + "/trang-";
-            this.aftOfFileUrlForm = "/#list-chapter";
-
-            // Fetch chapter list for the current page
-            String pageUrl = this.preOfFinalUrlForm + currentPage + this.aftOfFileUrlForm;
-            ReusableFunction.LogVariable(pageUrl);
-
             // Fetch the list of chapters from the specified page URL
-            List<ChapterModel> tempPageList = truyenfullScraper.getChapterListFromUrl(pageUrl);
+            List<ChapterModel> tempPageList = GlobalConfig.Global_Current_Scraper.getChapterListInPage(NovelUrl, currentPage);
             // Replace the current list of page items with the fetched list
             ReusableFunction.ReplaceList(pageItems, tempPageList);
         }
@@ -241,14 +229,13 @@ public class ChapterListFragment extends Fragment {
         @Override
         public void doInBackground() {
             // Fetch the number of chapter pages using the scraper
-            numberOfPages = truyenfullScraper.getChapterListNumberOfPages(NovelUrl);
-            Log.d("NUMBER OF PAGES", String.valueOf(numberOfPages));
+            numberOfPages = GlobalConfig.Global_Current_Scraper.getChapterListNumberOfPages(NovelUrl);
         }
 
         @Override
         public void onPostExecute() {
             // Hide progress bar with fade-out animation after a delay
-            handler.postDelayed(new Runnable() {
+            handler.post(new Runnable() {
                 @Override
                 public void run() {
                     chapterListFragmentPB.setVisibility(View.GONE);
@@ -258,7 +245,7 @@ public class ChapterListFragment extends Fragment {
                     // Load the current page
                     loadPage(currentPage);
                 }
-            }, 10000);
+            });
         }
     };
 

@@ -9,12 +9,15 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.text.HtmlCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
@@ -38,12 +41,8 @@ import java.util.List;
 public class DetailActivity extends AppCompatActivity {
 
     private ImageView detailImage;
-    private TextView detailName, detailAuthor, detailDescription, pageTextView;
-    private RecyclerView chapterListRV;
-    private ChapterListItemAdapter chapterListItemAdapter;
-    private ProgressBar progressBar;
+    private TextView detailName, detailAuthor;
     private Handler handler = new Handler(Looper.getMainLooper());
-    private TruyenfullScraper truyenfullScraper;
     private BottomNavigationView bottomNavigationView;
     private static String NovelUrl;
 
@@ -53,8 +52,6 @@ public class DetailActivity extends AppCompatActivity {
         setContentView(R.layout.activity_detail);
 
         viewInit();
-
-        truyenfullScraper = new TruyenfullScraper();
 
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
@@ -87,11 +84,6 @@ public class DetailActivity extends AppCompatActivity {
         bottomNavigationView = findViewById(R.id.detailBottomNav);
     }
 
-    private void classVarInit() {
-        pageSize = GlobalConfig.Global_Current_Scraper.getNumberOfChaptersPerPage();
-
-        currentPage = 1;
-    }
     private void handleBottomNav() {
         // Initially select the detail tab
         bottomNavigationView.setSelectedItemId(R.id.detailBottomNavDetail);
@@ -139,11 +131,6 @@ public class DetailActivity extends AppCompatActivity {
         Picasso.get().load(ndm.getImgUrl()).placeholder(R.drawable.logo).into(detailImage);
     }
 
-    private void replaceList(List destinationList, List dataList) {
-        destinationList.clear();
-        destinationList.addAll(dataList);
-    }
-
     // Background task to fetch novel details
     private final BackgroundTask getNovelDetailTask = new BackgroundTask(DetailActivity.this) {
 
@@ -170,78 +157,4 @@ public class DetailActivity extends AppCompatActivity {
 
     };
 
-    // Background task to fetch chapter list
-    private BackgroundTask getChapterListTask = new BackgroundTask(DetailActivity.this) {
-        private String preOfFinalUrlForm, aftOfFileUrlForm;
-        @Override
-        public void onPreExecute() {
-            // No pre-execution actions needed
-        }
-
-        @Override
-        public void doInBackground() {
-
-            List<ChapterModel> tempPageList = GlobalConfig.Global_Current_Scraper.getChapterListInPage(NovelUrl, currentPage);
-            ReusableFunction.ReplaceList(pageItems, tempPageList);
-        }
-
-        @Override
-        public void onPostExecute() {
-
-            // Notify adapter that data has changed
-            chapterListItemAdapter.updateList(pageItems);
-            chapterListItemAdapter.notifyDataSetChanged();
-        }
-    };
-
-    // Background task to fetch the number of chapter pages
-    private BackgroundTask getNumberOfChapterPagesTask  = new BackgroundTask(DetailActivity.this) {
-        @Override
-        public void onPreExecute() {
-
-            // Show progress bar with fade-in animation
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-
-                    progressBar.setVisibility(View.VISIBLE);
-                    progressBar.startAnimation(AnimationUtils.loadAnimation(DetailActivity.this, android.R.anim.fade_in));
-                }
-            });
-        }
-
-        // Fetch the number of chapter pages using the scraper
-        @Override
-        public void doInBackground() {
-
-            numberOfPages = GlobalConfig.Global_Current_Scraper.getChapterListNumberOfPages(NovelUrl);
-            Log.d("NUMBER OF PAGES", String.valueOf(numberOfPages));
-        }
-
-        @Override
-        public void onPostExecute() {
-            // Hide progress bar with fade-out animation after a delay
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    progressBar.setVisibility(View.GONE);
-                    progressBar.startAnimation(AnimationUtils.loadAnimation(DetailActivity.this, android.R.anim.fade_out));
-                    // Handle page controls
-                    // and load the first page
-                    setupPageControls();
-                    // Load current page
-                    loadPage(currentPage);
-                }
-            }, 3000);
-        }
-    };
-
-
-    // Method to update UI with fetched novel details
-    private void setUIData(NovelDescriptionModel ndm){
-        detailName.setText(ndm.getName());
-        detailAuthor.setText(ndm.getAuthor());
-        detailDescription.setText(HtmlCompat.fromHtml(ndm.getDescription(), HtmlCompat.FROM_HTML_MODE_LEGACY));
-        Picasso.get().load(ndm.getImgUrl()).placeholder(R.drawable.logo).into(detailImage);
-    }
 }
