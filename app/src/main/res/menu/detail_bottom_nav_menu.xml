@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/detailBottomNavChapterList"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:icon="@drawable/list"
+        android:title="@string/chapters_list" />
+    <item
+        android:id="@+id/detailBottomNavDetail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:icon="@drawable/info"
+        android:title="@string/detail" />
+    <item
+        android:id="@+id/detailBottomNavExport"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:icon="@drawable/download"
+        android:title="@string/export" />
+    <item
+        android:id="@+id/detailBottomNavServer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:icon="@drawable/server"
+        android:title="@string/server" />
+</menu>
