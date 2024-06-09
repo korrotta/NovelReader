@@ -26,10 +26,11 @@ import android.widget.TextView;
 
 import com.softwaredesign.novelreader.Adapters.ChapterListItemAdapter;
 import com.softwaredesign.novelreader.BackgroundTask;
+import com.softwaredesign.novelreader.Global.GlobalConfig;
 import com.softwaredesign.novelreader.Global.ReusableFunction;
 import com.softwaredesign.novelreader.Models.ChapterModel;
 import com.softwaredesign.novelreader.Models.NovelDescriptionModel;
-import com.softwaredesign.novelreader.Scrapers.TruyenfullScraper;
+import com.softwaredesign.novelreader.Models.NovelModel;
 import com.softwaredesign.novelreader.R;
 
 import com.squareup.picasso.Picasso;
@@ -38,7 +39,6 @@ public class DetailActivity extends AppCompatActivity {
 
     private ImageView detailImage;
     private TextView detailName, detailAuthor, detailDescription, pageTextView;
-    private TruyenfullScraper truyenfullScraper;
     private RecyclerView chapterListRV;
     private ChapterListItemAdapter chapterListItemAdapter;
     private ProgressBar progressBar;
@@ -86,8 +86,7 @@ public class DetailActivity extends AppCompatActivity {
     }
 
     private void classVarInit() {
-        truyenfullScraper = new TruyenfullScraper();
-        pageSize = truyenfullScraper.getNumberOfChaptersPerPage();
+        pageSize = GlobalConfig.Global_Current_Scraper.getNumberOfChaptersPerPage();
 
         currentPage = 1;
 
@@ -163,7 +162,7 @@ public class DetailActivity extends AppCompatActivity {
         public void doInBackground() {
             //Fetch from scraped
             // Fetch novel details using the scraper
-            novelDescModel = truyenfullScraper.getNovelDetail(NovelUrl);
+            novelDescModel = GlobalConfig.Global_Current_Scraper.getNovelDetail(NovelUrl);
         }
 
         @Override
@@ -185,22 +184,7 @@ public class DetailActivity extends AppCompatActivity {
         @Override
         public void doInBackground() {
 
-            // Fetch chapters for each page
-//            for (int i = 1; i <= numberOfPages; i++){
-//                String finalUrl = preOfFinalUrlForm + i + aftOfFileUrlForm;
-//                Log.d("TAG", "doInBackground: " + finalUrl);
-//                list.addAll(truyenfullScraper.novelChapterListScraping(finalUrl));
-//            }
-
-            // Set URL parts for chapter pagination
-            this.preOfFinalUrlForm = NovelUrl + "/trang-";
-            this.aftOfFileUrlForm = "/#list-chapter";
-
-            //Fetch chapter list of that page.
-            String pageUrl = this.preOfFinalUrlForm + currentPage + this.aftOfFileUrlForm;
-            ReusableFunction.LogVariable(pageUrl);
-
-            List<ChapterModel> tempPageList = truyenfullScraper.getChapterListFromUrl(pageUrl);
+            List<ChapterModel> tempPageList = GlobalConfig.Global_Current_Scraper.getChapterListInPage(NovelUrl, currentPage);
             ReusableFunction.ReplaceList(pageItems, tempPageList);
         }
 
@@ -233,7 +217,7 @@ public class DetailActivity extends AppCompatActivity {
         @Override
         public void doInBackground() {
 
-            numberOfPages = truyenfullScraper.getChapterListNumberOfPages(NovelUrl);
+            numberOfPages = GlobalConfig.Global_Current_Scraper.getChapterListNumberOfPages(NovelUrl);
             Log.d("NUMBER OF PAGES", String.valueOf(numberOfPages));
         }
 

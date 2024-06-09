@@ -8,6 +8,7 @@ import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.Settings;
 import android.text.Layout;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -32,6 +33,8 @@ import android.widget.Toast;
 
 import com.google.android.material.bottomappbar.BottomAppBar;
 import com.softwaredesign.novelreader.BackgroundTask;
+import com.softwaredesign.novelreader.Global.GlobalConfig;
+import com.softwaredesign.novelreader.Models.ChapterContentModel;
 import com.softwaredesign.novelreader.Scrapers.TruyenfullScraper;
 import com.softwaredesign.novelreader.R;
 
@@ -48,7 +51,6 @@ public class ReadActivity extends AppCompatActivity {
     private LinearLayout search_layout;
     private ImageView chapterListIV, prevChapterIV, nextChapterIV, findInChapterIV, settingsIV, serverIV;
     private String chapterUrl, chapterTitle, content;
-    private TruyenfullScraper truyenfullScraper = new TruyenfullScraper();
     private ProgressBar progressBar;
     private BottomAppBar bottomAppBar;
     private Handler handler = new Handler(Looper.getMainLooper());
@@ -78,8 +80,6 @@ public class ReadActivity extends AppCompatActivity {
             chapterUrl = bundle.getString("ChapterUrl");
             Log.d("Tag", "ChapterURL: " + chapterUrl);
         }
-
-
 
         //execute chapter content
         getChapterContent.execute();
@@ -412,10 +412,11 @@ public class ReadActivity extends AppCompatActivity {
         @Override
         public void doInBackground() {
             //Fetch from chapterURL
-            chapterTitle = truyenfullScraper.getChapterTitleAndName(chapterUrl);
-            content = truyenfullScraper.getChapterContent(chapterUrl);
-            ReadActivity.this.nextChapterUrl = truyenfullScraper.getNextChapterUrl(ReadActivity.this.chapterUrl);
-            ReadActivity.this.previousChapterUrl = truyenfullScraper.getPreviousChapterUrl(ReadActivity.this.chapterUrl);
+            ChapterContentModel ccm = GlobalConfig.Global_Current_Scraper.getChapterContent(chapterUrl);
+            chapterTitle = ccm.getChapterName();
+            content = ccm.getContent();
+            nextChapterUrl = GlobalConfig.Global_Current_Scraper.getNextChapterUrl(chapterUrl);
+            previousChapterUrl = GlobalConfig.Global_Current_Scraper.getPreviousChapterUrl(chapterUrl);
 //            Log.d("FETCHED CONTENT", content);
         }
 
