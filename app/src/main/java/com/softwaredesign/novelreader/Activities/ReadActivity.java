@@ -1,11 +1,13 @@
 package com.softwaredesign.novelreader.Activities;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatSpinner;
 import androidx.core.content.ContextCompat;
 import androidx.core.text.HtmlCompat;
 
 import android.annotation.SuppressLint;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -53,10 +55,9 @@ public class ReadActivity extends AppCompatActivity {
     private EditText searchEditText;
     private ImageButton searchUpIV, searchDownIV, searchCloseButton;
     private LinearLayout search_layout;
-    private ImageView chapterListIV, prevChapterIV, nextChapterIV, findInChapterIV, settingsIV;
+    private ImageView chapterListIV, prevChapterIV, nextChapterIV, findInChapterIV, serverIV, settingsIV;
     private String chapterUrl, chapterTitle, content;
     private ProgressBar progressBar;
-    private AppCompatSpinner serverSpinner;
     private BottomAppBar bottomAppBar;
     private Handler handler = new Handler(Looper.getMainLooper());
 
@@ -73,9 +74,16 @@ public class ReadActivity extends AppCompatActivity {
 
         InitializeView();
 
-        // Initialize Server Spinner Adapter
-        ServerSpinnerAdapter serverAdapter = new ServerSpinnerAdapter(this, android.R.layout.simple_spinner_item, GlobalConfig.Global_Source_List);
-        serverSpinner.setAdapter(serverAdapter);
+        // Check for current Server from Global Scrapper
+        final int[] checkedItem = {-1};
+        switch(GlobalConfig.Global_Current_Scraper.getSourceName()) {
+            case "Truyenfull":
+                checkedItem[0] = 0;
+                break;
+            case "Tangthuvien":
+                checkedItem[0] = 1;
+                break;
+        }
 
         // Get Chapter Url from bundle
         Bundle bundle = getIntent().getExtras();
@@ -114,17 +122,44 @@ public class ReadActivity extends AppCompatActivity {
         });
 
         // Handle Server Source Button
-        serverSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        serverIV.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                INovelScraper scraperInstance = (INovelScraper) parent.getItemAtPosition(position);
-                GlobalConfig.Global_Current_Scraper = scraperInstance;
+            public void onClick(View v) {
+                // AlertDialog builder instance to build the alert dialog
+                AlertDialog.Builder alertDialog = new AlertDialog.Builder(ReadActivity.this);
 
-            }
+                // Set the custom icon to the alert dialog
+                alertDialog.setIcon(R.drawable.server);
 
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
+                // Title of the alert dialog
+                alertDialog.setTitle("Choose Server Source");
 
+                // List of items
+                final String[] listItems = new String[]{"Truyenfull", "Tangthuvien"};
+
+                // Builds the alert dialog with the single item selection
+                alertDialog.setSingleChoiceItems(listItems, checkedItem[0], new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Update the selected item which is selected by the user so that it should be selected
+                        // When user opens the dialog next time and pass the instance to setSingleChoiceItems method
+                        checkedItem[0] = which;
+
+                        // When selected an item the dialog should be closed with the dismiss method
+                        dialog.dismiss();
+                    }
+                });
+
+                // Set the negative button if the user is not interested to select or change already selected item
+                alertDialog.setNegativeButton("Cancel", (dialog, which) -> {
+
+                });
+
+                // Create and build the AlertDialog instance with the AlertDialog builder instance
+                AlertDialog customAlertDialog = alertDialog.create();
+
+                // Show the alert dialog when the button is clicked
+                customAlertDialog.show();
             }
         });
 
@@ -371,7 +406,7 @@ public class ReadActivity extends AppCompatActivity {
         settingsIV = findViewById(R.id.settingsRead);
         bottomAppBar = findViewById(R.id.bottomNavRead);
         progressBar = findViewById(R.id.readProgressBar);
-        serverSpinner = findViewById(R.id.serverSourceRead);
+        serverIV = findViewById(R.id.serverSourceRead);
         searchEditText = findViewById(R.id.search_edit_text);
         //overlayView = findViewById(R.id.overlay_view);
         search_layout = findViewById(R.id.search_layout);
