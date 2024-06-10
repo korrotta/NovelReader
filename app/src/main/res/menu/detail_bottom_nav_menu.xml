@@ -19,10 +19,4 @@
         android:layout_height="wrap_content"
         android:icon="@drawable/download"
         android:title="@string/export" />
-    <item
-        android:id="@+id/detailBottomNavServer"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:icon="@drawable/server"
-        android:title="@string/server" />
 </menu>

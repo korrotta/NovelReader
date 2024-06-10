@@ -207,7 +207,7 @@ public class ReadActivity extends AppCompatActivity {
         chapterListIV.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                Toast.makeText(ReadActivity.this, "You clicked Chapter List", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -215,7 +215,7 @@ public class ReadActivity extends AppCompatActivity {
         settingsIV.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                Toast.makeText(ReadActivity.this, "You clicked Settings", Toast.LENGTH_SHORT).show();
             }
         });
 
