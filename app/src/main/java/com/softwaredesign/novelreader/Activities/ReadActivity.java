@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatSpinner;
 import androidx.core.content.ContextCompat;
 import androidx.core.text.HtmlCompat;
+import androidx.fragment.app.FragmentManager;
 
 import android.annotation.SuppressLint;
 import android.content.DialogInterface;
@@ -38,6 +39,7 @@ import com.example.novelscraperfactory.INovelScraper;
 import com.google.android.material.bottomappbar.BottomAppBar;
 import com.softwaredesign.novelreader.Adapters.ServerSpinnerAdapter;
 import com.softwaredesign.novelreader.BackgroundTask;
+import com.softwaredesign.novelreader.Fragments.SettingsDialogFragment;
 import com.softwaredesign.novelreader.Global.GlobalConfig;
 import com.softwaredesign.novelreader.Models.ChapterContentModel;
 import com.softwaredesign.novelreader.R;
@@ -251,6 +253,9 @@ public class ReadActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Toast.makeText(ReadActivity.this, "You clicked Settings", Toast.LENGTH_SHORT).show();
+                FragmentManager fragmentManager = getSupportFragmentManager();
+                SettingsDialogFragment settingsDialog = new SettingsDialogFragment();
+                settingsDialog.show(fragmentManager, "settings_dialog");
             }
         });
 
@@ -259,13 +264,15 @@ public class ReadActivity extends AppCompatActivity {
     // search text in content function
     private void performSearch() {
         String query = searchEditText.getText().toString();
-        String content = chapterContentTV.getText().toString();
+        //String content = chapterContentTV.getText().toString();
+        String plainTextContent  = HtmlCompat.fromHtml(content, HtmlCompat.FROM_HTML_MODE_LEGACY).toString();
+
 
         searchResults = new ArrayList<>();
-        int index = content.indexOf(query);
+        int index = plainTextContent .indexOf(query);
         while (index >= 0) {
             searchResults.add(index);
-            index = content.indexOf(query, index + query.length());
+            index = plainTextContent .indexOf(query, index + query.length());
         }
 
         if (!searchResults.isEmpty()) {
@@ -290,7 +297,7 @@ public class ReadActivity extends AppCompatActivity {
         }
         int highlightColor = ContextCompat.getColor(this, R.color.saddle_brown);
 
-        Spannable spannable = new SpannableString(content);
+        Spannable spannable = new SpannableString(HtmlCompat.fromHtml(content, HtmlCompat.FROM_HTML_MODE_LEGACY));
 
         for (int i = 0; i < searchResults.size(); i++) {
             spannable.setSpan(new BackgroundColorSpan(highlightColor), searchResults.get(i), searchResults.get(i) + searchText.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -302,7 +309,7 @@ public class ReadActivity extends AppCompatActivity {
 
     // clear all highlight text function
     private void clearHighlight() {
-        chapterContentTV.setText(content);
+        chapterContentTV.setText(HtmlCompat.fromHtml(content, HtmlCompat.FROM_HTML_MODE_LEGACY));
     }
 
     // scroll to search result function
@@ -339,8 +346,8 @@ public class ReadActivity extends AppCompatActivity {
     private void highlightTextWithCurrentHighlight(int currentPosition) {
         int highlightColor = ContextCompat.getColor(this, R.color.saddle_brown);
         int currentHighlightColor = ContextCompat.getColor(this, R.color.slate_blue);;
-        String content = chapterContentTV.getText().toString();
-        Spannable spannable = new SpannableString(content);
+        String plainTextContent = HtmlCompat.fromHtml(content, HtmlCompat.FROM_HTML_MODE_LEGACY).toString();
+        Spannable spannable = new SpannableString(plainTextContent);
 
         for (int i = 0; i < searchResults.size(); i++) {
             int start = searchResults.get(i);
