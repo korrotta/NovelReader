@@ -24,4 +24,5 @@
     <string name="from_chapter">From Chapter</string>
     <string name="to_chapter">To Chapter</string>
     <string name="file_format">File Format</string>
+    <string name="servers">Servers</string>
 </resources>
