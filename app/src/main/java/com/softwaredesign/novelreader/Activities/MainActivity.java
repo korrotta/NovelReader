@@ -15,6 +15,7 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatButton;
 import androidx.appcompat.widget.AppCompatSpinner;
 import androidx.appcompat.widget.SearchView;
 import androidx.core.app.ActivityCompat;
@@ -59,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
     private NovelAdapter novelAdapter; // Adapter for the RecyclerView
     private ProgressBar progressBar; // ProgressBar to indicate loading
     private AppCompatSpinner serverSpinner; // Spinner for server sources
+    private AppCompatButton downloadPluginButton; // Button for download pluins
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +72,7 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerView);
         progressBar = findViewById(R.id.progressBar);
         serverSpinner = findViewById(R.id.serverSpinner);
+        downloadPluginButton = findViewById(R.id.downloadPluginButton);
 
         //Init server adapter
         ServerSpinnerAdapter serverAdapter = new ServerSpinnerAdapter(this, android.R.layout.simple_spinner_item, GlobalConfig.Global_Source_List);
