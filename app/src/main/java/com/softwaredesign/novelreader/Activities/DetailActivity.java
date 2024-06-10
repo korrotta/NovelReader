@@ -24,6 +24,7 @@ import androidx.fragment.app.FragmentManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 import com.softwaredesign.novelreader.BackgroundTask;
+import com.softwaredesign.novelreader.Fragments.ExportFragment;
 import com.softwaredesign.novelreader.Global.GlobalConfig;
 import com.softwaredesign.novelreader.Global.ReusableFunction;
 import com.softwaredesign.novelreader.Models.ChapterModel;
@@ -101,10 +102,7 @@ public class DetailActivity extends AppCompatActivity {
                     selectedFragment = DetailNovelFragment.newInstance(NovelUrl);
                 } else if (itemId == R.id.detailBottomNavExport) {
                     // Handle Export Option
-
-                } else if (itemId == R.id.detailBottomNavServer) {
-                    // Handle Server Option
-
+                    selectedFragment = ExportFragment.newInstance(NovelUrl);
                 }
 
                 // Switch to selected Fragment
