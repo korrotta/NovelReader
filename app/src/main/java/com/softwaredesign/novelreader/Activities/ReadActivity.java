@@ -22,7 +22,6 @@ import android.view.animation.AnimationUtils;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -33,14 +32,13 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.scraper_library.INovelScraper;
+import com.example.novelscraperfactory.INovelScraper;
 import com.google.android.material.bottomappbar.BottomAppBar;
 import com.softwaredesign.novelreader.Adapters.ServerSpinnerAdapter;
 import com.softwaredesign.novelreader.BackgroundTask;
 import com.softwaredesign.novelreader.Global.GlobalConfig;
 import com.softwaredesign.novelreader.Models.ChapterContentModel;
 import com.softwaredesign.novelreader.R;
-import com.softwaredesign.novelreader.ScraperFactory.ScraperFactory;
 import com.softwaredesign.novelreader.Scrapers.TangthuvienScraper;
 import com.softwaredesign.novelreader.Scrapers.TruyenfullScraper;
 
@@ -56,7 +54,7 @@ public class ReadActivity extends AppCompatActivity {
     private ImageButton searchUpIV, searchDownIV, searchCloseButton;
     private LinearLayout search_layout;
     private ImageView chapterListIV, prevChapterIV, nextChapterIV, findInChapterIV, settingsIV;
-    private String chapterUrl, novelName ,chapterTitle, content;
+    private String chapterUrl, chapterTitle, content;
     private ProgressBar progressBar;
     private AppCompatSpinner serverSpinner;
     private BottomAppBar bottomAppBar;
@@ -66,10 +64,6 @@ public class ReadActivity extends AppCompatActivity {
     private int currentSearchIndex = 0;
 
     private String nextChapterUrl, previousChapterUrl;
-    private List<String> serverArrayAsString;
-
-    //NOTE: Important variabe here
-    private INovelScraper readerScraper;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -77,17 +71,10 @@ public class ReadActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_read);
 
-        readerScraper = GlobalConfig.Global_Current_Scraper.clone(); //Clone new scraper to split it with global one
-
-        serverArrayAsString = new ArrayList<>();
-        serverArrayAsString.add(readerScraper.getSourceName());
-
-//        fillServerStringArray();
         InitializeView();
 
         // Initialize Server Spinner Adapter
-        ArrayAdapter<String> serverAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, serverArrayAsString);
-        serverAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        ServerSpinnerAdapter serverAdapter = new ServerSpinnerAdapter(this, android.R.layout.simple_spinner_item, GlobalConfig.Global_Source_List);
         serverSpinner.setAdapter(serverAdapter);
 
         // Get Chapter Url from bundle
@@ -96,8 +83,9 @@ public class ReadActivity extends AppCompatActivity {
             chapterUrl = bundle.getString("ChapterUrl");
             Log.d("Tag", "ChapterURL: " + chapterUrl);
         }
+
         //execute chapter content
-        getChapterContentTask();
+        getChapterContent.execute();
 
         // Handle Previous Chapter Button
         prevChapterIV.setOnClickListener(new View.OnClickListener() {
@@ -108,15 +96,10 @@ public class ReadActivity extends AppCompatActivity {
                     return;
                 }
                 chapterUrl = previousChapterUrl;
-                getChapterContentTask();
+                getChapterContent.execute();
             }
         });
-        settingsIV.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d("Clciked", "LCiedks");
-            }
-        });
+
         // Handle Next Chapter Button
         nextChapterIV.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -126,19 +109,7 @@ public class ReadActivity extends AppCompatActivity {
                     return;
                 }
                 chapterUrl = nextChapterUrl;
-                getChapterContentTask();
-            }
-        });
-
-        chapterListIV.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d("Click?", "clicked");
-                //NOTE: TESTING SWITCH SOURCE
-                for (INovelScraper scraper: GlobalConfig.Global_Source_List){
-                    if (scraper.getSourceName().equals(readerScraper.getSourceName())) continue;
-                    getChapterFromAnotherSource(scraper);
-                }
+                getChapterContent.execute();
             }
         });
 
@@ -146,12 +117,14 @@ public class ReadActivity extends AppCompatActivity {
         serverSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String serverName = (String) parent.getItemAtPosition(position);
-                readerScraper = ScraperFactory.createScraper(serverName); //Note: used factory to create a scraper instance
+                INovelScraper scraperInstance = (INovelScraper) parent.getItemAtPosition(position);
+                GlobalConfig.Global_Current_Scraper = scraperInstance;
+
             }
+
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-                Log.d("Click check", "Clicked");
+
             }
         });
 
@@ -229,6 +202,23 @@ public class ReadActivity extends AppCompatActivity {
                 searchStatusTV.setText("");
             }
         });
+
+        // Hanlde chapterList Button
+        chapterListIV.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(ReadActivity.this, "You clicked Chapter List", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // Handle Settings Button
+        settingsIV.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(ReadActivity.this, "You clicked Settings", Toast.LENGTH_SHORT).show();
+            }
+        });
+
     }
 
     // search text in content function
@@ -397,93 +387,48 @@ public class ReadActivity extends AppCompatActivity {
         nextChapterIV.setVisibility(View.GONE);
         prevChapterIV.setVisibility(View.GONE);
     }
-    //NOTE: NEW TESTING METHOD, NOT YET COMPLETED
-    private void getChapterFromAnotherSource(INovelScraper scraper){
-        Log.d("Called check", "Called");
-        new BackgroundTask(ReadActivity.this) {
-            @Override
-            public void onPreExecute() {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        progressBar.setVisibility(View.VISIBLE);
-                        progressBar.startAnimation(AnimationUtils.loadAnimation(ReadActivity.this, android.R.anim.fade_in));
-                    }
-                });
-            }
-            @Override
-            public void doInBackground() {
-                ChapterContentModel ccm =  scraper.getContentFromNameAndChapName(novelName, chapterTitle);
-                if (ccm != null){
-                    Log.d("URl", ccm.getChapterUrl());
+
+    private final BackgroundTask getChapterContent = new BackgroundTask(ReadActivity.this) {
+        @Override
+        public void onPreExecute() {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    progressBar.setVisibility(View.VISIBLE);
+                    progressBar.startAnimation(AnimationUtils.loadAnimation(ReadActivity.this, android.R.anim.fade_in));
                 }
-                else Log.d("Url", "null");
-            }
-
-            @Override
-            public void onPostExecute() {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        progressBar.setVisibility(View.GONE);
-                        progressBar.startAnimation(AnimationUtils.loadAnimation(ReadActivity.this, android.R.anim.fade_out));
-                    }
-                });
-
-            }
-        }.execute();
-    }
-    private void getChapterContentTask() {
-        new BackgroundTask(ReadActivity.this) {
-            @Override
-            public void onPreExecute() {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        progressBar.setVisibility(View.VISIBLE);
-                        progressBar.startAnimation(AnimationUtils.loadAnimation(ReadActivity.this, android.R.anim.fade_in));
-                    }
-                });
-            }
-
-            @Override
-            public void doInBackground() {
-                //Fetch from chapterURL
-                ChapterContentModel ccm = readerScraper.getChapterContent(chapterUrl);
-                novelName = ccm.getNovelName();
-                chapterTitle = ccm.getChapterName();
-                content = ccm.getContent();
-                nextChapterUrl = readerScraper.getNextChapterUrl(chapterUrl);
-                previousChapterUrl = readerScraper.getPreviousChapterUrl(chapterUrl);
-//            Log.d("FETCHED CONTENT", content);
-            }
-
-            @Override
-            public void onPostExecute() {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        progressBar.setVisibility(View.GONE);
-                        progressBar.startAnimation(AnimationUtils.loadAnimation(ReadActivity.this, android.R.anim.fade_out));
-                    }
-                });
-                // Update UI after fetch
-                chapterNameTV.setText(chapterTitle);
-                chapterContentTV.setText(HtmlCompat.fromHtml(content, HtmlCompat.FROM_HTML_MODE_LEGACY));
-
-                nextChapterIV.setVisibility(View.VISIBLE);
-                prevChapterIV.setVisibility(View.VISIBLE);
-
-                contentScrollView.fullScroll(ScrollView.FOCUS_UP);
-            }
-        }.execute();
-    }
-    private void fillServerStringArray(){
-        if (serverArrayAsString == null) return;
-        serverArrayAsString.clear();
-        for (INovelScraper scraper: GlobalConfig.Global_Source_List){
-            serverArrayAsString.add(scraper.getSourceName());
+            });
         }
-    }
+
+        @Override
+        public void doInBackground() {
+            //Fetch from chapterURL
+            ChapterContentModel ccm = GlobalConfig.Global_Current_Scraper.getChapterContent(chapterUrl);
+            chapterTitle = ccm.getChapterName();
+            content = ccm.getContent();
+            nextChapterUrl = GlobalConfig.Global_Current_Scraper.getNextChapterUrl(chapterUrl);
+            previousChapterUrl = GlobalConfig.Global_Current_Scraper.getPreviousChapterUrl(chapterUrl);
+//            Log.d("FETCHED CONTENT", content);
+        }
+
+        @Override
+        public void onPostExecute() {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    progressBar.setVisibility(View.GONE);
+                    progressBar.startAnimation(AnimationUtils.loadAnimation(ReadActivity.this, android.R.anim.fade_out));
+                }
+            });
+            // Update UI after fetch
+            chapterNameTV.setText(chapterTitle);
+            chapterContentTV.setText(HtmlCompat.fromHtml(content, HtmlCompat.FROM_HTML_MODE_LEGACY));
+
+            nextChapterIV.setVisibility(View.VISIBLE);
+            prevChapterIV.setVisibility(View.VISIBLE);
+
+            contentScrollView.fullScroll(ScrollView.FOCUS_UP);
+        }
+    };
 
 }
