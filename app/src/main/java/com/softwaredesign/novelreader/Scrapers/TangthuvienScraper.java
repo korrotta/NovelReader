@@ -236,7 +236,7 @@ public class TangthuvienScraper implements INovelScraper {
             if (current!=null){
                 int currentId = Integer.parseInt(current.attr("title"));
                 if (currentId >= total){
-                    return "";
+                    return null; //NO next chap
                 }
                 int nextId = currentId +1;
                 Element next = doc2.selectFirst("li[title="+nextId+"]");
@@ -276,7 +276,7 @@ public class TangthuvienScraper implements INovelScraper {
             if (current!=null){
                 int currentId = Integer.parseInt(current.attr("title"));
                 if (currentId <= 1){
-                    return "";
+                    return null; // no prev chap
                 }
                 int prevId = currentId -1;
                 Element prev = doc2.selectFirst("li[title="+prevId+"]");

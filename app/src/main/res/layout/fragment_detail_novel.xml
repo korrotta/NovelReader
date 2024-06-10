@@ -10,10 +10,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
+        android:layout_marginLeft="10dp"
         android:text="@string/m_t"
         android:textAllCaps="true"
         android:textColor="@color/white_smoke"
-        android:textSize="26sp"
+        android:textSize="22sp"
         android:textStyle="bold" />
 
     <ProgressBar
@@ -28,8 +29,10 @@
         android:id="@+id/detailDescription"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="70dp"
         android:textColor="@color/white_smoke"
-        android:textSize="20sp" />
+        android:textSize="18sp" />
 
 </LinearLayout>

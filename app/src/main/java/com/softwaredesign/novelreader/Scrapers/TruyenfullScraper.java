@@ -35,6 +35,7 @@ public class TruyenfullScraper implements INovelScraper {
         try {
             // Fetch and parse the search result page
             Document doc = Jsoup.connect(searchUrl).get();
+
             // Select rows containing novel information
             Elements rowNodes = doc.select("div.row");
 
@@ -89,7 +90,6 @@ public class TruyenfullScraper implements INovelScraper {
             return ndm;
 
         } catch (IOException e) {
-
             throw new RuntimeException(e);
         }
     }
@@ -332,33 +332,12 @@ public class TruyenfullScraper implements INovelScraper {
         Element imgNode = row.select("div[data-image]").first();
 
         if (imgNode!=null){
-            String data = imgNode.attr("data-desk-image");
-            return imgNode.attr("data-desk-image");
+            String data = imgNode.attr("data-image");
+            return imgNode.attr("data-image");
         }
         return null;
     }
-    public String getChapterTitleAndName(String url) {
-        Document doc = null;
-        try {
-            doc = Jsoup.connect(url).get();
-            String title = doc.select("a.truyen-title").first().text();
-            String chapterName = doc.select("a.chapter-title").first().text();
-            Log.d("TITLE", title);
-            Log.d("CHAPTERNAME", chapterName);
 
-
-
-            return chapterName;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    //Novel description support methods
-    //Other methods
-    private void logToCheck(NovelModel n){
-        Log.d("Novel Model object", n.getName() + " src: " + n.getUrl() + " " + n.getAuthor() + " img: " + n.getImageDesk());
-    }
 
 
 }

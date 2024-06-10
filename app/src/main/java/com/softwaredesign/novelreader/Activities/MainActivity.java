@@ -25,6 +25,7 @@ import com.softwaredesign.novelreader.Models.NovelModel;
 import com.softwaredesign.novelreader.Adapters.NovelAdapter;
 import com.softwaredesign.novelreader.Models.NovelSourceModel;
 import com.softwaredesign.novelreader.Scrapers.TangthuvienScraper;
+import com.softwaredesign.novelreader.Scrapers.TruyencvScraper;
 import com.softwaredesign.novelreader.Scrapers.TruyenfullScraper;
 import com.softwaredesign.novelreader.R;
 
@@ -67,16 +68,16 @@ public class MainActivity extends AppCompatActivity {
         //Add source truyenfull
         INovelScraper truyenfull = new TruyenfullScraper();
         INovelScraper tangthuvien = new TangthuvienScraper();
+        INovelScraper truyencv = new TruyencvScraper();
 
 
-        //TODO: Plugin architecture for hot plugging new source - truyenchu.vn
+
         GlobalConfig.Global_Source_List.add(truyenfull);
         GlobalConfig.Global_Source_List.add(tangthuvien);
-        //TODO: Implement Tangthuvien scraper
-        //GlobalConfig.Global_Source_List.add(tangthuvien);
+        GlobalConfig.Global_Source_List.add(truyencv);
+        //TODO: Plugin architecture for hot plugging new source - truyenchu.vn
 
         serverAdapter.notifyDataSetChanged();
-        //TODO: Set spinner
 
         // Handle SearchView
         // Set up SearchView behavior
