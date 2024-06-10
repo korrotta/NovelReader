@@ -4,7 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
-import com.example.novelscraperfactory.INovelScraper;
+import com.example.scraper_library.INovelScraper;
 import com.softwaredesign.novelreader.Models.NovelSourceModel;
 import com.softwaredesign.novelreader.Scrapers.TruyenfullScraper;
 

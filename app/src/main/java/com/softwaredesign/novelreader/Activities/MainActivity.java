@@ -1,7 +1,11 @@
 package com.softwaredesign.novelreader.Activities;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.AnimationUtils;
@@ -13,10 +17,13 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatSpinner;
 import androidx.appcompat.widget.SearchView;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.novelscraperfactory.INovelScraper;
+import com.example.scraper_library.INovelScraper;
+
 import com.softwaredesign.novelreader.Adapters.ServerSpinnerAdapter;
 import com.softwaredesign.novelreader.BackgroundTask;
 import com.softwaredesign.novelreader.Global.GlobalConfig;
@@ -34,12 +41,16 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import dalvik.system.DexClassLoader;
+
 public class MainActivity extends AppCompatActivity {
+    private static final int REQUEST_CODE_READ_STORAGE = 100;
 
     // URL of the website to scrape novels from
     private SearchView searchView; // SearchView for searching novels
@@ -64,13 +75,18 @@ public class MainActivity extends AppCompatActivity {
         ServerSpinnerAdapter serverAdapter = new ServerSpinnerAdapter(this, android.R.layout.simple_spinner_item, GlobalConfig.Global_Source_List);
         serverSpinner.setAdapter(serverAdapter);
 
+        File downloadDir =MainActivity.this.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+        String downloadDirPath = downloadDir.getAbsolutePath();
+        //make directory
+        makeDirectory(downloadDirPath);
+
         // Add source truyenfull
         INovelScraper truyenfull = new TruyenfullScraper();
         // Add source tangthuvien
         INovelScraper tangthuvien = new TangthuvienScraper();
         INovelScraper truyencv = new TruyencvScraper();
 
-
+        loadScraperPlugin(downloadDirPath);
 
         GlobalConfig.Global_Source_List.add(truyenfull);
         GlobalConfig.Global_Source_List.add(tangthuvien);
@@ -157,5 +173,47 @@ public class MainActivity extends AppCompatActivity {
                 novelAdapter.notifyDataSetChanged();
             }
         }.execute();
+    }
+
+    private void makeDirectory(String downloadDirPath){
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_CODE_READ_STORAGE);
+            }
+        }
+        try {
+            final String libPath = downloadDirPath + "/myPlugin1.apk";
+            final File tmpDir = getDir("dex", 0);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadAllPlugins(File downloadDir){
+        if (!downloadDir.isDirectory()) return;
+        File[] files = downloadDir.listFiles();
+        if (files == null) return;
+        for (File file: files){
+            if (file.isDirectory()) return;
+            //note: file is file now.
+            //check if it's an apk file
+            if (file.getName().toLowerCase().endsWith(".apk"));
+
+        }
+    }
+    private void loadScraperPlugin(String pluginPath){
+        try {
+            final String libPath = pluginPath + "/scraperplugin_truyencv.apk";
+            final File tmpDir = getDir("dex", 0);
+
+            final DexClassLoader classloader = new DexClassLoader(libPath, tmpDir.getAbsolutePath(), null, this.getClass().getClassLoader());
+
+            Class<?> classToLoad = classloader.loadClass("com.example.truyencvtest.TruyencvScraper");
+            INovelScraper addedPlugin = (INovelScraper) classToLoad.newInstance();
+            Log.d("Added plugin: ", addedPlugin.getSourceName());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -2,7 +2,7 @@ package com.softwaredesign.novelreader.Models;
 
 import com.example.novelscraperfactory.INovelScraper;
 
-public class NovelSourceModel{
+public class NovelSourceModel {
     String name;
     INovelScraper scrapperInstance;
 
@@ -26,4 +26,5 @@ public class NovelSourceModel{
     public void setScrapperInstance(INovelScraper scrapperInstance) {
         this.scrapperInstance = scrapperInstance;
     }
+
 }

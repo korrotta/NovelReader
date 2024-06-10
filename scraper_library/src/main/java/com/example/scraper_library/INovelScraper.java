@@ -1,8 +1,5 @@
-package com.example.novelscraperfactory;
+package com.example.scraper_library;
 
-import android.util.Log;
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 

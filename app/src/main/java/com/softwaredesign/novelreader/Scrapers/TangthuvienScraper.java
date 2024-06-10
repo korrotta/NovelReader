@@ -3,7 +3,7 @@ package com.softwaredesign.novelreader.Scrapers;
 import android.util.JsonReader;
 import android.util.Log;
 
-import com.example.novelscraperfactory.INovelScraper;
+import com.example.scraper_library.INovelScraper;
 import com.softwaredesign.novelreader.Global.ReusableFunction;
 import com.softwaredesign.novelreader.Models.ChapterContentModel;
 import com.softwaredesign.novelreader.Models.ChapterModel;
@@ -247,7 +247,7 @@ public class TangthuvienScraper implements INovelScraper {
             throw new RuntimeException(e);
         }
         Log.d("novelId latest", novelId);
-        return "";
+        return null;
     }
 
 
@@ -286,8 +286,47 @@ public class TangthuvienScraper implements INovelScraper {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return "";
+        return null;
     }
+
+    @Override
+    public ChapterContentModel getContentFromNameAndChapName(String name, String chapterName){
+        //NOTE 1: First step to search name on source
+        boolean isBreak = false;
+        int numberOfPage = getNumberOfSearchResultPage(name); //name as a keyword;
+        NovelModel wantedNovel =null;
+        List<NovelModel> results = new ArrayList<>();
+        for (int i = 1; i<= numberOfPage; i++){
+            results.addAll(getSearchPageFromKeywordAndPageNumber(name, i));
+        }
+        Log.d("length", String.valueOf(results.size()));
+        for (NovelModel novel: results){
+            Log.d("novel name vs search name: ", novel.getName() + " - " + name);
+            if (novel.getName().equalsIgnoreCase(name)) {
+                wantedNovel = novel;
+                isBreak = true;
+                break; //get first one only, who care?
+            }
+        }
+        if (!isBreak) return null;
+        Log.d("Wanted novel ", wantedNovel.getUrl()); //NOTE: ok
+
+        //NOTE 2: Search for the wanted chapter
+        ChapterModel resultChapter = smartChapterSearch(wantedNovel.getUrl(), chapterName);
+        if (resultChapter == null) return null;
+        return getChapterContent(resultChapter.getChapterUrl());
+    }
+
+    @Override
+    public INovelScraper clone() {
+        try {
+            return (INovelScraper) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
 
     @Override
     public int getNumberOfChaptersPerPage() {
@@ -300,6 +339,8 @@ public class TangthuvienScraper implements INovelScraper {
     }
 
     //Loading(number)
+    //NOTE: BORDER==================================================================================
+    //NOTE: BORDER==================================================================================
     private int parseOnClickGetNumber(String loadingCall){
         String rightStr = loadingCall.split("\\(")[1];
         String finalStr = rightStr.split("\\)")[0];
@@ -320,4 +361,86 @@ public class TangthuvienScraper implements INovelScraper {
         return "";
     }
 
+
+    private ChapterModel smartChapterSearch(String novelUrl, String chapterName){
+        //need to parse chapterName to chapterNumber first.
+        int id = parseIdFromChapterName(chapterName);
+        Log.d("id can search", String.valueOf(id));
+        //then get maximum pages of the novel chapter list
+        int totalPages = getChapterListNumberOfPages(novelUrl);
+        //after all, use lambda to get the different
+
+        if (id == -1) {
+            //Final chance: Search by name
+            return null;
+        }
+        else {
+            int possiblePage = id/CHAPTERS_PER_PAGE + 1;
+            int runPage = possiblePage;
+            if (possiblePage > totalPages) return null;
+            while (true) {
+                List<ChapterModel> results = getChapterListInPage(novelUrl, runPage);
+                //Binary search
+                ChapterModel result = searchChapterById(results, id);
+
+                if (result != null) {
+                    Log.d("Result", result.getChapterUrl());
+                    return result;
+
+                }
+                if (result == null) {
+                    runPage ++;
+                    if (runPage - possiblePage == 3) runPage -=5;
+                    if (runPage == possiblePage) return null;
+                }
+            }
+        }
+    }
+    private int parseIdFromChapterName(String chapterName){
+        chapterName = chapterName.replaceAll(":", "");
+        String[] holder = chapterName.split("\\s+");
+        String possibleId;
+
+//        for (int i = 0; i< holder.length; i++) {
+//            Log.d("hlsder", holder[i]);
+//        }
+        int id;
+        if (chapterName.contains("Chương")){
+            possibleId = holder[1];
+        }
+        else {
+            possibleId = holder[0];
+        }
+        try {
+            id = Integer.parseInt(possibleId);
+            return id;
+        }catch (NumberFormatException e){
+            return -1;
+        }
+    }
+
+    private ChapterModel searchChapterById(List<ChapterModel> list, int id){
+        for (ChapterModel chapterModel: list){
+            int chapterId = parseIdFromChapterName(chapterModel.getChapterName());
+
+            if (chapterId == id) return chapterModel;
+        }
+//        int low = 0;
+//        int high = list.size()-1;
+//        while (low <= high){
+//            int mid = (low+high) >>> 1;
+//            ChapterModel model = list.get(mid);
+//
+//            int modelId = parseIdFromChapterName(model.getChapterName());
+//
+//            if (modelId < id){
+//                low = mid+1;
+//            }
+//            else if (modelId > id) {
+//                high = mid-1;
+//            }
+//            else return model;
+//        }
+        return null;
+    }
 }
