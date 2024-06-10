@@ -1,15 +1,12 @@
 package com.softwaredesign.novelreader.Scrapers;
 
-import android.util.JsonReader;
 import android.util.Log;
 
 import com.example.scraper_library.INovelScraper;
-import com.softwaredesign.novelreader.Global.ReusableFunction;
 import com.softwaredesign.novelreader.Models.ChapterContentModel;
 import com.softwaredesign.novelreader.Models.ChapterModel;
 import com.softwaredesign.novelreader.Models.NovelDescriptionModel;
 import com.softwaredesign.novelreader.Models.NovelModel;
-import com.softwaredesign.novelreader.Models.NovelSourceModel;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -200,7 +197,7 @@ public class TangthuvienScraper implements INovelScraper {
             content = boxchaps.wholeText();
             String name = doc.select("h1.truyen-title").text();
             String chapterName = doc.selectFirst("h2").text().replaceAll("&nbsp;", " ");
-            Log.d("Content", content);
+
             content = content.replaceAll("\n", "<br>");
             ChapterContentModel contentModel = new ChapterContentModel(chapterName, url, content, name);
             return contentModel;
@@ -405,7 +402,7 @@ public class TangthuvienScraper implements INovelScraper {
 //            Log.d("hlsder", holder[i]);
 //        }
         int id;
-        if (chapterName.contains("Chương")){
+        if (chapterName.toUpperCase().contains("CHƯƠNG")){
             possibleId = holder[1];
         }
         else {

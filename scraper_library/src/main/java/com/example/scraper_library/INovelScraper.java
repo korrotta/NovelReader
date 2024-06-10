@@ -4,6 +4,35 @@ import java.util.ArrayList;
 import java.util.List;
 
 public interface INovelScraper extends Cloneable{
+    //Note: NovelModel constructor: (String name, String url, String author, String imageDesk)
+    enum NovelModelIndex{
+        NAME,
+        URL,
+        AUTHOR,
+        IMG
+    }
+
+    //Note: NovelDescriptionModel constructor: (String name, String author, String description, String imgUrl)
+    enum NovelDescriptionModelIndex{
+        NAME,
+        AUTHOR,
+        DESCRIPTION,
+        IMG
+    }
+
+    //Note: ChapterModel constructor: (String chapterName, String chapterUrl, int chapterNumber)
+    enum ChapterModelIndex{
+        NAME,
+        URL,
+        NUMBER
+    }
+    //Note: ChapterContentModel constructor: (String chapterName, String chapterUrl, String content, String novelName)
+    enum ChapterContentModelIndex{
+        NAME,
+        URL,
+        CONTENT,
+        NOVEL
+    }
     <T> ArrayList<T> getSearchPageFromKeywordAndPageNumber(String keyword, int page);
     int getNumberOfSearchResultPage(String keyword);
 

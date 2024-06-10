@@ -82,7 +82,7 @@ public class TruyenfullScraper implements INovelScraper {
             if (novelDescriptionNode!=null){
                 content = novelDescriptionNode.toString();
                 content = content.replace("<div class=\"desc-text desc-text-full\" itemprop=\"description\">", "");
-                Log.d("content", content);
+//                Log.d("content", content);
             }
 
             // Create and return a new NovelDescriptionModel object
@@ -147,7 +147,7 @@ public class TruyenfullScraper implements INovelScraper {
                     String title = parseTitle(child_node.attr("title"));
                     int chapterNumber = parseChapterNumber(title);
                     ChapterModel chapter = new ChapterModel(title, chapterUrl, chapterNumber);
-                    Log.d("chapter: ", chapter.getChapterName());
+//                    Log.d("chapter: ", chapter.getChapterName());
                     chapters.add(chapter);
                 }
             }
@@ -410,12 +410,12 @@ public class TruyenfullScraper implements INovelScraper {
         chapterName = chapterName.replaceAll(":", "");
         String[] holder = chapterName.split("\\s+");
         String possibleId;
-
+//
 //        for (int i = 0; i< holder.length; i++) {
 //            Log.d("hlsder", holder[i]);
 //        }
         int id;
-        if (chapterName.contains("Chương")){
+        if (chapterName.toUpperCase().contains("CHƯƠNG")){
             possibleId = holder[1];
         }
         else {

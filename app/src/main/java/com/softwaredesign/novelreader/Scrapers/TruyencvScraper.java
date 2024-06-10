@@ -308,7 +308,6 @@ public class TruyencvScraper implements INovelScraper {
     }
 
 
-
     private ChapterModel smartChapterSearch(String novelUrl, String chapterName){
         //need to parse chapterName to chapterNumber first.
         int id = parseIdFromChapterName(chapterName);
@@ -344,11 +343,11 @@ public class TruyencvScraper implements INovelScraper {
         }
     }
     private int parseIdFromChapterName(String chapterName){
-        chapterName = chapterName.replaceAll(":", "");
+        chapterName = chapterName.replaceAll(":", " ");
         String[] holder = chapterName.split("\\s+");
         String possibleId;
         int id;
-        if (chapterName.contains("Chương")){
+        if (chapterName.toUpperCase().contains("CHƯƠNG")){
             possibleId = holder[1];
         }
         else {
@@ -367,22 +366,6 @@ public class TruyencvScraper implements INovelScraper {
             int chapterId = parseIdFromChapterName(chapterModel.getChapterName());
             if (chapterId == id) return chapterModel;
         }
-//        int low = 0;
-//        int high = list.size()-1;
-//        while (low <= high){
-//            int mid = (low+high) >>> 1;
-//            ChapterModel model = list.get(mid);
-//
-//            int modelId = parseIdFromChapterName(model.getChapterName());
-//
-//            if (modelId < id){
-//                low = mid+1;
-//            }
-//            else if (modelId > id) {
-//                high = mid-1;
-//            }
-//            else return model;
-//        }
         return null;
     }
 }

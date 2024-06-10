@@ -7,6 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public interface INovelScraper extends Cloneable{
+    //Enum for plugin developing
+
+
     <T> ArrayList<T> getSearchPageFromKeywordAndPageNumber(String keyword, int page);
     int getNumberOfSearchResultPage(String keyword);
 
