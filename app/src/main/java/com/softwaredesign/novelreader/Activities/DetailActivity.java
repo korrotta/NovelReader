@@ -61,7 +61,6 @@ public class DetailActivity extends AppCompatActivity {
             loadFragment(DetailNovelFragment.newInstance(NovelUrl));
             getNovelDetailTask.execute();
         }
-
         // Handle Bottom Navigation View Events
         handleBottomNav();
     }
@@ -137,20 +136,30 @@ public class DetailActivity extends AppCompatActivity {
         @Override
         public void onPreExecute() {
             // No pre-execution actions needed
-
         }
 
         @Override
         public void doInBackground() {
             //Fetch from scraped
             // Fetch novel details using the scraper
-            novelDescModel = GlobalConfig.Global_Current_Scraper.getNovelDetail(NovelUrl);
-        }
+            Object desc = GlobalConfig.Global_Current_Scraper.getNovelDetail(NovelUrl);
+            identifyingNovelDescription(desc);
 
+        }
         @Override
         public void onPostExecute() {
             // Update UI with the fetched novel details
             setUIData(novelDescModel);
+        }
+
+        private void identifyingNovelDescription(Object desc) {
+            if (desc instanceof NovelDescriptionModel) {
+                novelDescModel = (NovelDescriptionModel) desc;
+            }
+            else {
+                String[] realDesc = (String[]) desc;
+                novelDescModel = new NovelDescriptionModel(realDesc[0], realDesc[1], realDesc[2], realDesc[3]);
+            }
         }
 
     };

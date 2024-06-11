@@ -24,6 +24,7 @@ import com.softwaredesign.novelreader.BackgroundTask;
 import com.softwaredesign.novelreader.Global.GlobalConfig;
 import com.softwaredesign.novelreader.Global.ReusableFunction;
 import com.softwaredesign.novelreader.Models.ChapterModel;
+import com.softwaredesign.novelreader.Models.NovelModel;
 import com.softwaredesign.novelreader.R;
 import com.softwaredesign.novelreader.Scrapers.TruyenfullScraper;
 
@@ -101,7 +102,7 @@ public class ChapterListFragment extends Fragment {
         classVarInit();
 
         // Execute the background task to fetch the number of chapter pages
-        getNumberOfChapterPagesTask.execute();
+        getTotalPagesThenNovelListTask();
 
         // Initialize and set the adapter for the chapter list RecyclerView
         chapterListItemAdapter = new ChapterListItemAdapter(getContext(), pageItems);
@@ -199,9 +200,13 @@ public class ChapterListFragment extends Fragment {
         @Override
         public void doInBackground() {
             // Fetch the list of chapters from the specified page URL
-            List<ChapterModel> tempPageList = GlobalConfig.Global_Current_Scraper.getChapterListInPage(NovelUrl, currentPage);
+            List<Object> tempList = GlobalConfig.Global_Current_Scraper.getChapterListInPage(NovelUrl, currentPage);
+            if (tempList.size() ==0) {
+                Log.d("Somehow", "empty here");
+            }
+            List<ChapterModel> chapters = identifyingList(tempList);
             // Replace the current list of page items with the fetched list
-            ReusableFunction.ReplaceList(pageItems, tempPageList);
+            ReusableFunction.ReplaceList(pageItems, chapters);
         }
 
         @Override
@@ -212,41 +217,61 @@ public class ChapterListFragment extends Fragment {
         }
     };
 
+
     // Background task to fetch the number of chapter pages
-    private final BackgroundTask getNumberOfChapterPagesTask = new ChapterListFragment.BackgroundTask() {
-        @Override
-        public void onPreExecute() {
-            // Show progress bar with fade-in animation
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    chapterListFragmentPB.setVisibility(View.VISIBLE);
-                    chapterListFragmentPB.startAnimation(AnimationUtils.loadAnimation(getContext(), android.R.anim.fade_in));
-                }
-            });
-        }
 
-        @Override
-        public void doInBackground() {
-            // Fetch the number of chapter pages using the scraper
-            numberOfPages = GlobalConfig.Global_Current_Scraper.getChapterListNumberOfPages(NovelUrl);
-        }
+    private void getTotalPagesThenNovelListTask(){
+        new ChapterListFragment.BackgroundTask() {
+            @Override
+            public void onPreExecute() {
+                // Show progress bar with fade-in animation
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        chapterListFragmentPB.setVisibility(View.VISIBLE);
+                        chapterListFragmentPB.startAnimation(AnimationUtils.loadAnimation(getContext(), android.R.anim.fade_in));
+                    }
+                });
+            }
 
-        @Override
-        public void onPostExecute() {
-            // Hide progress bar with fade-out animation after a delay
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    chapterListFragmentPB.setVisibility(View.GONE);
-                    chapterListFragmentPB.startAnimation(AnimationUtils.loadAnimation(getContext(), android.R.anim.fade_out));
-                    // Set up pagination controls and load the first page
-                    setupPageControls();
-                    // Load the current page
-                    loadPage(currentPage);
-                }
-            });
+            @Override
+            public void doInBackground() {
+                // Fetch the number of chapter pages using the scraper
+                numberOfPages = GlobalConfig.Global_Current_Scraper.getChapterListNumberOfPages(NovelUrl);
+            }
+
+            @Override
+            public void onPostExecute() {
+                // Hide progress bar with fade-out animation after a delay
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        chapterListFragmentPB.setVisibility(View.GONE);
+                        chapterListFragmentPB.startAnimation(AnimationUtils.loadAnimation(getContext(), android.R.anim.fade_out));
+                        // Set up pagination controls and load the first page
+                        setupPageControls();
+                        // Load the current page
+                        loadPage(currentPage);
+                    }
+                });
+            }
+        }.execute();
+    }
+    private List<ChapterModel> identifyingList(List<Object> list){
+        List<ChapterModel> chapterModels = new ArrayList<>();
+        for (Object item: list){
+            if (item instanceof ChapterModel) {
+                chapterModels.add((ChapterModel) item);
+            }
+            else {
+                String[] chapterHolder = (String[]) item;
+                Log.d("Chapter holder", chapterHolder[1]);
+                ChapterModel chapter = new ChapterModel(chapterHolder[0], chapterHolder[1], Integer.parseInt(chapterHolder[2]));
+                chapterModels.add(chapter);
+            }
+
         }
-    };
+        return chapterModels;
+    }
 
 }
