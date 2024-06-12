@@ -96,12 +96,15 @@ public class DetailActivity extends AppCompatActivity {
                 if (itemId == R.id.detailBottomNavChapterList) {
                     // Handle Chapter List Option
                     selectedFragment = ChapterListFragment.newInstance(NovelUrl);
+                    toggleDetailVisibility(false);
                 } else if (itemId == R.id.detailBottomNavDetail) {
                     // Handle Detail Option
                     selectedFragment = DetailNovelFragment.newInstance(NovelUrl);
+                    toggleDetailVisibility(true);
                 } else if (itemId == R.id.detailBottomNavExport) {
                     // Handle Export Option
                     selectedFragment = ExportFragment.newInstance(NovelUrl);
+                    toggleDetailVisibility(false);
                 }
 
                 // Switch to selected Fragment
@@ -112,6 +115,14 @@ public class DetailActivity extends AppCompatActivity {
                 return true;
             }
         });
+    }
+
+    // Method to toggle visibility of details
+    private void toggleDetailVisibility(boolean visible) {
+        int visibility = visible ? View.VISIBLE : View.GONE;
+        detailImage.setVisibility(visibility);
+        detailName.setVisibility(visibility);
+        detailAuthor.setVisibility(visibility);
     }
 
     private void loadFragment(Fragment fragment) {

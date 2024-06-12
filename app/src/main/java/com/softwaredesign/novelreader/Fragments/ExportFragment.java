@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.softwaredesign.novelreader.R;
@@ -17,6 +18,7 @@ public class ExportFragment extends Fragment {
 
     private AppCompatSpinner fromPageSpinner, fromChapterSpinner, toPageSpinner, toChapterSpinner, fileFormatSpinner;
     private AppCompatButton exportButton;
+    private ProgressBar progressBar;
 
     private static final String ARG_NOVEL_URL = "novel_url";
     private String NovelUrl;
@@ -33,7 +35,7 @@ public class ExportFragment extends Fragment {
                 @Override
                 public void run() {
                     doInBackground();
-                    getActivity().runOnUiThread(new Runnable() {
+                    requireActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             onPostExecute();
@@ -86,5 +88,6 @@ public class ExportFragment extends Fragment {
         toChapterSpinner = view.findViewById(R.id.toChapterSinner);
         fileFormatSpinner = view.findViewById(R.id.fileFormatSpinner);
         exportButton = view.findViewById(R.id.exportNovelButton);
+        progressBar = view.findViewById(R.id.exportFragmentPB);
     }
 }
