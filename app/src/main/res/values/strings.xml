@@ -26,4 +26,7 @@
     <string name="file_format">File Format</string>
     <string name="servers">Servers</string>
     <string name="plugin">Plugin</string>
+
+    <string name="light_theme">Light Theme</string>
+    <string name="dark_theme">Dark Theme</string>
 </resources>

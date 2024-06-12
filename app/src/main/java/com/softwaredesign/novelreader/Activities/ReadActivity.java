@@ -4,11 +4,14 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatSpinner;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.core.text.HtmlCompat;
 import androidx.fragment.app.FragmentManager;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -17,6 +20,7 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.BackgroundColorSpan;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -67,6 +71,7 @@ public class ReadActivity extends AppCompatActivity {
     private int currentSearchIndex = 0;
 
     private String nextChapterUrl, previousChapterUrl;
+    private SharedPreferences sharedPreferences;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -75,6 +80,7 @@ public class ReadActivity extends AppCompatActivity {
         setContentView(R.layout.activity_read);
 
         InitializeView();
+        sharedPreferences = this.getSharedPreferences("ReadSetting", Context.MODE_PRIVATE);
 
         // Check for current Server from Global Scrapper
         final int[] checkedItem = {-1};
@@ -465,6 +471,8 @@ public class ReadActivity extends AppCompatActivity {
             // Update UI after fetch
             chapterNameTV.setText(chapterTitle);
             chapterContentTV.setText(HtmlCompat.fromHtml(content, HtmlCompat.FROM_HTML_MODE_LEGACY));
+            applyFontChange();
+            applyTextSizeChange();
 
             nextChapterIV.setVisibility(View.VISIBLE);
             prevChapterIV.setVisibility(View.VISIBLE);
@@ -472,5 +480,28 @@ public class ReadActivity extends AppCompatActivity {
             contentScrollView.fullScroll(ScrollView.FOCUS_UP);
         }
     };
+
+    private void applyFontChange() {
+        String font = sharedPreferences.getString("font", "Palatino");
+        switch (font) {
+            case "Palatino":
+                chapterContentTV.setTypeface(ResourcesCompat.getFont(this, R.font.palatino));
+                break;
+            case "Times":
+                chapterContentTV.setTypeface(ResourcesCompat.getFont(this, R.font.times));
+                break;
+            case "Arial":
+                chapterContentTV.setTypeface(ResourcesCompat.getFont(this, R.font.arial));
+                break;
+            case "Georgia":
+                chapterContentTV.setTypeface(ResourcesCompat.getFont(this, R.font.georgia));
+                break;
+        }
+    }
+
+    private void applyTextSizeChange() {
+        int textSize = sharedPreferences.getInt("textSize", 22);
+        chapterContentTV.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
+    }
 
 }
