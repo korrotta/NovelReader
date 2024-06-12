@@ -1,5 +1,6 @@
 package com.softwaredesign.novelreader.Activities;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 
 import android.os.Bundle;
@@ -169,11 +170,12 @@ public class SearchActivity extends AppCompatActivity {
         });
     }
 
+    @SuppressLint("SetTextI18n")
     private void setupPageControls() {
         currentPage = 1;
 
-        SearchActivity.this.searchPageControlLayout.setVisibility(View.VISIBLE);
-        SearchActivity.this.searchPageTextView.setText("Page 1 of " + numberOfPages);
+        searchPageControlLayout.setVisibility(View.VISIBLE);
+        searchPageTextView.setText("Page 1 of " + numberOfPages);
     }
 
     // Method to load a specific page of search results
@@ -223,6 +225,7 @@ public class SearchActivity extends AppCompatActivity {
                 ReusableFunction.ReplaceList(novelList, novels);
             }
 
+            @SuppressLint("SetTextI18n")
             @Override
             public void onPostExecute () {
                 handler.post(new Runnable() {

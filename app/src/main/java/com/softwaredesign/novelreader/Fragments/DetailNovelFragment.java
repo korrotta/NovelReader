@@ -42,7 +42,7 @@ public class DetailNovelFragment extends Fragment {
                 @Override
                 public void run() {
                     doInBackground();
-                    getActivity().runOnUiThread(new Runnable() {
+                    requireActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             onPostExecute();
