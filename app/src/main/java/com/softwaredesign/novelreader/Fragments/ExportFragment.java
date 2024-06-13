@@ -2,6 +2,7 @@ package com.softwaredesign.novelreader.Fragments;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 
@@ -13,6 +14,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.SpannedString;
@@ -32,10 +34,13 @@ import com.softwaredesign.novelreader.Global.GlobalConfig;
 import com.softwaredesign.novelreader.Global.ReusableFunction;
 import com.softwaredesign.novelreader.Models.ChapterContentModel;
 import com.softwaredesign.novelreader.Models.ChapterModel;
+import com.softwaredesign.novelreader.Models.NovelModel;
 import com.softwaredesign.novelreader.R;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
 
 public class ExportFragment extends Fragment {
 
@@ -181,35 +186,79 @@ public class ExportFragment extends Fragment {
         exportButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //NOTE: Test export
-                getAndExportChapterContentTask(selectedBeginChapter.getChapterUrl());
+                beginPageId = parsePageToId((String )beginPageSpinner.getSelectedItem());
+                endPageId = parsePageToId((String) endPageSpinner.getSelectedItem());
+
+                selectedBeginChapter = (ChapterModel) beginChapterSpinner.getSelectedItem();
+                selectedEndChapter = (ChapterModel) endChapterSpinner.getSelectedItem();
+
+                Log.d("Selected", selectedBeginChapter.getChapterName());
+                Log.d("Selected", selectedEndChapter.getChapterName());
+
+                if (beginPageId ==0 || endPageId == 0) return;
+                if (beginPageId > endPageId) return;
+
+
+                if (beginPageId == endPageId){
+                    //Export in first page:
+                    boolean beginReach = false;
+                    for (ChapterModel chapter: beginChapter){
+                        if (chapter.getChapterName().equals(selectedEndChapter.getChapterName())){
+                            exportChapter(chapter);
+                            Log.d("Check", selectedEndChapter.getChapterName());
+                            break;
+                        }
+                        if (beginReach){
+                            exportChapter(chapter);
+                            continue;
+                        }
+                        if (chapter.getChapterName().equals(selectedBeginChapter.getChapterName())){
+                            beginReach = true;
+
+                            exportChapter(chapter);
+
+                        }
+                    }
+                    return;
+                }
 
                 //Export in first page:
                 boolean beginReach = false;
                 for (ChapterModel chapter: beginChapter){
+                    if (chapter.getChapterName().equals(selectedEndChapter.getChapterName())){
+                        exportChapter(chapter);
+                        break;
+                    }
                     if (beginReach){
                         exportChapter(chapter);
+
                         continue;
                     }
-                    if (chapter.equals(selectedBeginChapter)){
+                    if (chapter.getChapterName().equals(selectedBeginChapter.getChapterName())){
                         beginReach = true;
                         exportChapter(chapter);
+
                     }
                 }
 
                 //Export all pages between:
                 for (int i = beginPageId+1; i <= endPageId-1; i++){
+                    if (endPageId - beginPageId <= 1) break;
                     List<ChapterModel> tempArr = new ArrayList<>();
                     getChapterListTask(tempArr, null, NovelUrl, i);
+
                     for (ChapterModel chapter: tempArr){
                         exportChapter(chapter);
                     }
                 }
 
+                //If only one page selected
+                if (beginPageId == endPageId) return;
+
                 //Export in last page:
                 for (ChapterModel chapter: endChapter){
                     exportChapter(chapter);
-                    if (chapter.equals(selectedEndChapter)){
+                    if (chapter.getChapterName().equals(selectedEndChapter.getChapterName())){
                         break;
                     }
                 }
@@ -279,7 +328,6 @@ public class ExportFragment extends Fragment {
                 for (int i =1; i <= numberOfPage; i++){
                     beginPage.add("Page "+ i);
                     endPage.add("Page " + i);
-                    Log.d("Export fragment check", String.valueOf(i));
                 }
             }
 
@@ -360,11 +408,10 @@ public class ExportFragment extends Fragment {
     }
 
     private void exportChapter(ChapterModel chapter){
-        Log.d("Export Chapter", chapter.getChapterName());
-
+        getAndExportChapterContentTask(chapter);
     }
 
-    private void getAndExportChapterContentTask(String chapterUrl){
+    private void getAndExportChapterContentTask(ChapterModel chapter){
         new BackgroundTask(this.parentActivity){
 
             @Override
@@ -380,7 +427,7 @@ public class ExportFragment extends Fragment {
 
             @Override
             public void doInBackground() {
-                ChapterContentModel content =  GlobalConfig.Global_Current_Scraper.getChapterContent(chapterUrl);
+                ChapterContentModel content =  GlobalConfig.Global_Current_Scraper.getChapterContent(chapter.getChapterUrl());
                 PdfExportHandler ePdf = new PdfExportHandler();
 
                 //NOTE: PERMISSION
@@ -388,9 +435,11 @@ public class ExportFragment extends Fragment {
                         != PackageManager.PERMISSION_GRANTED) {
                     ActivityCompat.requestPermissions(ExportFragment.this.parentActivity, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
                 } else {
-                    ePdf.exportChapter(content.getContent());
-                }
 
+                    String dir = Environment.getExternalStorageDirectory().getAbsolutePath()+"/NovelReader/Export";
+                    File directory = ReusableFunction.MakeDirectory(dir, content.getNovelName());
+                    ePdf.exportChapter(content.getContent(), directory, content.getChapterName().toString());
+                }
             }
 
             @Override
@@ -404,6 +453,15 @@ public class ExportFragment extends Fragment {
                 });
             }
         }.execute();
+
     }
 
+    private void delay500ms(){
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+            }
+        }, 500);
+        Log.d("called", "called");
+    }
 }

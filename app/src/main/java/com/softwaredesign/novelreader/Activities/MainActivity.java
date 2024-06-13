@@ -70,7 +70,12 @@ public class MainActivity extends AppCompatActivity {
 
         File downloadDir =MainActivity.this.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
         String downloadDirPath = downloadDir.getAbsolutePath();
-        //make directory
+
+        //create document directory for exporting:
+        File created = ReusableFunction.MakeDirectory( Environment.getExternalStorageDirectory().getAbsolutePath(),"NovelReader");
+        File ExportFolder = ReusableFunction.MakeDirectory(created.getAbsolutePath(),"Export");
+        Log.d("created", created.getAbsolutePath());
+        //generate directory
         makeDirectory(downloadDirPath);
 
         // Add source truyenfull
