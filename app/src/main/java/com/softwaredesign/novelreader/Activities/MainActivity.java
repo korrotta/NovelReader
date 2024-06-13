@@ -41,6 +41,7 @@ import dalvik.system.DexClassLoader;
 
 public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_CODE_READ_STORAGE = 100;
+    private static final int PERMISSION_REQUEST_CODE = 1;
 
     // URL of the website to scrape novels from
     private SearchView searchView; // SearchView for searching novels
@@ -242,5 +243,17 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         return novels;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted, you can call your export methods here
+            } else {
+                // Permission denied, handle the case
+            }
+        }
     }
 }
