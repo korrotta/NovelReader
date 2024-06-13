@@ -225,6 +225,14 @@ public class ChapterListFragment extends Fragment {
         @Override
         public void onPreExecute() {
             // No pre-execution actions needed
+            // Show progress bar with fade-in animation
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    chapterListFragmentPB.setVisibility(View.VISIBLE);
+                    chapterListFragmentPB.startAnimation(AnimationUtils.loadAnimation(getContext(), android.R.anim.fade_in));
+                }
+            });
         }
 
         @Override
@@ -242,6 +250,16 @@ public class ChapterListFragment extends Fragment {
         @SuppressLint("NotifyDataSetChanged")
         @Override
         public void onPostExecute() {
+            // Hide progress bar with fade-out animation after a delay
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    chapterListFragmentPB.setVisibility(View.GONE);
+                    chapterListFragmentPB.startAnimation(AnimationUtils.loadAnimation(getContext(), android.R.anim.fade_out));
+
+                }
+            });
+
             // Notify adapter that data has changed
             chapterListItemAdapter.updateList(pageItems);
             chapterListItemAdapter.notifyDataSetChanged();
@@ -255,14 +273,7 @@ public class ChapterListFragment extends Fragment {
         new ChapterListFragment.BackgroundTask() {
             @Override
             public void onPreExecute() {
-                // Show progress bar with fade-in animation
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        chapterListFragmentPB.setVisibility(View.VISIBLE);
-                        chapterListFragmentPB.startAnimation(AnimationUtils.loadAnimation(getContext(), android.R.anim.fade_in));
-                    }
-                });
+
             }
 
             @Override
@@ -273,18 +284,11 @@ public class ChapterListFragment extends Fragment {
 
             @Override
             public void onPostExecute() {
-                // Hide progress bar with fade-out animation after a delay
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        chapterListFragmentPB.setVisibility(View.GONE);
-                        chapterListFragmentPB.startAnimation(AnimationUtils.loadAnimation(getContext(), android.R.anim.fade_out));
-                        // Set up pagination controls and load the first page
-                        setupPageControls();
-                        // Load the current page
-                        loadPage(currentPage);
-                    }
-                });
+
+                // Set up pagination controls and load the first page
+                setupPageControls();
+                // Load the current page
+                loadPage(currentPage);
             }
         }.execute();
     }
