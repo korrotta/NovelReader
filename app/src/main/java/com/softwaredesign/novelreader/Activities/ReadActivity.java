@@ -1,32 +1,20 @@
 package com.softwaredesign.novelreader.Activities;
 
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-
-import androidx.core.content.ContextCompat;
-import androidx.core.text.HtmlCompat;
-
 import android.annotation.SuppressLint;
-
 import android.content.DialogInterface;
-
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-
 import android.text.Layout;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.BackgroundColorSpan;
-
 import android.util.Log;
-
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -35,6 +23,11 @@ import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.core.text.HtmlCompat;
 
 import com.example.scraper_library.INovelScraper;
 import com.google.android.material.bottomappbar.BottomAppBar;
@@ -49,9 +42,9 @@ import java.util.List;
 
 public class ReadActivity extends AppCompatActivity {
 
-    private TextView chapterNameTV, chapterContentTV, searchStatusTV;
+    private TextView chapterNameTV, chapterContentTV, searchStatusTV, novelNameTV, chapterTitleTV, serverNameTV;
     private ScrollView contentScrollView;
-    private ImageView chapterListIV, prevChapterIV, nextChapterIV, findInChapterIV, settingsIV, serverIV;
+    private ImageView saveChapterIV, prevChapterIV, nextChapterIV, findInChapterIV, settingsIV, serverIV;
     private ImageButton searchUpIV, searchDownIV, searchCloseButton;
     private EditText searchEditText;
     private ProgressBar progressBar;
@@ -73,6 +66,7 @@ public class ReadActivity extends AppCompatActivity {
     private static ArrayList<String[]> serverFetchedLink;
 
     private Handler handler = new Handler(Looper.getMainLooper());
+
     @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,7 +100,7 @@ public class ReadActivity extends AppCompatActivity {
                 alertDialog.setIcon(R.drawable.server);
 
                 // Title of the alert dialog
-                alertDialog.setTitle("Choose Server Source");
+                alertDialog.setTitle("Chọn Server Nguồn: ");
                 getContentFromNameAndChapterTask();
             }
         });
@@ -186,11 +180,20 @@ public class ReadActivity extends AppCompatActivity {
             }
         });
 
-        // Hanlde chapterList Button
-        chapterListIV.setOnClickListener(new View.OnClickListener() {
+        // Handle chapterName TextView
+        chapterNameTV.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(ReadActivity.this, "You clicked Chapter List", Toast.LENGTH_SHORT).show();
+                // Go back to chapter list
+                finish();
+            }
+        });
+
+        // Hanlde chapterList Button
+        saveChapterIV.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(ReadActivity.this, "You clicked Save Chapter", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -205,7 +208,7 @@ public class ReadActivity extends AppCompatActivity {
     }
 
     private void vitalValueInit() {
-        if (serverFetchedLink == null){
+        if (serverFetchedLink == null) {
             serverFetchedLink = new ArrayList<>();
         }
 
@@ -217,6 +220,7 @@ public class ReadActivity extends AppCompatActivity {
     }
 
     // search text in content function
+    @SuppressLint("SetTextI18n")
     private void performSearch() {
         String query = searchEditText.getText().toString();
         String content = chapterContentTV.getText().toString();
@@ -244,7 +248,7 @@ public class ReadActivity extends AppCompatActivity {
 
     // highlight text after found function
     private void highlightText(String searchText) {
-        if (searchResults.isEmpty()){
+        if (searchResults.isEmpty()) {
             clearHighlight();
             return;
         }
@@ -262,7 +266,7 @@ public class ReadActivity extends AppCompatActivity {
 
     // clear all highlight text function
     private void clearHighlight() {
-        chapterContentTV.setText(content);
+        chapterContentTV.setText(HtmlCompat.fromHtml(content, HtmlCompat.FROM_HTML_MODE_LEGACY));
     }
 
     // scroll to search result function
@@ -295,10 +299,11 @@ public class ReadActivity extends AppCompatActivity {
     }
 
 
-    // highlight text current result, with other color
+    // Highlight text current result, with other color
     private void highlightTextWithCurrentHighlight(int currentPosition) {
         int highlightColor = ContextCompat.getColor(this, R.color.saddle_brown);
-        int currentHighlightColor = ContextCompat.getColor(this, R.color.slate_blue);;
+        int currentHighlightColor = ContextCompat.getColor(this, R.color.slate_blue);
+        ;
         String content = chapterContentTV.getText().toString();
         Spannable spannable = new SpannableString(content);
 
@@ -315,9 +320,12 @@ public class ReadActivity extends AppCompatActivity {
     }
 
     private void InitializeView() {
+        novelNameTV = findViewById(R.id.novelNameRead);
+        chapterTitleTV = findViewById(R.id.chapterTitleRead);
+        serverNameTV = findViewById(R.id.serverNameRead);
         chapterNameTV = findViewById(R.id.chapterNameRead);
         chapterContentTV = findViewById(R.id.chapterContentRead);
-        chapterListIV = findViewById(R.id.chapterListRead);
+        saveChapterIV = findViewById(R.id.saveChapterRead);
         prevChapterIV = findViewById(R.id.previousChapterRead);
         nextChapterIV = findViewById(R.id.nextChapterRead);
         findInChapterIV = findViewById(R.id.findTextRead);
@@ -334,13 +342,14 @@ public class ReadActivity extends AppCompatActivity {
         searchCloseButton = findViewById(R.id.search_close);
 
         //Gone View
-        if (nextChapterIV.getVisibility() == View.VISIBLE || prevChapterIV.getVisibility() == View.VISIBLE) return;
+        if (nextChapterIV.getVisibility() == View.VISIBLE || prevChapterIV.getVisibility() == View.VISIBLE)
+            return;
 
         nextChapterIV.setVisibility(View.GONE);
         prevChapterIV.setVisibility(View.GONE);
     }
 
-    private void getChapterContentTask(){
+    private void getChapterContentTask() {
         new BackgroundTask(ReadActivity.this) {
             @Override
             public void onPreExecute() {
@@ -362,8 +371,7 @@ public class ReadActivity extends AppCompatActivity {
                 ChapterContentModel ccm;
                 if (item instanceof ChapterContentModel) {
                     ccm = (ChapterContentModel) item;
-                }
-                else {
+                } else {
                     String[] holder = (String[]) item;
                     ccm = new ChapterContentModel(holder[0], holder[1], holder[2], holder[3]);
                 }
@@ -376,6 +384,7 @@ public class ReadActivity extends AppCompatActivity {
                 previousChapterUrl = readerServer.getPreviousChapterUrl(chapterUrl);
             }
 
+            @SuppressLint("SetTextI18n")
             @Override
             public void onPostExecute() {
                 handler.post(new Runnable() {
@@ -386,6 +395,9 @@ public class ReadActivity extends AppCompatActivity {
                     }
                 });
                 // Update UI after fetch
+                novelNameTV.setText(novelName);
+                chapterTitleTV.setText(chapterTitle);
+                serverNameTV.setText("Server: " + readerServer.getSourceName());
                 chapterNameTV.setText(chapterTitle);
                 chapterContentTV.setText(HtmlCompat.fromHtml(content, HtmlCompat.FROM_HTML_MODE_LEGACY));
 
@@ -396,7 +408,8 @@ public class ReadActivity extends AppCompatActivity {
             }
         }.execute();
     }
-    private void getContentFromNameAndChapterTask(){
+
+    private void getContentFromNameAndChapterTask() {
 
         if (availableSourceList == null) return;
         availableSourceList.clear();
@@ -420,8 +433,9 @@ public class ReadActivity extends AppCompatActivity {
                 if (serverFetchedLink == null) serverFetchedLink = new ArrayList<>();
                 serverFetchedLink.clear();
 
-                for (INovelScraper scraper: GlobalConfig.Global_Source_List){
-                    if (scraper.getSourceName().equalsIgnoreCase(readerServer.getSourceName())) continue;
+                for (INovelScraper scraper : GlobalConfig.Global_Source_List) {
+                    if (scraper.getSourceName().equalsIgnoreCase(readerServer.getSourceName()))
+                        continue;
 
                     Object item = scraper.getContentFromNameAndChapName(novelName, chapterTitle);
                     if (item == null) continue;
@@ -430,8 +444,7 @@ public class ReadActivity extends AppCompatActivity {
                     ChapterContentModel ccm;
                     if (item instanceof ChapterContentModel) {
                         ccm = (ChapterContentModel) item;
-                    }
-                    else {
+                    } else {
                         //note: inner holder
                         String[] holder = (String[]) item;
                         ccm = new ChapterContentModel(holder[0], holder[1], holder[2], holder[3]);
@@ -471,8 +484,8 @@ public class ReadActivity extends AppCompatActivity {
                         //Note: 1st para for getChapterContent
                         readerServer = ScraperFactory.createScraper(scraperName);
 
-                        for (String[] data: serverFetchedLink){
-                            if (data[0].equalsIgnoreCase(scraperName)){
+                        for (String[] data : serverFetchedLink) {
+                            if (data[0].equalsIgnoreCase(scraperName)) {
                                 chapterUrl = data[1]; //Note: 2nd para for getChapterContent
                                 break;
                             }
@@ -502,7 +515,7 @@ public class ReadActivity extends AppCompatActivity {
     View.OnClickListener prevBtnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            if (previousChapterUrl== null) {
+            if (previousChapterUrl == null) {
                 Toast.makeText(ReadActivity.this, "Không có chương trước", Toast.LENGTH_SHORT).show();
                 return;
             }

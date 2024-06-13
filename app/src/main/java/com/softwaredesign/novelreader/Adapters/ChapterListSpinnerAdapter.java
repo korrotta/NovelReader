@@ -10,8 +10,8 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
-import com.example.scraper_library.INovelScraper;
 import com.softwaredesign.novelreader.Models.ChapterModel;
+import com.softwaredesign.novelreader.R;
 
 import java.util.List;
 
@@ -25,19 +25,19 @@ public class ChapterListSpinnerAdapter extends ArrayAdapter<ChapterModel> {
         this.context = context;
         this.chapters = objects;
         this.inflater = LayoutInflater.from(context);
-        setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        setDropDownViewResource(R.layout.custom_spinner_dropdown_item);
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent){
         if (chapters == null) return null;
         if (convertView == null) {
-            convertView = inflater.inflate(android.R.layout.simple_spinner_item, parent, false);
+            convertView = inflater.inflate(R.layout.custom_spinner_item, parent, false);
         }
 
         ChapterModel item = chapters.get(position);
 
-        TextView label = (TextView) convertView.findViewById(android.R.id.text1);
+        TextView label = (TextView) convertView.findViewById(R.id.exportSpinnerText);
         label.setTextColor(Color.WHITE);
         label.setText(item.getChapterName());
 
@@ -47,11 +47,11 @@ public class ChapterListSpinnerAdapter extends ArrayAdapter<ChapterModel> {
     public View getDropDownView(int position, View convertView, ViewGroup parent) {
         if (chapters == null) return null;
         if (convertView == null){
-            convertView = inflater.inflate(android.R.layout.simple_spinner_dropdown_item, parent, false);
+            convertView = inflater.inflate(R.layout.custom_spinner_dropdown_item, parent, false);
         }
 
         ChapterModel chapter = chapters.get(position);
-        TextView label = (TextView) convertView.findViewById(android.R.id.text1);
+        TextView label = (TextView) convertView.findViewById(R.id.exportSpinnerDropdownText);
         label.setTextColor(Color.WHITE);
         label.setText(chapter.getChapterName());
 
