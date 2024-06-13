@@ -4,18 +4,8 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.widget.AppCompatButton;
-import androidx.appcompat.widget.AppCompatSpinner;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
-
 import android.os.Handler;
 import android.os.Looper;
-import android.text.SpannedString;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,6 +14,14 @@ import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ProgressBar;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.widget.AppCompatButton;
+import androidx.appcompat.widget.AppCompatSpinner;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
 
 import com.softwaredesign.novelreader.Adapters.ChapterListSpinnerAdapter;
 import com.softwaredesign.novelreader.BackgroundTask;
@@ -131,7 +129,7 @@ public class ExportFragment extends Fragment {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 //
                 beginPageId = parsePageToId((String) parent.getItemAtPosition(position));
-                getChapterListTask(beginChapter, beginChapterAdapter, NovelUrl ,beginPageId);
+                getChapterListTask(beginChapter, beginChapterAdapter, NovelUrl, beginPageId);
             }
 
             @Override
@@ -144,7 +142,7 @@ public class ExportFragment extends Fragment {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 //
                 endPageId = parsePageToId((String) parent.getItemAtPosition(position));
-                getChapterListTask(endChapter, endChapterAdapter, NovelUrl ,endPageId);
+                getChapterListTask(endChapter, endChapterAdapter, NovelUrl, endPageId);
             }
 
             @Override
@@ -156,7 +154,7 @@ public class ExportFragment extends Fragment {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 ChapterModel chapter = (ChapterModel) parent.getItemAtPosition(position);
-                selectedBeginChapter =chapter;
+                selectedBeginChapter = chapter;
             }
 
             @Override
@@ -169,7 +167,7 @@ public class ExportFragment extends Fragment {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 ChapterModel chapter = (ChapterModel) parent.getItemAtPosition(position);
-                selectedEndChapter =chapter;
+                selectedEndChapter = chapter;
             }
 
             @Override
@@ -186,30 +184,30 @@ public class ExportFragment extends Fragment {
 
                 //Export in first page:
                 boolean beginReach = false;
-                for (ChapterModel chapter: beginChapter){
-                    if (beginReach){
+                for (ChapterModel chapter : beginChapter) {
+                    if (beginReach) {
                         exportChapter(chapter);
                         continue;
                     }
-                    if (chapter.equals(selectedBeginChapter)){
+                    if (chapter.equals(selectedBeginChapter)) {
                         beginReach = true;
                         exportChapter(chapter);
                     }
                 }
 
                 //Export all pages between:
-                for (int i = beginPageId+1; i <= endPageId-1; i++){
+                for (int i = beginPageId + 1; i <= endPageId - 1; i++) {
                     List<ChapterModel> tempArr = new ArrayList<>();
                     getChapterListTask(tempArr, null, NovelUrl, i);
-                    for (ChapterModel chapter: tempArr){
+                    for (ChapterModel chapter : tempArr) {
                         exportChapter(chapter);
                     }
                 }
 
                 //Export in last page:
-                for (ChapterModel chapter: endChapter){
+                for (ChapterModel chapter : endChapter) {
                     exportChapter(chapter);
-                    if (chapter.equals(selectedEndChapter)){
+                    if (chapter.equals(selectedEndChapter)) {
                         break;
                     }
                 }
@@ -219,15 +217,15 @@ public class ExportFragment extends Fragment {
 
     private void initView(View view) {
         beginPageSpinner = view.findViewById(R.id.fromPageSpinner);
-        beginChapterSpinner = view.findViewById(R.id.fromChapterSinner);
+        beginChapterSpinner = view.findViewById(R.id.fromChapterSpinner);
         endPageSpinner = view.findViewById(R.id.toPageSpinner);
-        endChapterSpinner = view.findViewById(R.id.toChapterSinner);
+        endChapterSpinner = view.findViewById(R.id.toChapterSpinner);
         fileFormatSpinner = view.findViewById(R.id.fileFormatSpinner);
         exportButton = view.findViewById(R.id.exportNovelButton);
         progressBar = view.findViewById(R.id.exportFragmentPB);
     }
 
-    private void initArrayList(){
+    private void initArrayList() {
         beginPage = new ArrayList<>();
         endPage = new ArrayList<>();
 
@@ -235,17 +233,17 @@ public class ExportFragment extends Fragment {
         endChapter = new ArrayList<>();
     }
 
-    private void initAdapter(){
+    private void initAdapter() {
 
-        beginPageAdapter = new ArrayAdapter<String>(parentActivity, android.R.layout.simple_spinner_item, beginPage);
+        beginPageAdapter = new ArrayAdapter<String>(parentActivity, R.layout.custom_spinner_item, beginPage);
         beginPageAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
-        endPageAdapter = new ArrayAdapter<String>(parentActivity, android.R.layout.simple_spinner_item, endPage);
+        endPageAdapter = new ArrayAdapter<String>(parentActivity, R.layout.custom_spinner_item, endPage);
         endPageAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
-        beginChapterAdapter = new ChapterListSpinnerAdapter(parentActivity, android.R.layout.simple_spinner_item, beginChapter);
+        beginChapterAdapter = new ChapterListSpinnerAdapter(parentActivity, R.layout.custom_spinner_item, beginChapter);
 
-        endChapterAdapter = new ChapterListSpinnerAdapter(parentActivity, android.R.layout.simple_spinner_item, endChapter);
+        endChapterAdapter = new ChapterListSpinnerAdapter(parentActivity, R.layout.custom_spinner_item, endChapter);
 
         beginPageSpinner.setAdapter(beginPageAdapter);
         endPageSpinner.setAdapter(endPageAdapter);
@@ -276,8 +274,8 @@ public class ExportFragment extends Fragment {
                 beginPage.clear();
                 endPage.clear();
 
-                for (int i =1; i <= numberOfPage; i++){
-                    beginPage.add("Page "+ i);
+                for (int i = 1; i <= numberOfPage; i++) {
+                    beginPage.add("Page " + i);
                     endPage.add("Page " + i);
                     Log.d("Export fragment check", String.valueOf(i));
                 }
@@ -298,12 +296,12 @@ public class ExportFragment extends Fragment {
         }.execute();
     }
 
-    private int parsePageToId(String page){
+    private int parsePageToId(String page) {
         return Integer.parseInt(page.split(" ")[1]);
     }
 
-    private void getChapterListTask(List<ChapterModel> refChapters, ChapterListSpinnerAdapter refChapterAdapter, String NovelUrl, int pageId){
-        new BackgroundTask(this.parentActivity){
+    private void getChapterListTask(List<ChapterModel> refChapters, ChapterListSpinnerAdapter refChapterAdapter, String NovelUrl, int pageId) {
+        new BackgroundTask(this.parentActivity) {
 
             @Override
             public void onPreExecute() {
@@ -319,7 +317,7 @@ public class ExportFragment extends Fragment {
             @Override
             public void doInBackground() {
                 List<Object> tempList = GlobalConfig.Global_Current_Scraper.getChapterListInPage(NovelUrl, pageId);
-                if (tempList.size() ==0) {
+                if (tempList.size() == 0) {
                     Log.d("Somehow", "empty here");
                 }
                 List<ChapterModel> chapters = identifyingList(tempList);
@@ -342,13 +340,12 @@ public class ExportFragment extends Fragment {
         }.execute();
     }
 
-    private List<ChapterModel> identifyingList(List<Object> list){
+    private List<ChapterModel> identifyingList(List<Object> list) {
         List<ChapterModel> chapterModels = new ArrayList<>();
-        for (Object item: list){
+        for (Object item : list) {
             if (item instanceof ChapterModel) {
                 chapterModels.add((ChapterModel) item);
-            }
-            else {
+            } else {
                 String[] chapterHolder = (String[]) item;
                 Log.d("Chapter holder", chapterHolder[1]);
                 ChapterModel chapter = new ChapterModel(chapterHolder[0], chapterHolder[1], Integer.parseInt(chapterHolder[2]));
@@ -359,13 +356,13 @@ public class ExportFragment extends Fragment {
         return chapterModels;
     }
 
-    private void exportChapter(ChapterModel chapter){
+    private void exportChapter(ChapterModel chapter) {
         Log.d("Export Chapter", chapter.getChapterName());
 
     }
 
-    private void getAndExportChapterContentTask(String chapterUrl){
-        new BackgroundTask(this.parentActivity){
+    private void getAndExportChapterContentTask(String chapterUrl) {
+        new BackgroundTask(this.parentActivity) {
 
             @Override
             public void onPreExecute() {
@@ -380,7 +377,7 @@ public class ExportFragment extends Fragment {
 
             @Override
             public void doInBackground() {
-                ChapterContentModel content =  GlobalConfig.Global_Current_Scraper.getChapterContent(chapterUrl);
+                ChapterContentModel content = GlobalConfig.Global_Current_Scraper.getChapterContent(chapterUrl);
                 PdfExportHandler ePdf = new PdfExportHandler();
 
                 //NOTE: PERMISSION

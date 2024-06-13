@@ -56,12 +56,7 @@ public class ChapterListFragment extends Fragment {
                 @Override
                 public void run() {
                     doInBackground();
-                    requireActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            onPostExecute();
-                        }
-                    });
+                    requireActivity().runOnUiThread(() -> onPostExecute());
                 }
             }).start();
         }
@@ -126,7 +121,7 @@ public class ChapterListFragment extends Fragment {
 
                 // Add pages to the PopupMenu
                 for (int i = 1; i <= numberOfPages; i++) {
-                    popupMenu.getMenu().add(0, i, i, "Page " + i);
+                    popupMenu.getMenu().add(0, i, i, "Trang " + i);
                 }
 
                 // Set a click listener for PopupMenu items
@@ -136,7 +131,7 @@ public class ChapterListFragment extends Fragment {
                     public boolean onMenuItemClick(MenuItem item) {
                         // Handle page selection
                         loadPage(item.getItemId());
-                        pageTextView.setText("Page " + item.getItemId() + " of " + numberOfPages);
+                        pageTextView.setText("Trang " + item.getItemId() + " trên " + numberOfPages);
                         return true;
                     }
                 });
@@ -153,7 +148,7 @@ public class ChapterListFragment extends Fragment {
         prevChapterPage.setOnClickListener(v -> {
             if (currentPage <= 1) return;
             currentPage--;
-            pageTextView.setText("Page " + currentPage + " of " + numberOfPages);
+            pageTextView.setText("Trang " + currentPage + " trên " + numberOfPages);
             loadPage(currentPage);
 
         });
@@ -162,7 +157,7 @@ public class ChapterListFragment extends Fragment {
         nextChapterPage.setOnClickListener(v -> {
             if (currentPage >= numberOfPages) return;
             currentPage++;
-            pageTextView.setText("Page " + currentPage + " of " + numberOfPages);
+            pageTextView.setText("Trang " + currentPage + " trên " + numberOfPages);
             loadPage(currentPage);
 
         });
@@ -217,7 +212,7 @@ public class ChapterListFragment extends Fragment {
         // Set the visibility of the pagination
         chapterListPageControlLayout.setVisibility(View.VISIBLE);
         // Set the text of the page TextView
-        pageTextView.setText("Page 1 of " + numberOfPages);
+        pageTextView.setText("Trang 1 trên " + numberOfPages);
     }
 
     // Background task to fetch chapter list
