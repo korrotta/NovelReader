@@ -17,6 +17,7 @@ import androidx.fragment.app.Fragment;
 import com.softwaredesign.novelreader.BackgroundTask;
 import com.softwaredesign.novelreader.Global.GlobalConfig;
 import com.softwaredesign.novelreader.Models.NovelDescriptionModel;
+import com.softwaredesign.novelreader.Models.NovelModel;
 import com.softwaredesign.novelreader.R;
 import com.softwaredesign.novelreader.Scrapers.TruyenfullScraper;
 
@@ -41,7 +42,7 @@ public class DetailNovelFragment extends Fragment {
                 @Override
                 public void run() {
                     doInBackground();
-                    getActivity().runOnUiThread(new Runnable() {
+                    requireActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             onPostExecute();
@@ -117,7 +118,12 @@ public class DetailNovelFragment extends Fragment {
         @Override
         public void doInBackground() {
             // Fetch novel details using the scraper in the background
-            novelDescModel = GlobalConfig.Global_Current_Scraper.getNovelDetail(NovelUrl);
+            Object desc = GlobalConfig.Global_Current_Scraper.getNovelDetail(NovelUrl);
+            if (desc instanceof NovelDescriptionModel) novelDescModel = (NovelDescriptionModel) desc;
+            else {
+                String[] realDesc = (String[]) desc;
+                novelDescModel = new NovelDescriptionModel(realDesc[0], realDesc[1], realDesc[2],realDesc[3]);
+            }
         }
 
         @Override

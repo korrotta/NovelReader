@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/cardview_dark_background"
     tools:context=".Activities.ReadActivity">
 
     <com.google.android.material.appbar.AppBarLayout
@@ -206,12 +207,14 @@
                 android:src="@drawable/toc"
                 app:tint="@color/white" />
 
-            <androidx.appcompat.widget.AppCompatSpinner
+            <ImageView
                 android:id="@+id/serverSourceRead"
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
                 android:layout_marginEnd="10dp"
                 android:layout_weight="1"
+                android:padding="2dp"
+                android:src="@drawable/server"
                 app:tint="@color/white" />
 
             <ImageView
@@ -221,6 +224,8 @@
                 android:layout_marginHorizontal="10dp"
                 android:layout_weight="1"
                 android:padding="2dp"
+                android:clickable="true"
+                android:focusable="true"
                 android:src="@drawable/settings"
                 app:tint="@color/white" />
 
