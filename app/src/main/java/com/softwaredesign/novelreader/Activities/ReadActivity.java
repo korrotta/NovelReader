@@ -12,6 +12,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -473,6 +474,7 @@ public class ReadActivity extends AppCompatActivity {
             chapterContentTV.setText(HtmlCompat.fromHtml(content, HtmlCompat.FROM_HTML_MODE_LEGACY));
             applyFontChange();
             applyTextSizeChange();
+            //applyThemeChange();
 
             nextChapterIV.setVisibility(View.VISIBLE);
             prevChapterIV.setVisibility(View.VISIBLE);
@@ -502,6 +504,30 @@ public class ReadActivity extends AppCompatActivity {
     private void applyTextSizeChange() {
         int textSize = sharedPreferences.getInt("textSize", 22);
         chapterContentTV.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
+    }
+
+    private void applyThemeChange(){
+        String theme = sharedPreferences.getString("theme", "dark");
+        if (theme.equals("light")){
+            setTheme(R.style.LightTheme);
+        }
+        else {
+            setTheme(R.style.DarkTheme);
+        }
+
+        int backgroundColor = ((ColorDrawable) contentScrollView.getBackground()).getColor();
+
+        if (theme.equals("light")) {
+            chapterContentTV.setTextColor(getResources().getColor(R.color.black));
+            prevChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            nextChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            contentScrollView.setBackgroundColor(getResources().getColor(R.color.white));
+        } else {
+            chapterContentTV.setTextColor(getResources().getColor(R.color.white));
+            prevChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            nextChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            contentScrollView.setBackgroundColor(backgroundColor);
+        }
     }
 
 }

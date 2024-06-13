@@ -1,16 +1,24 @@
 package com.softwaredesign.novelreader.Fragments;
 
+import static androidx.core.app.ActivityCompat.recreate;
+
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -19,6 +27,7 @@ import androidx.appcompat.widget.AppCompatButton;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.DialogFragment;
 
+import com.softwaredesign.novelreader.Activities.ReadActivity;
 import com.softwaredesign.novelreader.R;
 
 public class SettingsDialogFragment extends DialogFragment {
@@ -66,13 +75,16 @@ public class SettingsDialogFragment extends DialogFragment {
         modeRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
             SharedPreferences.Editor editor = sharedPreferences.edit();
             if (checkedId == R.id.settingsLightTheme) {
-                editor.putString("theme", "light");
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                editor.putString("theme", "light").apply();
+                //AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                //restartActivity();
+
             } else if (checkedId == R.id.settingsDarkTheme) {
-                editor.putString("theme", "dark");
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                editor.putString("theme", "dark").apply();
+                //AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                //restartActivity();
             }
-            editor.apply();
+            //applyThemeChange();
         });
 
         String font = sharedPreferences.getString("font", "Palatino");
@@ -173,6 +185,48 @@ public class SettingsDialogFragment extends DialogFragment {
         chapterContent.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
     }
 
+    private void restartActivity() {
+        Intent intent = new Intent(getActivity(), ReadActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+        getActivity().finish();
+    }
+
+    private void applyThemeChange(){
+        String theme = sharedPreferences.getString("theme", "dark");
+        if (theme.equals("light")){
+            getActivity().setTheme(R.style.LightTheme);
+            Log.d("MyActivity", "Light");
+        }
+        else {
+            getActivity().setTheme(R.style.DarkTheme);
+            Log.d("MyActivity", "Dark");
+        }
+
+        /*getActivity().recreate();
+        dismiss();*/
+
+        TextView chapterNameTV = getActivity().findViewById(R.id.chapterNameRead);
+        TextView chapterContentTV = getActivity().findViewById(R.id.chapterContentRead);
+        ImageView prevChapterIV = getActivity().findViewById(R.id.previousChapterRead);
+        ImageView nextChapterIV = getActivity().findViewById(R.id.nextChapterRead);
+        ScrollView contentScrollView = getActivity().findViewById(R.id.contentScrollView);
+        int backgroundColor = ((ColorDrawable) contentScrollView.getBackground()).getColor();
+
+        if (theme.equals("light")) {
+            chapterContentTV.setTextColor(getResources().getColor(R.color.black));
+            chapterNameTV.setTextColor(getResources().getColor(R.color.black));
+            prevChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            nextChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            contentScrollView.setBackgroundColor(getResources().getColor(R.color.white));
+        } else {
+            chapterContentTV.setTextColor(getResources().getColor(R.color.white));
+            chapterNameTV.setTextColor(getResources().getColor(R.color.white));
+            prevChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            nextChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            contentScrollView.setBackgroundColor(backgroundColor);
+        }
+    }
     @Override
     public void onStart() {
         super.onStart();
