@@ -43,6 +43,7 @@ dependencies {
     implementation("com.google.android.material:material:1.11.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation(project(mapOf("path" to ":novelscraperfactory")))
+    implementation(project(mapOf("path" to ":scraper_library")))
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
@@ -61,5 +62,10 @@ dependencies {
 
     // Import Android Paging Runtime
     implementation ("androidx.paging:paging-runtime:3.3.0")
+//    implementation ("org.apache.poi:poi:5.2.2")
+//    implementation ("org.apache.poi:poi-ooxml:5.2.2")
 
+    implementation("com.positiondev.epublib:epublib-core:3.1") {
+        exclude(group = "xmlpull", module = "xmlpull")
+    }
 }

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -27,22 +28,47 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/chapterListRV"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="580dp"
         android:scrollbars="none" />
 
-    <TextView
-        android:id="@+id/pageTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="70dp"
-        android:drawableEnd="@drawable/drop_down"
-        android:padding="5dp"
-        android:text="Page 1 of "
-        android:textAlignment="center"
-        android:textColor="@color/white"
-        android:textSize="18sp"
-        android:visibility="gone" />
+    <LinearLayout
+        android:id="@+id/chapterListPageControlLayout"
+        android:layout_width="match_parent"
+        android:layout_height="35dp"
+        android:layout_marginTop="5dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/previousChapterPage"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_marginStart="3dp"
+            android:layout_marginEnd="10dp"
+            android:src="@drawable/before"
+            app:tint="@color/white" />
+
+        <TextView
+            android:id="@+id/pageTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:drawableEnd="@drawable/drop_down"
+            android:padding="5dp"
+            android:text=""
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:textSize="18sp" />
+
+        <ImageView
+            android:id="@+id/nextChapterPage"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="3dp"
+            android:src="@drawable/next"
+            app:tint="@color/white" />
+    </LinearLayout>
 
 </LinearLayout>

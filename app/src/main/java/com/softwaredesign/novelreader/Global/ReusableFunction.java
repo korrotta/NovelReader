@@ -2,6 +2,7 @@ package com.softwaredesign.novelreader.Global;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Environment;
 import android.util.Log;
 import android.os.Handler;
 import android.view.View;
@@ -10,6 +11,7 @@ import android.widget.ProgressBar;
 
 import com.softwaredesign.novelreader.Activities.SearchActivity;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +37,23 @@ public class ReusableFunction {
         }
         destinationList.clear();
         destinationList.addAll(dataList);
+    }
+
+    public static File MakeDirectory(String parentPath, String dirName){
+        File file = new File(parentPath);
+        File directory = new File(parentPath, dirName);
+        if (!directory.exists()) {
+            if (directory.mkdir()) {
+                // Directory was created
+                return directory;
+            } else {
+                // Directory creation failed
+                return null;
+            }
+        } else {
+            // Directory already exists
+            return directory;
+        }
     }
 
 }

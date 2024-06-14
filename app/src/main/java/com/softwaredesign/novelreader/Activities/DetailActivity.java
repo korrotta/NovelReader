@@ -61,7 +61,6 @@ public class DetailActivity extends AppCompatActivity {
             loadFragment(DetailNovelFragment.newInstance(NovelUrl));
             getNovelDetailTask.execute();
         }
-
         // Handle Bottom Navigation View Events
         handleBottomNav();
     }
@@ -97,12 +96,15 @@ public class DetailActivity extends AppCompatActivity {
                 if (itemId == R.id.detailBottomNavChapterList) {
                     // Handle Chapter List Option
                     selectedFragment = ChapterListFragment.newInstance(NovelUrl);
+                    toggleDetailVisibility(false);
                 } else if (itemId == R.id.detailBottomNavDetail) {
                     // Handle Detail Option
                     selectedFragment = DetailNovelFragment.newInstance(NovelUrl);
+                    toggleDetailVisibility(true);
                 } else if (itemId == R.id.detailBottomNavExport) {
                     // Handle Export Option
                     selectedFragment = ExportFragment.newInstance(NovelUrl);
+                    toggleDetailVisibility(false);
                 }
 
                 // Switch to selected Fragment
@@ -113,6 +115,14 @@ public class DetailActivity extends AppCompatActivity {
                 return true;
             }
         });
+    }
+
+    // Method to toggle visibility of details
+    private void toggleDetailVisibility(boolean visible) {
+        int visibility = visible ? View.VISIBLE : View.GONE;
+        detailImage.setVisibility(visibility);
+        detailName.setVisibility(visibility);
+        detailAuthor.setVisibility(visibility);
     }
 
     private void loadFragment(Fragment fragment) {
@@ -137,20 +147,30 @@ public class DetailActivity extends AppCompatActivity {
         @Override
         public void onPreExecute() {
             // No pre-execution actions needed
-
         }
 
         @Override
         public void doInBackground() {
             //Fetch from scraped
             // Fetch novel details using the scraper
-            novelDescModel = GlobalConfig.Global_Current_Scraper.getNovelDetail(NovelUrl);
-        }
+            Object desc = GlobalConfig.Global_Current_Scraper.getNovelDetail(NovelUrl);
+            identifyingNovelDescription(desc);
 
+        }
         @Override
         public void onPostExecute() {
             // Update UI with the fetched novel details
             setUIData(novelDescModel);
+        }
+
+        private void identifyingNovelDescription(Object desc) {
+            if (desc instanceof NovelDescriptionModel) {
+                novelDescModel = (NovelDescriptionModel) desc;
+            }
+            else {
+                String[] realDesc = (String[]) desc;
+                novelDescModel = new NovelDescriptionModel(realDesc[0], realDesc[1], realDesc[2], realDesc[3]);
+            }
         }
 
     };

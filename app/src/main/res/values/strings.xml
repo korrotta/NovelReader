@@ -21,8 +21,12 @@
     <string name="server">Server</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="plugin">Plugin</string>
     <string name="from_chapter">From Chapter</string>
     <string name="to_chapter">To Chapter</string>
     <string name="file_format">File Format</string>
+    <string name="servers">Servers</string>
+    <string name="plugin">Plugin</string>
+
+    <string name="light_theme">Light Theme</string>
+    <string name="dark_theme">Dark Theme</string>
 </resources>

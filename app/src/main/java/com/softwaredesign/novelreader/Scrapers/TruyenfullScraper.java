@@ -2,13 +2,14 @@ package com.softwaredesign.novelreader.Scrapers;
 
 import android.util.Log;
 
-import com.example.novelscraperfactory.INovelScraper;
+import com.example.scraper_library.INovelScraper;
 import com.softwaredesign.novelreader.Global.ReusableFunction;
 import com.softwaredesign.novelreader.Models.ChapterContentModel;
 import com.softwaredesign.novelreader.Models.ChapterModel;
 import com.softwaredesign.novelreader.Models.NovelDescriptionModel;
 import com.softwaredesign.novelreader.Models.NovelModel;
 
+import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -35,6 +36,7 @@ public class TruyenfullScraper implements INovelScraper {
         try {
             // Fetch and parse the search result page
             Document doc = Jsoup.connect(searchUrl).get();
+
             // Select rows containing novel information
             Elements rowNodes = doc.select("div.row");
 
@@ -81,7 +83,7 @@ public class TruyenfullScraper implements INovelScraper {
             if (novelDescriptionNode!=null){
                 content = novelDescriptionNode.toString();
                 content = content.replace("<div class=\"desc-text desc-text-full\" itemprop=\"description\">", "");
-                Log.d("content", content);
+//                Log.d("content", content);
             }
 
             // Create and return a new NovelDescriptionModel object
@@ -89,7 +91,6 @@ public class TruyenfullScraper implements INovelScraper {
             return ndm;
 
         } catch (IOException e) {
-
             throw new RuntimeException(e);
         }
     }
@@ -147,7 +148,7 @@ public class TruyenfullScraper implements INovelScraper {
                     String title = parseTitle(child_node.attr("title"));
                     int chapterNumber = parseChapterNumber(title);
                     ChapterModel chapter = new ChapterModel(title, chapterUrl, chapterNumber);
-                    Log.d("chapter: ", chapter.getChapterName());
+//                    Log.d("chapter: ", chapter.getChapterName());
                     chapters.add(chapter);
                 }
             }
@@ -221,9 +222,14 @@ public class TruyenfullScraper implements INovelScraper {
             Element chapterBody = doc.select("div.chapter-c").first();
             ChapterContentModel content = new ChapterContentModel(chapterName, url, chapterBody.toString(), title);
             return content;
+        } catch (HttpStatusException e){
+            if (e.getStatusCode() == 503){
+                Log.d("Log", "503");
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        return null;
     }
 
 
@@ -266,6 +272,15 @@ public class TruyenfullScraper implements INovelScraper {
         }
     }
 
+    @Override
+    public INovelScraper clone() {
+        try {
+            return (INovelScraper) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     //Final variable fetching.
     @Override
     public int getNumberOfChaptersPerPage() {
@@ -277,8 +292,33 @@ public class TruyenfullScraper implements INovelScraper {
         return this.SOURCE_NAME;
     }
 
+    @Override
+    public ChapterContentModel getContentFromNameAndChapName(String name, String chapterName){
+        //NOTE 1: First step to search name on source
+        boolean isBreak = false;
+        int numberOfPage = getNumberOfSearchResultPage(name); //name as a keyword;
+        NovelModel wantedNovel =null;
+        List<NovelModel> results = new ArrayList<>();
+        for (int i = 1; i<= numberOfPage; i++){
+            results.addAll(getSearchPageFromKeywordAndPageNumber(name, i));
+        }
+        Log.d("length", String.valueOf(results.size()));
+        for (NovelModel novel: results){
+            Log.d("novel name vs search name: ", novel.getName() + " - " + name);
+            if (novel.getName().equalsIgnoreCase(name)) {
+                wantedNovel = novel;
+                isBreak = true;
+                break; //get first one only, who care?
+            }
+        }
+        if (!isBreak) return null;
+        Log.d("Wanted novel ", wantedNovel.getUrl()); //NOTE: ok
 
-
+        //NOTE 2: Search for the wanted chapter
+        ChapterModel resultChapter = smartChapterSearch(wantedNovel.getUrl(), chapterName);
+        if (resultChapter == null) return null;
+        return getChapterContent(resultChapter.getChapterUrl());
+    }
 
     //0----------------------------------0
     //Chapter list support methods:
@@ -332,33 +372,91 @@ public class TruyenfullScraper implements INovelScraper {
         Element imgNode = row.select("div[data-image]").first();
 
         if (imgNode!=null){
-            String data = imgNode.attr("data-desk-image");
-            return imgNode.attr("data-desk-image");
+            String data = imgNode.attr("data-image");
+            return imgNode.attr("data-image");
         }
         return null;
     }
-    public String getChapterTitleAndName(String url) {
-        Document doc = null;
+
+    private ChapterModel smartChapterSearch(String novelUrl, String chapterName){
+        //need to parse chapterName to chapterNumber first.
+        int id = parseIdFromChapterName(chapterName);
+        Log.d("id can search", String.valueOf(id));
+        //then get maximum pages of the novel chapter list
+        int totalPages = getChapterListNumberOfPages(novelUrl);
+        //after all, use lambda to get the different
+
+        if (id == -1) {
+            //Final chance: Search by name
+            return null;
+        }
+        else {
+            int possiblePage = id/CHAPTERS_PER_PAGE + 1;
+            int runPage = possiblePage;
+            if (possiblePage > totalPages) return null;
+            while (true) {
+                List<ChapterModel> results = getChapterListInPage(novelUrl, runPage);
+                //Binary search
+                ChapterModel result = searchChapterById(results, id);
+
+                if (result != null) {
+                    Log.d("Result", result.getChapterUrl());
+                    return result;
+
+                }
+                if (result == null) {
+                    runPage ++;
+                    if (runPage - possiblePage == 3) runPage -=5;
+                    if (runPage == possiblePage) return null;
+                }
+            }
+        }
+    }
+    private int parseIdFromChapterName(String chapterName){
+        chapterName = chapterName.replaceAll(":", "");
+        String[] holder = chapterName.split("\\s+");
+        String possibleId;
+//
+//        for (int i = 0; i< holder.length; i++) {
+//            Log.d("hlsder", holder[i]);
+//        }
+        int id;
+        if (chapterName.toUpperCase().contains("CHƯƠNG")){
+            possibleId = holder[1];
+        }
+        else {
+            possibleId = holder[0];
+        }
         try {
-            doc = Jsoup.connect(url).get();
-            String title = doc.select("a.truyen-title").first().text();
-            String chapterName = doc.select("a.chapter-title").first().text();
-            Log.d("TITLE", title);
-            Log.d("CHAPTERNAME", chapterName);
-
-
-
-            return chapterName;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            id = Integer.parseInt(possibleId);
+            return id;
+        }catch (NumberFormatException e){
+            return -1;
         }
     }
 
-    //Novel description support methods
-    //Other methods
-    private void logToCheck(NovelModel n){
-        Log.d("Novel Model object", n.getName() + " src: " + n.getUrl() + " " + n.getAuthor() + " img: " + n.getImageDesk());
+    private ChapterModel searchChapterById(List<ChapterModel> list, int id){
+        for (ChapterModel chapterModel: list){
+            int chapterId = parseIdFromChapterName(chapterModel.getChapterName());
+
+            if (chapterId == id) return chapterModel;
+        }
+//        int low = 0;
+//        int high = list.size()-1;
+//        while (low <= high){
+//            int mid = (low+high) >>> 1;
+//            ChapterModel model = list.get(mid);
+//
+//            int modelId = parseIdFromChapterName(model.getChapterName());
+//
+//            if (modelId < id){
+//                low = mid+1;
+//            }
+//            else if (modelId > id) {
+//                high = mid-1;
+//            }
+//            else return model;
+//        }
+        return null;
     }
-
-
 }
