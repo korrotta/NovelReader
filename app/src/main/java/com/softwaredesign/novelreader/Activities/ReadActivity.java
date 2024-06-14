@@ -50,6 +50,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.text.HtmlCompat;
 
 import com.example.scraper_library.INovelScraper;
+import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.bottomappbar.BottomAppBar;
 import com.softwaredesign.novelreader.BackgroundTask;
 import com.softwaredesign.novelreader.Fragments.SettingsDialogFragment;
@@ -70,6 +71,7 @@ public class ReadActivity extends AppCompatActivity {
     private EditText searchEditText;
     private ProgressBar progressBar;
     private BottomAppBar bottomAppBar;
+    private AppBarLayout topAppBar;
     private LinearLayout search_layout;
     private AlertDialog.Builder alertDialog;
 
@@ -313,10 +315,10 @@ public class ReadActivity extends AppCompatActivity {
                     int y = layout.getLineTop(line);
 
                     int scrollY = contentScrollView.getScrollY();
-                    int scrollViewHeight = contentScrollView.getHeight() - bottomAppBar.getHeight() - searchEditText.getHeight();
+                    int scrollViewHeight = contentScrollView.getHeight() - 2*bottomAppBar.getHeight() - 2*searchEditText.getHeight();
 
                     // Only scroll if the result is not fully visible
-                    if (forceScroll || y < scrollY || y > scrollY + scrollViewHeight - chapterContentTV.getLineHeight()) {
+                    if (forceScroll || y < scrollY || y > (scrollY + scrollViewHeight - chapterContentTV.getLineHeight())) {
                         int targetScrollY = y - scrollViewHeight / 2 + chapterContentTV.getLineHeight() / 2;
                         contentScrollView.smoothScrollTo(0, targetScrollY);
                     }
@@ -360,6 +362,7 @@ public class ReadActivity extends AppCompatActivity {
         findInChapterIV = findViewById(R.id.findTextRead);
         settingsIV = findViewById(R.id.settingsRead);
         bottomAppBar = findViewById(R.id.bottomNavRead);
+        topAppBar = findViewById(R.id.topNavRead);
         progressBar = findViewById(R.id.readProgressBar);
         serverIV = findViewById(R.id.serverSourceRead);
         searchEditText = findViewById(R.id.search_edit_text);
@@ -430,6 +433,10 @@ public class ReadActivity extends AppCompatActivity {
                 serverNameTV.setText("Server: " + readerServer.getSourceName());
                 chapterNameTV.setText(chapterTitle);
                 chapterContentTV.setText(HtmlCompat.fromHtml(content, HtmlCompat.FROM_HTML_MODE_LEGACY));
+
+                applyFontChange();
+                applyTextSizeChange();
+                applyThemeChange();
 
                 nextChapterIV.setVisibility(View.VISIBLE);
                 prevChapterIV.setVisibility(View.VISIBLE);
@@ -580,25 +587,37 @@ public class ReadActivity extends AppCompatActivity {
 
     private void applyThemeChange(){
         String theme = sharedPreferences.getString("theme", "dark");
-        if (theme.equals("light")){
-            setTheme(R.style.LightTheme);
-        }
-        else {
-            setTheme(R.style.DarkTheme);
-        }
-
-        int backgroundColor = ((ColorDrawable) contentScrollView.getBackground()).getColor();
 
         if (theme.equals("light")) {
+            serverNameTV.setTextColor(getResources().getColor(R.color.black));
+            chapterTitleTV.setTextColor(getResources().getColor(R.color.black));
+            novelNameTV.setTextColor(getResources().getColor(R.color.black));
+            chapterNameTV.setTextColor(getResources().getColor(R.color.black));
             chapterContentTV.setTextColor(getResources().getColor(R.color.black));
+            topAppBar.setBackgroundColor(getResources().getColor(R.color.floral_white));
+            bottomAppBar.setBackgroundColor(getResources().getColor(R.color.floral_white));
             prevChapterIV.setColorFilter(getResources().getColor(R.color.black));
             nextChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            saveChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            serverIV.setColorFilter(getResources().getColor(R.color.black));
+            settingsIV.setColorFilter(getResources().getColor(R.color.black));
+            findInChapterIV.setColorFilter(getResources().getColor(R.color.black));
             contentScrollView.setBackgroundColor(getResources().getColor(R.color.white));
         } else {
+            serverNameTV.setTextColor(getResources().getColor(R.color.white));
+            chapterTitleTV.setTextColor(getResources().getColor(R.color.white));
+            novelNameTV.setTextColor(getResources().getColor(R.color.white));
+            chapterNameTV.setTextColor(getResources().getColor(R.color.white));
             chapterContentTV.setTextColor(getResources().getColor(R.color.white));
+            topAppBar.setBackgroundColor(getResources().getColor(R.color.backgroundMaterialDark));
+            bottomAppBar.setBackgroundColor(getResources().getColor(R.color.backgroundMaterialDark));
             prevChapterIV.setColorFilter(getResources().getColor(R.color.white));
             nextChapterIV.setColorFilter(getResources().getColor(R.color.white));
-            contentScrollView.setBackgroundColor(backgroundColor);
+            saveChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            serverIV.setColorFilter(getResources().getColor(R.color.white));
+            settingsIV.setColorFilter(getResources().getColor(R.color.white));
+            findInChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            contentScrollView.setBackgroundColor(getResources().getColor(androidx.cardview.R.color.cardview_dark_background));
         }
     }
 

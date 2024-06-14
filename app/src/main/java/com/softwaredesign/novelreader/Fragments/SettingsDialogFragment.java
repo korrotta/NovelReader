@@ -27,6 +27,7 @@ import androidx.appcompat.widget.AppCompatButton;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.DialogFragment;
 
+import com.google.android.material.appbar.AppBarLayout;
 import com.softwaredesign.novelreader.Activities.ReadActivity;
 import com.softwaredesign.novelreader.R;
 
@@ -76,11 +77,15 @@ public class SettingsDialogFragment extends DialogFragment {
             SharedPreferences.Editor editor = sharedPreferences.edit();
             if (checkedId == R.id.settingsLightTheme) {
                 editor.putString("theme", "light").apply();
+                getActivity().recreate();
+                dismiss();
                 //AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
                 //restartActivity();
 
             } else if (checkedId == R.id.settingsDarkTheme) {
                 editor.putString("theme", "dark").apply();
+                getActivity().recreate();
+                dismiss();
                 //AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
                 //restartActivity();
             }
@@ -185,47 +190,52 @@ public class SettingsDialogFragment extends DialogFragment {
         chapterContent.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
     }
 
-    private void restartActivity() {
+    /*private void restartActivity() {
         Intent intent = new Intent(getActivity(), ReadActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
         getActivity().finish();
-    }
+    }*/
 
     private void applyThemeChange(){
         String theme = sharedPreferences.getString("theme", "dark");
         if (theme.equals("light")){
-            getActivity().setTheme(R.style.LightTheme);
+            //getActivity().setTheme(R.style.LightTheme);
             Log.d("MyActivity", "Light");
         }
         else {
-            getActivity().setTheme(R.style.DarkTheme);
+            //getActivity().setTheme(R.style.DarkTheme);
             Log.d("MyActivity", "Dark");
         }
 
-        /*getActivity().recreate();
-        dismiss();*/
+        getActivity().recreate();
+        dismiss();
 
-        TextView chapterNameTV = getActivity().findViewById(R.id.chapterNameRead);
+        /*TextView chapterNameTV = getActivity().findViewById(R.id.chapterNameRead);
         TextView chapterContentTV = getActivity().findViewById(R.id.chapterContentRead);
         ImageView prevChapterIV = getActivity().findViewById(R.id.previousChapterRead);
         ImageView nextChapterIV = getActivity().findViewById(R.id.nextChapterRead);
         ScrollView contentScrollView = getActivity().findViewById(R.id.contentScrollView);
-        int backgroundColor = ((ColorDrawable) contentScrollView.getBackground()).getColor();
+        AppBarLayout appBarTopLayout = getActivity().findViewById(R.id.topNavRead);
+        AppBarLayout appBarBottomLayout = getActivity().findViewById(R.id.bottomNavRead);
+        //int backgroundColor = ((ColorDrawable) contentScrollView.getBackground()).getColor();
 
         if (theme.equals("light")) {
             chapterContentTV.setTextColor(getResources().getColor(R.color.black));
             chapterNameTV.setTextColor(getResources().getColor(R.color.black));
-            prevChapterIV.setColorFilter(getResources().getColor(R.color.black));
-            nextChapterIV.setColorFilter(getResources().getColor(R.color.black));
-            contentScrollView.setBackgroundColor(getResources().getColor(R.color.white));
+            //prevChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            //nextChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            //contentScrollView.setBackgroundColor(getResources().getColor(R.color.white));
         } else {
             chapterContentTV.setTextColor(getResources().getColor(R.color.white));
             chapterNameTV.setTextColor(getResources().getColor(R.color.white));
-            prevChapterIV.setColorFilter(getResources().getColor(R.color.white));
-            nextChapterIV.setColorFilter(getResources().getColor(R.color.white));
-            contentScrollView.setBackgroundColor(backgroundColor);
-        }
+            //prevChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            //nextChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            //contentScrollView.setBackgroundColor(backgroundColor);
+            //contentScrollView.setBackgroundColor(getResources().getColor(androidx.cardview.R.color.cardview_dark_background));
+            //appBarTopLayout.setBackgroundColor(((ColorDrawable) appBarTopLayout.getBackground()).getColor());
+
+        }*/
     }
     @Override
     public void onStart() {
@@ -235,4 +245,334 @@ public class SettingsDialogFragment extends DialogFragment {
             getDialog().getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         }
     }
+
+
+            /*TextView chapterNameTV = getActivity().findViewById(R.id.chapterNameRead);
+        TextView chapterContentTV = getActivity().findViewById(R.id.chapterContentRead);
+        ImageView prevChapterIV = getActivity().findViewById(R.id.previousChapterRead);
+        ImageView nextChapterIV = getActivity().findViewById(R.id.nextChapterRead);
+        ScrollView contentScrollView = getActivity().findViewById(R.id.contentScrollView);
+        AppBarLayout appBarTopLayout = getActivity().findViewById(R.id.topNavRead);
+        AppBarLayout appBarBottomLayout = getActivity().findViewById(R.id.bottomNavRead);
+        //int backgroundColor = ((ColorDrawable) contentScrollView.getBackground()).getColor();
+
+        if (theme.equals("light")) {
+            chapterContentTV.setTextColor(getResources().getColor(R.color.black));
+            chapterNameTV.setTextColor(getResources().getColor(R.color.black));
+            //prevChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            //nextChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            //contentScrollView.setBackgroundColor(getResources().getColor(R.color.white));
+        } else {
+            chapterContentTV.setTextColor(getResources().getColor(R.color.white));
+            chapterNameTV.setTextColor(getResources().getColor(R.color.white));
+            //prevChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            //nextChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            //contentScrollView.setBackgroundColor(backgroundColor);
+            //contentScrollView.setBackgroundColor(getResources().getColor(androidx.cardview.R.color.cardview_dark_background));
+            //appBarTopLayout.setBackgroundColor(((ColorDrawable) appBarTopLayout.getBackground()).getColor());
+
+        }*/
+
+            /*TextView chapterNameTV = getActivity().findViewById(R.id.chapterNameRead);
+        TextView chapterContentTV = getActivity().findViewById(R.id.chapterContentRead);
+        ImageView prevChapterIV = getActivity().findViewById(R.id.previousChapterRead);
+        ImageView nextChapterIV = getActivity().findViewById(R.id.nextChapterRead);
+        ScrollView contentScrollView = getActivity().findViewById(R.id.contentScrollView);
+        AppBarLayout appBarTopLayout = getActivity().findViewById(R.id.topNavRead);
+        AppBarLayout appBarBottomLayout = getActivity().findViewById(R.id.bottomNavRead);
+        //int backgroundColor = ((ColorDrawable) contentScrollView.getBackground()).getColor();
+
+        if (theme.equals("light")) {
+            chapterContentTV.setTextColor(getResources().getColor(R.color.black));
+            chapterNameTV.setTextColor(getResources().getColor(R.color.black));
+            //prevChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            //nextChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            //contentScrollView.setBackgroundColor(getResources().getColor(R.color.white));
+        } else {
+            chapterContentTV.setTextColor(getResources().getColor(R.color.white));
+            chapterNameTV.setTextColor(getResources().getColor(R.color.white));
+            //prevChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            //nextChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            //contentScrollView.setBackgroundColor(backgroundColor);
+            //contentScrollView.setBackgroundColor(getResources().getColor(androidx.cardview.R.color.cardview_dark_background));
+            //appBarTopLayout.setBackgroundColor(((ColorDrawable) appBarTopLayout.getBackground()).getColor());
+
+        }*/
+
+
+
+            /*TextView chapterNameTV = getActivity().findViewById(R.id.chapterNameRead);
+        TextView chapterContentTV = getActivity().findViewById(R.id.chapterContentRead);
+        ImageView prevChapterIV = getActivity().findViewById(R.id.previousChapterRead);
+        ImageView nextChapterIV = getActivity().findViewById(R.id.nextChapterRead);
+        ScrollView contentScrollView = getActivity().findViewById(R.id.contentScrollView);
+        AppBarLayout appBarTopLayout = getActivity().findViewById(R.id.topNavRead);
+        AppBarLayout appBarBottomLayout = getActivity().findViewById(R.id.bottomNavRead);
+        //int backgroundColor = ((ColorDrawable) contentScrollView.getBackground()).getColor();
+
+        if (theme.equals("light")) {
+            chapterContentTV.setTextColor(getResources().getColor(R.color.black));
+            chapterNameTV.setTextColor(getResources().getColor(R.color.black));
+            //prevChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            //nextChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            //contentScrollView.setBackgroundColor(getResources().getColor(R.color.white));
+        } else {
+            chapterContentTV.setTextColor(getResources().getColor(R.color.white));
+            chapterNameTV.setTextColor(getResources().getColor(R.color.white));
+            //prevChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            //nextChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            //contentScrollView.setBackgroundColor(backgroundColor);
+            //contentScrollView.setBackgroundColor(getResources().getColor(androidx.cardview.R.color.cardview_dark_background));
+            //appBarTopLayout.setBackgroundColor(((ColorDrawable) appBarTopLayout.getBackground()).getColor());
+
+        }*/
+
+
+            /*TextView chapterNameTV = getActivity().findViewById(R.id.chapterNameRead);
+        TextView chapterContentTV = getActivity().findViewById(R.id.chapterContentRead);
+        ImageView prevChapterIV = getActivity().findViewById(R.id.previousChapterRead);
+        ImageView nextChapterIV = getActivity().findViewById(R.id.nextChapterRead);
+        ScrollView contentScrollView = getActivity().findViewById(R.id.contentScrollView);
+        AppBarLayout appBarTopLayout = getActivity().findViewById(R.id.topNavRead);
+        AppBarLayout appBarBottomLayout = getActivity().findViewById(R.id.bottomNavRead);
+        //int backgroundColor = ((ColorDrawable) contentScrollView.getBackground()).getColor();
+
+        if (theme.equals("light")) {
+            chapterContentTV.setTextColor(getResources().getColor(R.color.black));
+            chapterNameTV.setTextColor(getResources().getColor(R.color.black));
+            //prevChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            //nextChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            //contentScrollView.setBackgroundColor(getResources().getColor(R.color.white));
+        } else {
+            chapterContentTV.setTextColor(getResources().getColor(R.color.white));
+            chapterNameTV.setTextColor(getResources().getColor(R.color.white));
+            //prevChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            //nextChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            //contentScrollView.setBackgroundColor(backgroundColor);
+            //contentScrollView.setBackgroundColor(getResources().getColor(androidx.cardview.R.color.cardview_dark_background));
+            //appBarTopLayout.setBackgroundColor(((ColorDrawable) appBarTopLayout.getBackground()).getColor());
+
+        }*/
+
+
+            /*TextView chapterNameTV = getActivity().findViewById(R.id.chapterNameRead);
+        TextView chapterContentTV = getActivity().findViewById(R.id.chapterContentRead);
+        ImageView prevChapterIV = getActivity().findViewById(R.id.previousChapterRead);
+        ImageView nextChapterIV = getActivity().findViewById(R.id.nextChapterRead);
+        ScrollView contentScrollView = getActivity().findViewById(R.id.contentScrollView);
+        AppBarLayout appBarTopLayout = getActivity().findViewById(R.id.topNavRead);
+        AppBarLayout appBarBottomLayout = getActivity().findViewById(R.id.bottomNavRead);
+        //int backgroundColor = ((ColorDrawable) contentScrollView.getBackground()).getColor();
+
+        if (theme.equals("light")) {
+            chapterContentTV.setTextColor(getResources().getColor(R.color.black));
+            chapterNameTV.setTextColor(getResources().getColor(R.color.black));
+            //prevChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            //nextChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            //contentScrollView.setBackgroundColor(getResources().getColor(R.color.white));
+        } else {
+            chapterContentTV.setTextColor(getResources().getColor(R.color.white));
+            chapterNameTV.setTextColor(getResources().getColor(R.color.white));
+            //prevChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            //nextChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            //contentScrollView.setBackgroundColor(backgroundColor);
+            //contentScrollView.setBackgroundColor(getResources().getColor(androidx.cardview.R.color.cardview_dark_background));
+            //appBarTopLayout.setBackgroundColor(((ColorDrawable) appBarTopLayout.getBackground()).getColor());
+
+        }*/        /*TextView chapterNameTV = getActivity().findViewById(R.id.chapterNameRead);
+        TextView chapterContentTV = getActivity().findViewById(R.id.chapterContentRead);
+        ImageView prevChapterIV = getActivity().findViewById(R.id.previousChapterRead);
+        ImageView nextChapterIV = getActivity().findViewById(R.id.nextChapterRead);
+        ScrollView contentScrollView = getActivity().findViewById(R.id.contentScrollView);
+        AppBarLayout appBarTopLayout = getActivity().findViewById(R.id.topNavRead);
+        AppBarLayout appBarBottomLayout = getActivity().findViewById(R.id.bottomNavRead);
+        //int backgroundColor = ((ColorDrawable) contentScrollView.getBackground()).getColor();
+
+        if (theme.equals("light")) {
+            chapterContentTV.setTextColor(getResources().getColor(R.color.black));
+            chapterNameTV.setTextColor(getResources().getColor(R.color.black));
+            //prevChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            //nextChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            //contentScrollView.setBackgroundColor(getResources().getColor(R.color.white));
+        } else {
+            chapterContentTV.setTextColor(getResources().getColor(R.color.white));
+            chapterNameTV.setTextColor(getResources().getColor(R.color.white));
+            //prevChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            //nextChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            //contentScrollView.setBackgroundColor(backgroundColor);
+            //contentScrollView.setBackgroundColor(getResources().getColor(androidx.cardview.R.color.cardview_dark_background));
+            //appBarTopLayout.setBackgroundColor(((ColorDrawable) appBarTopLayout.getBackground()).getColor());
+
+        }*/        /*TextView chapterNameTV = getActivity().findViewById(R.id.chapterNameRead);
+        TextView chapterContentTV = getActivity().findViewById(R.id.chapterContentRead);
+        ImageView prevChapterIV = getActivity().findViewById(R.id.previousChapterRead);
+        ImageView nextChapterIV = getActivity().findViewById(R.id.nextChapterRead);
+        ScrollView contentScrollView = getActivity().findViewById(R.id.contentScrollView);
+        AppBarLayout appBarTopLayout = getActivity().findViewById(R.id.topNavRead);
+        AppBarLayout appBarBottomLayout = getActivity().findViewById(R.id.bottomNavRead);
+        //int backgroundColor = ((ColorDrawable) contentScrollView.getBackground()).getColor();
+
+        if (theme.equals("light")) {
+            chapterContentTV.setTextColor(getResources().getColor(R.color.black));
+            chapterNameTV.setTextColor(getResources().getColor(R.color.black));
+            //prevChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            //nextChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            //contentScrollView.setBackgroundColor(getResources().getColor(R.color.white));
+        } else {
+            chapterContentTV.setTextColor(getResources().getColor(R.color.white));
+            chapterNameTV.setTextColor(getResources().getColor(R.color.white));
+            //prevChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            //nextChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            //contentScrollView.setBackgroundColor(backgroundColor);
+            //contentScrollView.setBackgroundColor(getResources().getColor(androidx.cardview.R.color.cardview_dark_background));
+            //appBarTopLayout.setBackgroundColor(((ColorDrawable) appBarTopLayout.getBackground()).getColor());
+
+        }*/        /*TextView chapterNameTV = getActivity().findViewById(R.id.chapterNameRead);
+        TextView chapterContentTV = getActivity().findViewById(R.id.chapterContentRead);
+        ImageView prevChapterIV = getActivity().findViewById(R.id.previousChapterRead);
+        ImageView nextChapterIV = getActivity().findViewById(R.id.nextChapterRead);
+        ScrollView contentScrollView = getActivity().findViewById(R.id.contentScrollView);
+        AppBarLayout appBarTopLayout = getActivity().findViewById(R.id.topNavRead);
+        AppBarLayout appBarBottomLayout = getActivity().findViewById(R.id.bottomNavRead);
+        //int backgroundColor = ((ColorDrawable) contentScrollView.getBackground()).getColor();
+
+        if (theme.equals("light")) {
+            chapterContentTV.setTextColor(getResources().getColor(R.color.black));
+            chapterNameTV.setTextColor(getResources().getColor(R.color.black));
+            //prevChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            //nextChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            //contentScrollView.setBackgroundColor(getResources().getColor(R.color.white));
+        } else {
+            chapterContentTV.setTextColor(getResources().getColor(R.color.white));
+            chapterNameTV.setTextColor(getResources().getColor(R.color.white));
+            //prevChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            //nextChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            //contentScrollView.setBackgroundColor(backgroundColor);
+            //contentScrollView.setBackgroundColor(getResources().getColor(androidx.cardview.R.color.cardview_dark_background));
+            //appBarTopLayout.setBackgroundColor(((ColorDrawable) appBarTopLayout.getBackground()).getColor());
+
+        }*/        /*TextView chapterNameTV = getActivity().findViewById(R.id.chapterNameRead);
+        TextView chapterContentTV = getActivity().findViewById(R.id.chapterContentRead);
+        ImageView prevChapterIV = getActivity().findViewById(R.id.previousChapterRead);
+        ImageView nextChapterIV = getActivity().findViewById(R.id.nextChapterRead);
+        ScrollView contentScrollView = getActivity().findViewById(R.id.contentScrollView);
+        AppBarLayout appBarTopLayout = getActivity().findViewById(R.id.topNavRead);
+        AppBarLayout appBarBottomLayout = getActivity().findViewById(R.id.bottomNavRead);
+        //int backgroundColor = ((ColorDrawable) contentScrollView.getBackground()).getColor();
+
+        if (theme.equals("light")) {
+            chapterContentTV.setTextColor(getResources().getColor(R.color.black));
+            chapterNameTV.setTextColor(getResources().getColor(R.color.black));
+            //prevChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            //nextChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            //contentScrollView.setBackgroundColor(getResources().getColor(R.color.white));
+        } else {
+            chapterContentTV.setTextColor(getResources().getColor(R.color.white));
+            chapterNameTV.setTextColor(getResources().getColor(R.color.white));
+            //prevChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            //nextChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            //contentScrollView.setBackgroundColor(backgroundColor);
+            //contentScrollView.setBackgroundColor(getResources().getColor(androidx.cardview.R.color.cardview_dark_background));
+            //appBarTopLayout.setBackgroundColor(((ColorDrawable) appBarTopLayout.getBackground()).getColor());
+
+        }*/
+
+
+            /*TextView chapterNameTV = getActivity().findViewById(R.id.chapterNameRead);
+        TextView chapterContentTV = getActivity().findViewById(R.id.chapterContentRead);
+        ImageView prevChapterIV = getActivity().findViewById(R.id.previousChapterRead);
+        ImageView nextChapterIV = getActivity().findViewById(R.id.nextChapterRead);
+        ScrollView contentScrollView = getActivity().findViewById(R.id.contentScrollView);
+        AppBarLayout appBarTopLayout = getActivity().findViewById(R.id.topNavRead);
+        AppBarLayout appBarBottomLayout = getActivity().findViewById(R.id.bottomNavRead);
+        //int backgroundColor = ((ColorDrawable) contentScrollView.getBackground()).getColor();
+
+        if (theme.equals("light")) {
+            chapterContentTV.setTextColor(getResources().getColor(R.color.black));
+            chapterNameTV.setTextColor(getResources().getColor(R.color.black));
+            //prevChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            //nextChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            //contentScrollView.setBackgroundColor(getResources().getColor(R.color.white));
+        } else {
+            chapterContentTV.setTextColor(getResources().getColor(R.color.white));
+            chapterNameTV.setTextColor(getResources().getColor(R.color.white));
+            //prevChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            //nextChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            //contentScrollView.setBackgroundColor(backgroundColor);
+            //contentScrollView.setBackgroundColor(getResources().getColor(androidx.cardview.R.color.cardview_dark_background));
+            //appBarTopLayout.setBackgroundColor(((ColorDrawable) appBarTopLayout.getBackground()).getColor());
+
+        }*/        /*TextView chapterNameTV = getActivity().findViewById(R.id.chapterNameRead);
+        TextView chapterContentTV = getActivity().findViewById(R.id.chapterContentRead);
+        ImageView prevChapterIV = getActivity().findViewById(R.id.previousChapterRead);
+        ImageView nextChapterIV = getActivity().findViewById(R.id.nextChapterRead);
+        ScrollView contentScrollView = getActivity().findViewById(R.id.contentScrollView);
+        AppBarLayout appBarTopLayout = getActivity().findViewById(R.id.topNavRead);
+        AppBarLayout appBarBottomLayout = getActivity().findViewById(R.id.bottomNavRead);
+        //int backgroundColor = ((ColorDrawable) contentScrollView.getBackground()).getColor();
+
+        if (theme.equals("light")) {
+            chapterContentTV.setTextColor(getResources().getColor(R.color.black));
+            chapterNameTV.setTextColor(getResources().getColor(R.color.black));
+            //prevChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            //nextChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            //contentScrollView.setBackgroundColor(getResources().getColor(R.color.white));
+        } else {
+            chapterContentTV.setTextColor(getResources().getColor(R.color.white));
+            chapterNameTV.setTextColor(getResources().getColor(R.color.white));
+            //prevChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            //nextChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            //contentScrollView.setBackgroundColor(backgroundColor);
+            //contentScrollView.setBackgroundColor(getResources().getColor(androidx.cardview.R.color.cardview_dark_background));
+            //appBarTopLayout.setBackgroundColor(((ColorDrawable) appBarTopLayout.getBackground()).getColor());
+
+        }*/        /*TextView chapterNameTV = getActivity().findViewById(R.id.chapterNameRead);
+        TextView chapterContentTV = getActivity().findViewById(R.id.chapterContentRead);
+        ImageView prevChapterIV = getActivity().findViewById(R.id.previousChapterRead);
+        ImageView nextChapterIV = getActivity().findViewById(R.id.nextChapterRead);
+        ScrollView contentScrollView = getActivity().findViewById(R.id.contentScrollView);
+        AppBarLayout appBarTopLayout = getActivity().findViewById(R.id.topNavRead);
+        AppBarLayout appBarBottomLayout = getActivity().findViewById(R.id.bottomNavRead);
+        //int backgroundColor = ((ColorDrawable) contentScrollView.getBackground()).getColor();
+
+        if (theme.equals("light")) {
+            chapterContentTV.setTextColor(getResources().getColor(R.color.black));
+            chapterNameTV.setTextColor(getResources().getColor(R.color.black));
+            //prevChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            //nextChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            //contentScrollView.setBackgroundColor(getResources().getColor(R.color.white));
+        } else {
+            chapterContentTV.setTextColor(getResources().getColor(R.color.white));
+            chapterNameTV.setTextColor(getResources().getColor(R.color.white));
+            //prevChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            //nextChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            //contentScrollView.setBackgroundColor(backgroundColor);
+            //contentScrollView.setBackgroundColor(getResources().getColor(androidx.cardview.R.color.cardview_dark_background));
+            //appBarTopLayout.setBackgroundColor(((ColorDrawable) appBarTopLayout.getBackground()).getColor());
+
+        }*/        /*TextView chapterNameTV = getActivity().findViewById(R.id.chapterNameRead);
+        TextView chapterContentTV = getActivity().findViewById(R.id.chapterContentRead);
+        ImageView prevChapterIV = getActivity().findViewById(R.id.previousChapterRead);
+        ImageView nextChapterIV = getActivity().findViewById(R.id.nextChapterRead);
+        ScrollView contentScrollView = getActivity().findViewById(R.id.contentScrollView);
+        AppBarLayout appBarTopLayout = getActivity().findViewById(R.id.topNavRead);
+        AppBarLayout appBarBottomLayout = getActivity().findViewById(R.id.bottomNavRead);
+        //int backgroundColor = ((ColorDrawable) contentScrollView.getBackground()).getColor();
+
+        if (theme.equals("light")) {
+            chapterContentTV.setTextColor(getResources().getColor(R.color.black));
+            chapterNameTV.setTextColor(getResources().getColor(R.color.black));
+            //prevChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            //nextChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            //contentScrollView.setBackgroundColor(getResources().getColor(R.color.white));
+        } else {
+            chapterContentTV.setTextColor(getResources().getColor(R.color.white));
+            chapterNameTV.setTextColor(getResources().getColor(R.color.white));
+            //prevChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            //nextChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            //contentScrollView.setBackgroundColor(backgroundColor);
+            //contentScrollView.setBackgroundColor(getResources().getColor(androidx.cardview.R.color.cardview_dark_background));
+            //appBarTopLayout.setBackgroundColor(((ColorDrawable) appBarTopLayout.getBackground()).getColor());
+
+        }*/
 }
