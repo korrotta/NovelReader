@@ -55,14 +55,6 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <ProgressBar
-        android:id="@+id/readProgressBar"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:layout_gravity="center"
-        android:indeterminate="true"
-        android:visibility="gone" />
-
     <ScrollView
         android:id="@+id/contentScrollView"
         android:layout_width="match_parent"
@@ -287,5 +279,13 @@
         </LinearLayout>
 
     </com.google.android.material.bottomappbar.BottomAppBar>
+
+    <ProgressBar
+        android:id="@+id/readProgressBar"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_gravity="center"
+        android:indeterminate="true"
+        android:visibility="gone" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

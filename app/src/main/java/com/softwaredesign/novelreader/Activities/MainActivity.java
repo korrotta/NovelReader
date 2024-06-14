@@ -247,13 +247,8 @@ public class MainActivity extends AppCompatActivity {
         // Thiết lập tiêu đề và thông điệp
         builder.setTitle("Tiếp tục đọc");
         builder.setMessage("Không có dữ liệu từ lần đọc trước. Có vẻ như bạn chưa từng sử dụng app.");
-        // Thiết lập nút "Cancel"
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
+        // Thiết lập nút "OK"
+        builder.setPositiveButton("OK", (dialog, which) -> dialog.dismiss());
 
         // Tạo và hiển thị AlertDialog
         AlertDialog dialog = builder.create();
