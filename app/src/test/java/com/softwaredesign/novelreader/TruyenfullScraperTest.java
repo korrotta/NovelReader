@@ -187,6 +187,42 @@ public class TruyenfullScraperTest {
 
 
 
-    
+    @Test
+    public void testClone() {
+
+        // Instantiate TruyenfullScraper
+        TruyenfullScraper scraper = new TruyenfullScraper();
+
+        // Call clone method
+        TruyenfullScraper result = (TruyenfullScraper) scraper.clone();
+
+        // Kiểm tra kết quả trả về
+        assertNotNull("Cloned scraper should not be null", result);
+
+        // Kiểm tra đối tượng clone không cùng tham chiếu với đối tượng ban đầu
+        assertNotSame("Cloned scraper should not be the same instance as the original", scraper, result);
+    }
+
+
+
+    @Test
+    public void testGetNumberOfChaptersPerPage() {
+
+        // Instantiate TruyenfullScraper
+        TruyenfullScraper scraper = new TruyenfullScraper();
+
+        // Call getNumberOfChaptersPerPage method
+        Integer result = scraper.getNumberOfChaptersPerPage();
+
+        // Kiểm tra kết quả trả về
+        assertNotNull("Number of chapters per page should not be null", result);
+        assertTrue("Number of chapters per page should be greater than zero", result > 0);
+    }
+
+
+
+
+
+
 }
 
