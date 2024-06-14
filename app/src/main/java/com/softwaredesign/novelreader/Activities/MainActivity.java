@@ -69,9 +69,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main); // Set the layout for this activity
+        setContentView(R.layout.activity_main); //Set the layout for this activity
 
-        // Initialize views
+        //Initialize views
         searchView = findViewById(R.id.searchView);
         recyclerView = findViewById(R.id.recyclerView);
         progressBar = findViewById(R.id.progressBar);
@@ -84,16 +84,22 @@ public class MainActivity extends AppCompatActivity {
         serverSpinner.setAdapter(serverAdapter);
 
         File downloadDir = MainActivity.this.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+        //Get the absolute path of the downloads directory as a string
+        //Returns the absolute path of the File object
         String downloadDirPath = downloadDir.getAbsolutePath();
 
         //create document directory for exporting:
         File exportDir = MainActivity.this.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
+        //Create a new folder named "Export" within the documents directory
+        //Custom function to create a directory
+        //Returns the absolute path of the exportDir File object
         File newFolder = ReusableFunction.MakeDirectory(exportDir.getAbsolutePath(), "Export");
         Log.d("created", newFolder.getAbsolutePath());
 
         //generate directory
         makeDirectory(downloadDirPath);
 
+        //Get last read Novel
         readLastRunLog();
 
         //Scraper add:
@@ -106,14 +112,19 @@ public class MainActivity extends AppCompatActivity {
         IChapterExportHandler pdfExport = new PdfExportHandler();
         IChapterExportHandler epubExport = new EpubExportHandler();
 
+        //Add epubExport and pdfExport to the global exporter list
         GlobalConfig.Global_Exporter_List.add(epubExport);
         GlobalConfig.Global_Exporter_List.add(pdfExport);
 
+        // Load all plugins using the specified download directory
         loadAllPlugins(downloadDir);
 
+        // Notify the server adapter that the data set has changed
         serverAdapter.notifyDataSetChanged();
+        // Handle the initialization or configuration of the search view
         handleSearchView();
 
+        // Initialize the grid view with the created GridLayoutManager
         GridLayoutManager gridLayoutManager = new GridLayoutManager(MainActivity.this, 2);
         gridViewInit(gridLayoutManager);
 
@@ -126,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 INovelScraper scraperInstance = (INovelScraper) parent.getItemAtPosition(position);
                 GlobalConfig.Global_Current_Scraper = scraperInstance;
-                getMainPageTask();
+                getMainPageTask(); //Get the main page task
                 Log.d("Source check: ", GlobalConfig.Global_Current_Scraper.getSourceName());
             }
 
@@ -205,16 +216,16 @@ public class MainActivity extends AppCompatActivity {
     private void showConfirmationDialogBox(){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
-        // Thiết lập tiêu đề và thông điệp
+        // Set the title and message
         builder.setTitle("Tiếp tục đọc");
         builder.setMessage("Lần trước bạn đang đọc " + lastrunName + ", " +lastrunChapterName +". \n Bạn xác nhận muốn tiếp tục đọc?");
 
-        // Thiết lập nút "OK"
+        // Set the "OK" button
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                // Xử lý khi người dùng chọn "OK"
-                //Note: cần làm
+                // Handle when the user selects "OK"
+                // Note: Action implementation required
                 for (INovelScraper scraper: GlobalConfig.Global_Source_List){
                     if (scraper.getSourceName().equals(lastrunServer)) {
                         GlobalConfig.Global_Current_Scraper = scraper;
@@ -227,7 +238,7 @@ public class MainActivity extends AppCompatActivity {
                         "ChapterUrl", lastrunChapterUrl);
             }
         });
-        // Thiết lập nút "Cancel"
+        // Set the "Cancel" button
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -235,7 +246,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Tạo và hiển thị AlertDialog
+        // Create and display an AlertDialog
         AlertDialog dialog = builder.create();
         dialog.show();
 
@@ -244,20 +255,23 @@ public class MainActivity extends AppCompatActivity {
     private void showNoPreviousDataDialogBox(){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
-        // Thiết lập tiêu đề và thông điệp
+        // Set the title and message
         builder.setTitle("Tiếp tục đọc");
         builder.setMessage("Không có dữ liệu từ lần đọc trước. Có vẻ như bạn chưa từng sử dụng app.");
-        // Thiết lập nút "OK"
+        // Set up the "OK" button
         builder.setPositiveButton("OK", (dialog, which) -> dialog.dismiss());
 
-        // Tạo và hiển thị AlertDialog
+        // Create and display the AlertDialog
         AlertDialog dialog = builder.create();
         dialog.show();
     }
 
     private void gridViewInit(GridLayoutManager gridLayoutManager) {
+        // Set the layout manager for the recyclerView to gridLayoutManager
         recyclerView.setLayoutManager(gridLayoutManager);
+        // Create a new instance of NovelAdapter, passing MainActivity context and novelList as parameters
         novelAdapter = new NovelAdapter(MainActivity.this, novelList);
+        // Set the adapter for the recyclerView to novelAdapter
         recyclerView.setAdapter(novelAdapter);
     }
 
@@ -310,14 +324,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void makeDirectory(String downloadDirPath){
+        // Check if the device is running Android 6.0 (API level 23) or higher
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // Check if the app has permission to read external storage
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                // Request permission to read external storage if it hasn't been granted
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_CODE_READ_STORAGE);
             }
         }
         try {
+            // Define the path for the plugin file within the download directory
             final String libPath = downloadDirPath + "/myPlugin1.apk";
+            // Get or create a directory named "dex" in the app's private storage area
             final File tmpDir = getDir("dex", 0);
+            // Note: tmpDir can be used for temporary file storage or other purposes
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -357,9 +377,14 @@ public class MainActivity extends AppCompatActivity {
     }
     private void loadScraperPlugin(String pluginPath, String classPackage, String className){
         try {
+            // Get or create a directory named "dex" in the app's private storage area
             final File tmpDir = getDir("dex", 0);
+            // Create a DexClassLoader to load the plugin's .apk file
             final DexClassLoader classloader = new DexClassLoader(pluginPath, tmpDir.getAbsolutePath(), null, this.getClass().getClassLoader());
+            // Load the specified class from the plugin
+            // "com.example."+classPackage+"."+className: Fully qualified class name
             Class<?> classToLoad = classloader.loadClass("com.example."+classPackage+"."+className);
+            // Instantiate the loaded class and cast it to INovelScraper
             INovelScraper addedScraperPlugin = (INovelScraper) classToLoad.newInstance();
             for (INovelScraper scraper: GlobalConfig.Global_Source_List){
                 if (scraper.getSourceName().equals(addedScraperPlugin.getSourceName())){
@@ -367,6 +392,7 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
             }
+            // Add the new scraper plugin to the global source list
             GlobalConfig.Global_Source_List.add(addedScraperPlugin);
             Log.d("Added plugin: ", addedScraperPlugin.getSourceName());
         } catch (Exception e) {
@@ -376,9 +402,14 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadExporterPlugin(String pluginPath, String classPackage, String className) {
         try {
+            // Create or get a directory named "dex" in the app's private storage area
             final File tmpDir = getDir("dex", 0);
+            // Create a DexClassLoader to load the plugin's .apk file
             final DexClassLoader classloader = new DexClassLoader(pluginPath, tmpDir.getAbsolutePath(), null, this.getClass().getClassLoader());
+            // Load the specified class from the plugin
+            // "com.example."+classPackage+"."+className: Fully qualified class name
             Class<?> classToLoad = classloader.loadClass("com.example." + classPackage + "." + className);
+            // Instantiate the loaded class and cast it to IChapterExportHandler
             IChapterExportHandler addedExporterPlugin = (IChapterExportHandler) classToLoad.newInstance();
             for (IChapterExportHandler exporter : GlobalConfig.Global_Exporter_List) {
                 if (exporter.getExporterName().equals(addedExporterPlugin.getExporterName())) {
@@ -386,6 +417,7 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
             }
+            // Add the new exporter plugin to the global exporter list
             GlobalConfig.Global_Exporter_List.add(addedExporterPlugin);
             Log.d("Added plugin: ", addedExporterPlugin.getExporterName());
         } catch (Exception e) {
@@ -428,8 +460,11 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+    //Return to last read Novel
     private void readLastRunLog(){
 
+        //Create a File object representing the "lastrun.log" file in the documents directory within the app's external storage
         File file = new File(MainActivity.this.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), "lastrun.log");
         if (file.exists()){
             try (FileInputStream fis = new FileInputStream(file)){
