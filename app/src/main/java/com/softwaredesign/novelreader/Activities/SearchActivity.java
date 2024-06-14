@@ -277,9 +277,11 @@ public class SearchActivity extends AppCompatActivity {
             else {
                 String[] novelHolder = (String[]) item;
                 NovelModel novel = new NovelModel(novelHolder[0], novelHolder[1], novelHolder[2], novelHolder[3]);
+                // Add the newly created NovelModel object to the novels list
                 novels.add(novel);
             }
         }
+        // Return the list of identified NovelModel objects
         return novels;
     }
 }

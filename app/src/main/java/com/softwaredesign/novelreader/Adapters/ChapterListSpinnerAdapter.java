@@ -30,31 +30,42 @@ public class ChapterListSpinnerAdapter extends ArrayAdapter<ChapterModel> {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent){
+        // Check if chapters list is null, return null if so
         if (chapters == null) return null;
+        // Inflate the layout for the spinner item if convertView is null
         if (convertView == null) {
             convertView = inflater.inflate(R.layout.custom_spinner_item, parent, false);
         }
 
+        // Get the ChapterModel object at the current position
         ChapterModel item = chapters.get(position);
 
+        // Find the TextView within the custom layout and set its properties
         TextView label = (TextView) convertView.findViewById(R.id.customSpinnerText);
-        label.setTextColor(Color.WHITE);
-        label.setText(item.getChapterName());
+        label.setTextColor(Color.WHITE); // Set text color to white
+        label.setText(item.getChapterName()); // Set the text to display
 
+        // Return the modified view
         return label;
     }
     @Override
     public View getDropDownView(int position, View convertView, ViewGroup parent) {
+        // Check if chapters list is null, return null if so
         if (chapters == null) return null;
+        // Inflate the layout for the dropdown item if convertView is null
         if (convertView == null){
             convertView = inflater.inflate(R.layout.custom_spinner_dropdown_item, parent, false);
         }
 
+        // Get the ChapterModel object at the current position
         ChapterModel chapter = chapters.get(position);
-        TextView label = (TextView) convertView.findViewById(R.id.customSpinnerDropdownText);
-        label.setTextColor(Color.WHITE);
-        label.setText(chapter.getChapterName());
 
+        // Find the TextView within the custom layout and set its properties
+        TextView label = (TextView) convertView.findViewById(R.id.customSpinnerDropdownText);
+        label.setTextColor(Color.WHITE); // Set text color to white
+        label.setText(chapter.getChapterName()); // Set the text to display
+
+        // Return the modified view
         return label;
     }
 
