@@ -20,7 +20,7 @@ public class TruyenfullScraperTest {
 
 
 
-
+    // Test the method getSearchPageFromKeywordAndPageNumber
     @Test
     public void testGetSearchPageFromKeywordAndPageNumber() {
         // Instantiate TruyenfullScraper
@@ -35,7 +35,7 @@ public class TruyenfullScraperTest {
 
 
 
-
+    // Test the method getNovelDetail
     @Test
     public void testGetNovelDetail() {
         // Instantiate TruyenfullScraper
@@ -55,7 +55,7 @@ public class TruyenfullScraperTest {
 
 
 
-
+    // Test the method getHomePage
     @Test
     public void testGetHomePage() {
 
@@ -71,7 +71,7 @@ public class TruyenfullScraperTest {
 
 
 
-
+    // Test the method getChapterListInPage
     @Test
     public void testGetChapterListInPage() {
 
@@ -93,7 +93,7 @@ public class TruyenfullScraperTest {
     }
 
 
-
+    // Test the method getNumberOfSearchResultPage
     @Test
     public void testGetNumberOfSearchResultPage() {
 
@@ -109,7 +109,7 @@ public class TruyenfullScraperTest {
 
 
 
-
+    // Test the method getChapterListNumberOfPages
     @Test
     public void testGetChapterListNumberOfPages() {
 
@@ -127,7 +127,7 @@ public class TruyenfullScraperTest {
     }
 
 
-
+    // Test the method getChapterContent
     @Test
     public void testGetChapterContent() {
 
@@ -149,7 +149,7 @@ public class TruyenfullScraperTest {
     }
 
 
-
+    // Test the method getNextChapterUrl
     @Test
     public void testGetNextChapterUrl() {
 
@@ -168,7 +168,7 @@ public class TruyenfullScraperTest {
 
 
 
-
+    // Test the method getPreviousChapterUrl
     @Test
     public void testGetPreviousChapterUrl() {
 
@@ -186,7 +186,7 @@ public class TruyenfullScraperTest {
 
 
 
-
+    // Test the clone method
     @Test
     public void testClone() {
 
@@ -204,7 +204,7 @@ public class TruyenfullScraperTest {
     }
 
 
-
+    // Test the method getNumberOfChaptersPerPage
     @Test
     public void testGetNumberOfChaptersPerPage() {
 
@@ -220,7 +220,7 @@ public class TruyenfullScraperTest {
     }
 
 
-
+    // Test the method getSourceName
     @Test
     public void testGetSourceName() {
 
@@ -236,7 +236,7 @@ public class TruyenfullScraperTest {
 
 
 
-
+    // Test the method getContentFromNameAndChapName
     @Test
     public void testGetContentFromNameAndChapName() {
 
@@ -255,6 +255,7 @@ public class TruyenfullScraperTest {
     }
 
     // Invalid test case
+    // Test the method getSearchPageFromKeywordAndPageNumber with an invalid keyword
     @Test
     public void testGetSearchPageFromKeywordAndPageNumberInvalidKeyword() {
         TruyenfullScraper scraper = new TruyenfullScraper();
@@ -267,7 +268,7 @@ public class TruyenfullScraperTest {
 
 
     // Testing Unit for important Functions in file TruyenfullScraper
-
+// Additional tests for other important functions in the TruyenfullScraper class can be added here
 
 
 
