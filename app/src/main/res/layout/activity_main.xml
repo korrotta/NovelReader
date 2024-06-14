@@ -45,7 +45,6 @@
             android:layout_height="40dp"
             android:text="@string/plugin"
             android:background="@drawable/white_transparent_rounded_corner_bg"
-            android:text="@string/plugin"
             app:layout_constraintBottom_toTopOf="@id/recyclerView"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.2"
