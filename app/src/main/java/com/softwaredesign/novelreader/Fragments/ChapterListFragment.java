@@ -220,7 +220,7 @@ public class ChapterListFragment extends Fragment {
         // Set the current page to the specified page
         currentPage = page;
         // Execute task to fetch chapters for the specified page
-        getChapterListTask.execute();
+        getChapterListTask();
     }
 
     // Method to set up pagination controls
@@ -233,48 +233,50 @@ public class ChapterListFragment extends Fragment {
     }
 
     // Background task to fetch chapter list
-    private final BackgroundTask getChapterListTask = new BackgroundTask(parentActivity) {
-        @Override
-        public void onPreExecute() {
-            // No pre-execution actions needed
-            // Show progress bar with fade-in animation
-            handler.post(() -> {
-                Log.d("CONTEXT", String.valueOf(parentActivity));
-                chapterListFragmentPB.setVisibility(View.VISIBLE);
-                chapterListFragmentPB.startAnimation(AnimationUtils.loadAnimation(parentActivity, android.R.anim.fade_in));
-            });
-        }
-
-        @Override
-        public void doInBackground() {
-            // Fetch the list of chapters from the specified page URL
-            List<Object> tempList = GlobalConfig.Global_Current_Scraper.getChapterListInPage(NovelUrl, currentPage);
-            if (tempList.size() ==0) {
-                Log.d("Somehow", "empty here");
+    private void getChapterListTask() {
+        new BackgroundTask(parentActivity) {
+            @Override
+            public void onPreExecute() {
+                // No pre-execution actions needed
+                // Show progress bar with fade-in animation
+                handler.post(() -> {
+                    Log.d("CONTEXT", String.valueOf(parentActivity));
+                    chapterListFragmentPB.setVisibility(View.VISIBLE);
+                    chapterListFragmentPB.startAnimation(AnimationUtils.loadAnimation(parentActivity, android.R.anim.fade_in));
+                });
             }
-            List<ChapterModel> chapters = identifyingList(tempList);
-            // Replace the current list of page items with the fetched list
-            ReusableFunction.ReplaceList(pageItems, chapters);
-        }
 
-        @SuppressLint("NotifyDataSetChanged")
-        @Override
-        public void onPostExecute() {
-            // Hide progress bar with fade-out animation after a delay
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    chapterListFragmentPB.setVisibility(View.GONE);
-                    chapterListFragmentPB.startAnimation(AnimationUtils.loadAnimation(parentActivity, android.R.anim.fade_out));
-
+            @Override
+            public void doInBackground() {
+                // Fetch the list of chapters from the specified page URL
+                List<Object> tempList = GlobalConfig.Global_Current_Scraper.getChapterListInPage(NovelUrl, currentPage);
+                if (tempList.size() ==0) {
+                    Log.d("Somehow", "empty here");
                 }
-            });
+                List<ChapterModel> chapters = identifyingList(tempList);
+                // Replace the current list of page items with the fetched list
+                ReusableFunction.ReplaceList(pageItems, chapters);
+            }
 
-            // Notify adapter that data has changed
-            chapterListItemAdapter.updateList(pageItems);
-            chapterListItemAdapter.notifyDataSetChanged();
-        }
-    };
+            @SuppressLint("NotifyDataSetChanged")
+            @Override
+            public void onPostExecute() {
+                // Hide progress bar with fade-out animation after a delay
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        chapterListFragmentPB.setVisibility(View.GONE);
+                        chapterListFragmentPB.startAnimation(AnimationUtils.loadAnimation(parentActivity, android.R.anim.fade_out));
+
+                    }
+                });
+
+                // Notify adapter that data has changed
+                chapterListItemAdapter.updateList(pageItems);
+                chapterListItemAdapter.notifyDataSetChanged();
+            }
+        }.execute();
+    }
 
 
     // Background task to fetch the number of chapter pages
