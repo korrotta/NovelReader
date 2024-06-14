@@ -150,7 +150,43 @@ public class TruyenfullScraperTest {
 
 
 
+    @Test
+    public void testGetNextChapterUrl() {
+
+        // Instantiate TruyenfullScraper
+        TruyenfullScraper scraper = new TruyenfullScraper();
+
+        // Call getNextChapterUrl method
+        String result = scraper.getNextChapterUrl("https://truyenfull.vn/tao-hoa-chi-mon/chuong-1-1/");
+
+        // Kiểm tra kết quả trả về
+        assertNotNull("Next chapter URL should not be null", result);
+        assertTrue("Next chapter URL should start with 'https://'", result.startsWith("https://"));
+        assertTrue("Next chapter URL should contain '/chuong-'", result.contains("/chuong-"));
+
+    }
 
 
+
+
+    @Test
+    public void testGetPreviousChapterUrl() {
+
+        // Instantiate TruyenfullScraper
+        TruyenfullScraper scraper = new TruyenfullScraper();
+
+        // Call getPreviousChapterUrl method
+        String result = scraper.getPreviousChapterUrl("https://truyenfull.vn/tao-hoa-chi-mon/chuong-1-2/");
+
+        // Kiểm tra kết quả trả về
+        assertNotNull("Previous chapter URL should not be null", result);
+        assertTrue("Previous chapter URL should start with 'https://'", result.startsWith("https://"));
+        assertTrue("Previous chapter URL should contain '/chuong-'", result.contains("/chuong-"));
+    }
+
+
+
+
+    
 }
 
