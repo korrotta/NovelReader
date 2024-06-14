@@ -317,19 +317,25 @@ public class ReadActivity extends AppCompatActivity {
 
     // highlight text after found function
     private void highlightText(String searchText) {
+        // Check if searchResults list is empty
         if (searchResults.isEmpty()) {
+            // If no search results, clear previous highlights and return
             clearHighlight();
             return;
         }
+        // Define the color for highlighting
         int highlightColor = ContextCompat.getColor(this, R.color.saddle_brown);
 
+        // Convert the content to a SpannableString to apply spans (formatting)
         Spannable spannable = new SpannableString(HtmlCompat.fromHtml(content, HtmlCompat.FROM_HTML_MODE_LEGACY));
 
         for (int i = 0; i < searchResults.size(); i++) {
             spannable.setSpan(new BackgroundColorSpan(highlightColor), searchResults.get(i), searchResults.get(i) + searchText.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
+        // Set the formatted text (spannable) to the TextView
         chapterContentTV.setText(spannable);
 
+        // Highlight the text corresponding to the current search index
         highlightTextWithCurrentHighlight(searchResults.get(currentSearchIndex));
     }
 
@@ -370,22 +376,27 @@ public class ReadActivity extends AppCompatActivity {
 
     // Highlight text current result, with other color
     private void highlightTextWithCurrentHighlight(int currentPosition) {
+        // Define colors for highlighting
         int highlightColor = ContextCompat.getColor(this, R.color.saddle_brown);
 
         int currentHighlightColor = ContextCompat.getColor(this, R.color.slate_blue);
-        ;
+
+        // Convert HTML content to plain text
         String plainTextContent = HtmlCompat.fromHtml(content, HtmlCompat.FROM_HTML_MODE_LEGACY).toString();
+        // Create a SpannableString from the plain text content
         Spannable spannable = new SpannableString(plainTextContent);
 
         for (int i = 0; i < searchResults.size(); i++) {
             int start = searchResults.get(i);
             int end = start + searchEditText.getText().toString().length();
+            // Apply different background colors based on the current position
             if (start == currentPosition) {
                 spannable.setSpan(new BackgroundColorSpan(currentHighlightColor), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             } else {
                 spannable.setSpan(new BackgroundColorSpan(highlightColor), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
         }
+        // Set the formatted text (spannable) to the TextView
         chapterContentTV.setText(spannable);
     }
 
