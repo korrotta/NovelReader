@@ -2,7 +2,8 @@ package com.softwaredesign.novelreader.ExportHandlers;
 
 import android.util.Log;
 
-import com.softwaredesign.novelreader.Interfaces.IChapterExportHandler;
+
+import com.example.exporter_library.IChapterExportHandler;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -41,7 +42,6 @@ public class EpubExportHandler implements IChapterExportHandler {
         EpubWriter epubWriter = new EpubWriter();
         try (FileOutputStream fos = new FileOutputStream(pdfFile.getAbsolutePath())) {
             epubWriter.write(book, fos);
-            Log.d("EPUB WRITE", "WRITTEN");
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {

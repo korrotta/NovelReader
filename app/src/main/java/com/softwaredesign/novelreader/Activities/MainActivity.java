@@ -1,6 +1,7 @@
 package com.softwaredesign.novelreader.Activities;
 
 import android.Manifest;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -10,6 +11,7 @@ import android.view.View;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,6 +23,7 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.exporter_library.IChapterExportHandler;
 import com.example.scraper_library.INovelScraper;
 import com.softwaredesign.novelreader.Adapters.NovelAdapter;
 import com.softwaredesign.novelreader.Adapters.ServerSpinnerAdapter;
@@ -29,14 +32,18 @@ import com.softwaredesign.novelreader.ExportHandlers.EpubExportHandler;
 import com.softwaredesign.novelreader.ExportHandlers.PdfExportHandler;
 import com.softwaredesign.novelreader.Global.GlobalConfig;
 import com.softwaredesign.novelreader.Global.ReusableFunction;
-import com.softwaredesign.novelreader.Interfaces.IChapterExportHandler;
 import com.softwaredesign.novelreader.Models.NovelModel;
 import com.softwaredesign.novelreader.R;
+import com.softwaredesign.novelreader.ScraperFactory.ScraperFactory;
 import com.softwaredesign.novelreader.Scrapers.TangthuvienScraper;
 import com.softwaredesign.novelreader.Scrapers.TruyencvScraper;
 import com.softwaredesign.novelreader.Scrapers.TruyenfullScraper;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -55,7 +62,9 @@ public class MainActivity extends AppCompatActivity {
     private NovelAdapter novelAdapter; // Adapter for the RecyclerView
     private ProgressBar progressBar; // ProgressBar to indicate loading
     private AppCompatSpinner serverSpinner; // Spinner for server sources
-    private AppCompatButton pluginButton; // Button for download pluins
+    private AppCompatButton pluginButton, continueButton; // Button for download pluins
+
+    private String lastrunName, lastrunChapterName, lastrunServer, lastrunChapterUrl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.progressBar);
         serverSpinner = findViewById(R.id.serverSpinner);
         pluginButton = findViewById(R.id.pluginButton);
+        continueButton = findViewById(R.id.continueButton);
 
         //Init server adapter
         ServerSpinnerAdapter serverAdapter = new ServerSpinnerAdapter(this, android.R.layout.simple_spinner_item, GlobalConfig.Global_Source_List);
@@ -83,6 +93,8 @@ public class MainActivity extends AppCompatActivity {
 
         //generate directory
         makeDirectory(downloadDirPath);
+
+        readLastRunLog();
 
         //Scraper add:
         INovelScraper truyenfull = new TruyenfullScraper();
@@ -120,6 +132,18 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+
+        continueButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (lastrunChapterName == null) {
+                    showNoPreviousDataDialogBox();
+                }
+                else {
+                    showConfirmationDialogBox();
+                }
             }
         });
 
@@ -178,11 +202,70 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void showConfirmationDialogBox(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        // Thiết lập tiêu đề và thông điệp
+        builder.setTitle("Tiếp tục đọc");
+        builder.setMessage("Lần trước bạn đang đọc " + lastrunName + ", " +lastrunChapterName +". \n Bạn xác nhận muốn tiếp tục đọc?");
+
+        // Thiết lập nút "OK"
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // Xử lý khi người dùng chọn "OK"
+                //Note: cần làm
+                for (INovelScraper scraper: GlobalConfig.Global_Source_List){
+                    if (scraper.getSourceName().equals(lastrunServer)) {
+                        GlobalConfig.Global_Current_Scraper = scraper;
+                        serverSpinner.setSelection(GlobalConfig.Global_Source_List.indexOf(scraper));
+                        break;
+                    }
+                }
+                //Note: switch intent den reader mode
+                ReusableFunction.ChangeActivityWithString(MainActivity.this, ReadActivity.class,
+                        "ChapterUrl", lastrunChapterUrl);
+            }
+        });
+        // Thiết lập nút "Cancel"
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        // Tạo và hiển thị AlertDialog
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
+    }
+
+    private void showNoPreviousDataDialogBox(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        // Thiết lập tiêu đề và thông điệp
+        builder.setTitle("Tiếp tục đọc");
+        builder.setMessage("Không có dữ liệu từ lần đọc trước. Có vẻ như bạn chưa từng sử dụng app.");
+        // Thiết lập nút "Cancel"
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        // Tạo và hiển thị AlertDialog
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
     private void gridViewInit(GridLayoutManager gridLayoutManager) {
         recyclerView.setLayoutManager(gridLayoutManager);
         novelAdapter = new NovelAdapter(MainActivity.this, novelList);
         recyclerView.setAdapter(novelAdapter);
     }
+
 
     private void handleSearchView() {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -266,8 +349,10 @@ public class MainActivity extends AppCompatActivity {
                     loadScraperPlugin(scraperPath, nameHolder[1], nameHolder[2]);
                     break;
                 }
-                case "exporting": {
-                    ;
+                case "exporter": {
+                    String exporterPath = file.getAbsolutePath();
+                    Log.d("ExporterPathCheck", exporterPath);
+                    loadExporterPlugin(exporterPath, nameHolder[1], nameHolder[2]);
                 }
                 default:
                     break;
@@ -289,6 +374,25 @@ public class MainActivity extends AppCompatActivity {
             }
             GlobalConfig.Global_Source_List.add(addedScraperPlugin);
             Log.d("Added plugin: ", addedScraperPlugin.getSourceName());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadExporterPlugin(String pluginPath, String classPackage, String className) {
+        try {
+            final File tmpDir = getDir("dex", 0);
+            final DexClassLoader classloader = new DexClassLoader(pluginPath, tmpDir.getAbsolutePath(), null, this.getClass().getClassLoader());
+            Class<?> classToLoad = classloader.loadClass("com.example." + classPackage + "." + className);
+            IChapterExportHandler addedExporterPlugin = (IChapterExportHandler) classToLoad.newInstance();
+            for (IChapterExportHandler exporter : GlobalConfig.Global_Exporter_List) {
+                if (exporter.getExporterName().equals(addedExporterPlugin.getExporterName())) {
+                    Log.d("Add plugin status", "Failed, source exists");
+                    return;
+                }
+            }
+            GlobalConfig.Global_Exporter_List.add(addedExporterPlugin);
+            Log.d("Added plugin: ", addedExporterPlugin.getExporterName());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -328,5 +432,26 @@ public class MainActivity extends AppCompatActivity {
                 //permission denied
             }
         }
+    }
+    private void readLastRunLog(){
+
+        File file = new File(MainActivity.this.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), "lastrun.log");
+        if (file.exists()){
+            try (FileInputStream fis = new FileInputStream(file)){
+                ObjectInputStream in = new ObjectInputStream(fis);
+                String[] data = (String[]) in.readObject();
+
+                lastrunServer = data[0];
+                lastrunName = data[1];
+                lastrunChapterName = data[2];
+                lastrunChapterUrl = data[3];
+
+                Log.d("Last run", lastrunServer + " " + lastrunName + " " + lastrunChapterName+" " + lastrunChapterUrl);
+
+            } catch (IOException | ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
     }
 }

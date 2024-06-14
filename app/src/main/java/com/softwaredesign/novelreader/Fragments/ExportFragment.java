@@ -26,15 +26,12 @@ import android.widget.ArrayAdapter;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.example.exporter_library.IChapterExportHandler;
 import com.softwaredesign.novelreader.Adapters.ChapterListSpinnerAdapter;
 import com.softwaredesign.novelreader.Adapters.ExporterSpinnerAdapter;
 import com.softwaredesign.novelreader.BackgroundTask;
-import com.softwaredesign.novelreader.ExportHandlers.HtmlExportHandler;
-import com.softwaredesign.novelreader.ExportHandlers.PdfExportHandler;
-import com.softwaredesign.novelreader.ExportHandlers.TxtExportHandler;
 import com.softwaredesign.novelreader.Global.GlobalConfig;
 import com.softwaredesign.novelreader.Global.ReusableFunction;
-import com.softwaredesign.novelreader.Interfaces.IChapterExportHandler;
 import com.softwaredesign.novelreader.Models.ChapterContentModel;
 import com.softwaredesign.novelreader.Models.ChapterModel;
 import com.softwaredesign.novelreader.R;
@@ -44,7 +41,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadLocalRandom;
 
 public class ExportFragment extends Fragment {
 

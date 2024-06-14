@@ -21,6 +21,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.Layout;
@@ -53,18 +54,21 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.text.HtmlCompat;
 
+import com.example.exporter_library.IChapterExportHandler;
 import com.example.scraper_library.INovelScraper;
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.bottomappbar.BottomAppBar;
+import com.softwaredesign.novelreader.Adapters.ExporterSpinnerAdapter;
 import com.softwaredesign.novelreader.BackgroundTask;
 import com.softwaredesign.novelreader.Fragments.SettingsDialogFragment;
 import com.softwaredesign.novelreader.Global.GlobalConfig;
+import com.softwaredesign.novelreader.Global.ReusableFunction;
 import com.softwaredesign.novelreader.Models.ChapterContentModel;
 import com.softwaredesign.novelreader.R;
 import com.softwaredesign.novelreader.ScraperFactory.ScraperFactory;
 
+import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class ReadActivity extends AppCompatActivity {
@@ -209,52 +213,70 @@ public class ReadActivity extends AppCompatActivity {
             }
         });
 
-        // Handle chapterList Button
-        saveChapterIV.setOnClickListener(v -> {
-            // AlertDialog builder instance to build the alert dialog
-            AlertDialog.Builder alertDialog = new AlertDialog.Builder(ReadActivity.this);
+        // Hanlde chapterList Button
+        saveChapterIV.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Handle chapterList Button
+                saveChapterIV.setOnClickListener(view -> {
+                    // AlertDialog builder instance to build the alert dialog
+                    AlertDialog.Builder alertDialog = new AlertDialog.Builder(ReadActivity.this);
 
-            // Inflate the custom layout for the spinner
-            LayoutInflater inflater = getLayoutInflater();
-            View dialogView = inflater.inflate(R.layout.dialog_spinner, null);
-            alertDialog.setView(dialogView);
+                    // Inflate the custom layout for the spinner
+                    LayoutInflater inflater = getLayoutInflater();
+                    View dialogView = inflater.inflate(R.layout.dialog_spinner, null);
+                    alertDialog.setView(dialogView);
 
-            // set the custom icon to the alert dialog
-            alertDialog.setIcon(R.drawable.logo);
+                    // set the custom icon to the alert dialog
+                    alertDialog.setIcon(R.drawable.logo);
 
-            // title of the alert dialog
-            alertDialog.setTitle("Tải xuống chương với định dạng");
+                    // title of the alert dialog
+                    alertDialog.setTitle("Tải xuống chương với định dạng");
 
-            // Get the spinner from the custom layout
-            Spinner spinner = dialogView.findViewById(R.id.saveChapterSpinner);
+                    // Get the spinner from the custom layout
+                    Spinner spinner = dialogView.findViewById(R.id.saveChapterSpinner);
 
-            // List of the items to be displayed in the spinner
-            final String[] listItems = new String[]{"EPUB", "PDF"};
+                    // List of the items to be displayed in the spinner
+                    final String[] listItems = new String[]{"EPUB", "PDF"};
 
-            // Create an ArrayAdapter using the string array and a default spinner layout
-            ArrayAdapter<String> adapter = new ArrayAdapter<>(ReadActivity.this, R.layout.custom_spinner_item, listItems);
-            adapter.setDropDownViewResource(R.layout.custom_spinner_dropdown_item);
-            spinner.setAdapter(adapter);
+                    // Create an ArrayAdapter using the string array and a default spinner layout
+                    ExporterSpinnerAdapter adapter = new ExporterSpinnerAdapter(ReadActivity.this,
+                            android.R.layout.simple_spinner_item,GlobalConfig.Global_Exporter_List);
 
-            // Set the negative button if the user is not interested to select or change already selected item
-            alertDialog.setNegativeButton("Cancel", (dialog, which) -> {
-                // Dismiss the dialog
-                dialog.dismiss();
-            });
+                    spinner.setAdapter(adapter);
 
-            // Set the positive button to confirm the selection
-            alertDialog.setPositiveButton("OK", (dialog, which) -> {
-                // Get the selected item
-                String selectedItem = (String) spinner.getSelectedItem();
-                // Handle the selected item
-                // downloadChapter(selectedItem);
-            });
+                    // Set the negative button if the user is not interested to select or change already selected item
+                    alertDialog.setNegativeButton("Cancel", (dialog, which) -> {
+                        // Dismiss the dialog
+                        dialog.dismiss();
+                    });
 
-            // Create and build the AlertDialog instance with the AlertDialog builder instance
-            AlertDialog customAlertDialog = alertDialog.create();
+                    // Set the positive button to confirm the selection
+                    alertDialog.setPositiveButton("OK", (dialog, which) -> {
+                        // Get the selected item
+                        IChapterExportHandler selectedItem = (IChapterExportHandler) spinner.getSelectedItem();
+                        // Handle the selected item
+                        String dir = ReadActivity.this.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS).getAbsolutePath()+"/Export";
 
-            // Show the alert dialog when the button is clicked
-            customAlertDialog.show();
+                        File directory = ReusableFunction.MakeDirectory(dir, novelName);
+                        File typeDirectory = ReusableFunction.MakeDirectory(directory.getAbsolutePath(), selectedItem.getExporterName());
+
+                        selectedItem.exportChapter(content, typeDirectory, chapterTitle);
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(ReadActivity.this, "Done!", Toast.LENGTH_SHORT).show();
+                            }
+                        }, 500);
+                    });
+
+                    // Create and build the AlertDialog instance with the AlertDialog builder instance
+                    AlertDialog customAlertDialog = alertDialog.create();
+
+                    // Show the alert dialog when the button is clicked
+                    customAlertDialog.show();
+                });
+            }
         });
 
         // Handle Settings Button
@@ -335,7 +357,6 @@ public class ReadActivity extends AppCompatActivity {
     }
 
     // scroll to search result function
-    @SuppressLint("SetTextI18n")
     private void scrollToSearchResult(boolean forceScroll) {
         if (!searchResults.isEmpty() && currentSearchIndex < searchResults.size()) {
             int position = searchResults.get(currentSearchIndex);
@@ -476,7 +497,6 @@ public class ReadActivity extends AppCompatActivity {
                 applyFontChange();
                 applyTextSizeChange();
                 applyThemeChange();
-                applyLineSpacingChange();
 
                 nextChapterIV.setVisibility(View.VISIBLE);
                 prevChapterIV.setVisibility(View.VISIBLE);
@@ -485,76 +505,6 @@ public class ReadActivity extends AppCompatActivity {
             }
         }.execute();
     }
-
-    private void applyLineSpacingChange() {
-        float lineSpacing = sharedPreferences.getFloat("lineSpacing", 1.0f);
-        chapterContentTV.setLineSpacing(1.0f, lineSpacing);
-    }
-
-    private void applyFontChange() {
-        String font = sharedPreferences.getString("font", "Palatino");
-        Typeface typeface = null;
-        switch (font) {
-            case "Palatino":
-                typeface = ResourcesCompat.getFont(this, R.font.palatino);
-                break;
-            case "Times":
-                typeface = ResourcesCompat.getFont(this, R.font.times);
-                break;
-            case "Arial":
-                typeface = ResourcesCompat.getFont(this, R.font.arial);
-                break;
-            case "Georgia":
-                typeface = ResourcesCompat.getFont(this, R.font.georgia);
-                break;
-        }
-        if (typeface != null) {
-            chapterContentTV.setTypeface(typeface);
-        }
-    }
-
-
-    private void applyTextSizeChange() {
-        int textSize = sharedPreferences.getInt("textSize", 22);
-        chapterContentTV.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
-    }
-
-    private void applyThemeChange(){
-        String theme = sharedPreferences.getString("theme", "dark");
-
-        if (theme.equals("light")) {
-            serverNameTV.setTextColor(ContextCompat.getColor(this, R.color.black));
-            chapterTitleTV.setTextColor(ContextCompat.getColor(this, R.color.black));
-            novelNameTV.setTextColor(ContextCompat.getColor(this, R.color.black));
-            chapterNameTV.setTextColor(ContextCompat.getColor(this, R.color.black));
-            chapterContentTV.setTextColor(ContextCompat.getColor(this, R.color.black));
-            topAppBar.setBackgroundColor(ContextCompat.getColor(this, R.color.floral_white));
-            bottomAppBar.setBackgroundColor(ContextCompat.getColor(this, R.color.floral_white));
-            prevChapterIV.setColorFilter(ContextCompat.getColor(this, R.color.black));
-            nextChapterIV.setColorFilter(ContextCompat.getColor(this, R.color.black));
-            saveChapterIV.setColorFilter(ContextCompat.getColor(this, R.color.black));
-            serverIV.setColorFilter(ContextCompat.getColor(this, R.color.black));
-            settingsIV.setColorFilter(ContextCompat.getColor(this, R.color.black));
-            findInChapterIV.setColorFilter(ContextCompat.getColor(this, R.color.black));
-            contentScrollView.setBackgroundColor(ContextCompat.getColor(this, R.color.white));
-        } else {
-            serverNameTV.setTextColor(ContextCompat.getColor(this, R.color.white));
-            chapterTitleTV.setTextColor(ContextCompat.getColor(this, R.color.white));
-            novelNameTV.setTextColor(ContextCompat.getColor(this, R.color.white));
-            chapterNameTV.setTextColor(ContextCompat.getColor(this, R.color.white));
-            chapterContentTV.setTextColor(ContextCompat.getColor(this, R.color.white));
-            topAppBar.setBackgroundColor(ContextCompat.getColor(this, R.color.backgroundMaterialDark));
-            bottomAppBar.setBackgroundColor(ContextCompat.getColor(this, R.color.backgroundMaterialDark));
-            prevChapterIV.setColorFilter(ContextCompat.getColor(this, R.color.white));
-            nextChapterIV.setColorFilter(ContextCompat.getColor(this, R.color.white));
-            saveChapterIV.setColorFilter(ContextCompat.getColor(this, R.color.white));
-            serverIV.setColorFilter(ContextCompat.getColor(this, R.color.white));
-            settingsIV.setColorFilter(ContextCompat.getColor(this, R.color.white));
-            findInChapterIV.setColorFilter(ContextCompat.getColor(this, R.color.white));
-            contentScrollView.setBackgroundColor(ContextCompat.getColor(this, androidx.cardview.R.color.cardview_dark_background));
-        }
-    }
-
 
     private void getContentFromNameAndChapterTask() {
 
@@ -670,6 +620,77 @@ public class ReadActivity extends AppCompatActivity {
             getChapterContentTask();
         }
     };
+
+    private void applyFontChange() {
+        String font = sharedPreferences.getString("font", "Palatino");
+        Typeface typeface = null;
+        switch (font) {
+            case "Palatino":
+                typeface = ResourcesCompat.getFont(this, R.font.palatino);
+                break;
+            case "Times":
+                typeface = ResourcesCompat.getFont(this, R.font.times);
+                break;
+            case "Arial":
+                typeface = ResourcesCompat.getFont(this, R.font.arial);
+                break;
+            case "Georgia":
+                typeface = ResourcesCompat.getFont(this, R.font.georgia);
+                break;
+        }
+        if (typeface != null) {
+            chapterContentTV.setTypeface(typeface);
+            novelNameTV.setTypeface(typeface, Typeface.BOLD);
+            chapterTitleTV.setTypeface(typeface, Typeface.BOLD);
+            serverNameTV.setTypeface(typeface, Typeface.BOLD);
+        }
+    }
+
+
+    private void applyTextSizeChange() {
+        int textSize = sharedPreferences.getInt("textSize", 22);
+        chapterContentTV.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
+        novelNameTV.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
+        chapterTitleTV.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
+        serverNameTV.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
+    }
+
+    private void applyThemeChange(){
+        String theme = sharedPreferences.getString("theme", "dark");
+
+        if (theme.equals("light")) {
+            serverNameTV.setTextColor(getResources().getColor(R.color.black));
+            chapterTitleTV.setTextColor(getResources().getColor(R.color.black));
+            novelNameTV.setTextColor(getResources().getColor(R.color.black));
+            chapterNameTV.setTextColor(getResources().getColor(R.color.black));
+            chapterContentTV.setTextColor(getResources().getColor(R.color.black));
+            topAppBar.setBackgroundColor(getResources().getColor(R.color.floral_white));
+            bottomAppBar.setBackgroundColor(getResources().getColor(R.color.floral_white));
+            prevChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            nextChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            saveChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            serverIV.setColorFilter(getResources().getColor(R.color.black));
+            settingsIV.setColorFilter(getResources().getColor(R.color.black));
+            findInChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            contentScrollView.setBackgroundColor(getResources().getColor(R.color.white));
+        } else {
+            serverNameTV.setTextColor(getResources().getColor(R.color.white));
+            chapterTitleTV.setTextColor(getResources().getColor(R.color.white));
+            novelNameTV.setTextColor(getResources().getColor(R.color.white));
+            chapterNameTV.setTextColor(getResources().getColor(R.color.white));
+            chapterContentTV.setTextColor(getResources().getColor(R.color.white));
+            topAppBar.setBackgroundColor(getResources().getColor(R.color.backgroundMaterialDark));
+            bottomAppBar.setBackgroundColor(getResources().getColor(R.color.backgroundMaterialDark));
+            prevChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            nextChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            saveChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            serverIV.setColorFilter(getResources().getColor(R.color.white));
+            settingsIV.setColorFilter(getResources().getColor(R.color.white));
+            findInChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            contentScrollView.setBackgroundColor(getResources().getColor(androidx.cardview.R.color.cardview_dark_background));
+        }
+    }
+
 
     View.OnClickListener nextBtnClickListener = new View.OnClickListener() {
         @Override

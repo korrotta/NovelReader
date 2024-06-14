@@ -15,7 +15,7 @@ import android.util.Log;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.core.text.HtmlCompat;
 
-import com.softwaredesign.novelreader.Interfaces.IChapterExportHandler;
+import com.example.exporter_library.IChapterExportHandler;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -59,7 +59,6 @@ public class PdfExportHandler implements IChapterExportHandler {
         }
         try {
             pdfDocument.writeTo(new FileOutputStream(pdfFile));
-            Log.d("PDF WRITE", "WRITTEN");
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
