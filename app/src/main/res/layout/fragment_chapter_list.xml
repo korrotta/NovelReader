@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -35,10 +35,10 @@
         android:id="@+id/chapterListPageControlLayout"
         android:layout_width="match_parent"
         android:layout_height="35dp"
-        android:visibility="gone"
         android:layout_marginTop="5dp"
         android:gravity="center"
-        android:orientation="horizontal" >
+        android:orientation="horizontal"
+        android:visibility="gone">
 
         <ImageView
             android:id="@+id/previousChapterPage"
@@ -59,7 +59,7 @@
             android:text=""
             android:textAlignment="center"
             android:textColor="@color/white"
-            android:textSize="18sp"/>
+            android:textSize="18sp" />
 
         <ImageView
             android:id="@+id/nextChapterPage"

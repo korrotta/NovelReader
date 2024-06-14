@@ -470,7 +470,7 @@ public class ExportFragment extends Fragment {
                     exporter.exportChapter(content.getContent(), typeDirectory, content.getChapterName().toString());
                     try {
                         Thread.sleep(200);
-                        //sleep 0.2s between each
+                        //sleep 2s between each
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
