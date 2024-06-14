@@ -80,6 +80,34 @@ public class TruyenfullScraperTest {
         assertNotNull(chapters);
     }
 
+    @Test
+    public void testGetNumberOfSearchResultPage() {
+
+        // Instantiate TruyenfullScraper
+        TruyenfullScraper scraper = new TruyenfullScraper();
+
+        // Call getNumberOfSearchResultPage method
+        Integer result = scraper.getNumberOfSearchResultPage("test");
+
+        // Assert the results
+        assertNotNull(result);
+    }
+
+    @Test
+    public void testGetChapterListNumberOfPages() {
+
+        // Instantiate TruyenfullScraper
+        TruyenfullScraper scraper = new TruyenfullScraper();
+
+        // Call getChapterListNumberOfPages method
+        Integer result = scraper.getChapterListNumberOfPages("https://truyenfull.vn/tao-hoa-chi-mon/");
+
+        // Assert the results
+        assertTrue("Number of pages should be greater than zero", result > 0);
+
+        // Assert the results
+        assertNotNull(result);
+    }
 
 }
 
