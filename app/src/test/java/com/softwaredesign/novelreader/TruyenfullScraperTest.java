@@ -221,6 +221,22 @@ public class TruyenfullScraperTest {
 
 
 
+    @Test
+    public void testGetSourceName() {
+
+        // Instantiate TruyenfullScraper
+        TruyenfullScraper scraper = new TruyenfullScraper();
+
+        // Call getSourceName method
+        String result = scraper.getSourceName();
+
+        // Assert the results
+        assertNotNull(result);
+    }
+
+
+
+
 
 
 
