@@ -28,7 +28,7 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/chapterListRV"
         android:layout_width="match_parent"
-        android:layout_height="570dp"
+        android:layout_height="580dp"
         android:scrollbars="none" />
 
     <LinearLayout
@@ -36,6 +36,7 @@
         android:layout_width="match_parent"
         android:layout_height="35dp"
         android:visibility="gone"
+        android:layout_marginTop="5dp"
         android:gravity="center"
         android:orientation="horizontal" >
 
