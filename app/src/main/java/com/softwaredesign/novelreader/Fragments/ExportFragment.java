@@ -214,9 +214,9 @@ public class ExportFragment extends Fragment {
 
     private void initView(View view) {
         beginPageSpinner = view.findViewById(R.id.fromPageSpinner);
-        beginChapterSpinner = view.findViewById(R.id.fromChapterSinner);
+        beginChapterSpinner = view.findViewById(R.id.fromChapterSpinner);
         endPageSpinner = view.findViewById(R.id.toPageSpinner);
-        endChapterSpinner = view.findViewById(R.id.toChapterSinner);
+        endChapterSpinner = view.findViewById(R.id.toChapterSpinner);
         fileFormatSpinner = view.findViewById(R.id.fileFormatSpinner);
         exportButton = view.findViewById(R.id.exportNovelButton);
         progressBar = view.findViewById(R.id.exportFragmentPB);
@@ -461,11 +461,13 @@ public class ExportFragment extends Fragment {
                         != PackageManager.PERMISSION_GRANTED) {
                     ActivityCompat.requestPermissions(ExportFragment.this.parentActivity, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
                 } else {
-                    String dir = Environment.getExternalStorageDirectory().getAbsolutePath()+"/NovelReader/Export";
+                    String dir = parentActivity.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS).getAbsolutePath()+"/Export";
                     File directory = ReusableFunction.MakeDirectory(dir, content.getNovelName());
 
                     IChapterExportHandler exporter = (IChapterExportHandler) fileFormatSpinner.getSelectedItem();
-                    exporter.exportChapter(content.getContent(), directory, content.getChapterName().toString());
+                    File typeDirectory = ReusableFunction.MakeDirectory(directory.getAbsolutePath(), exporter.getExporterName());
+
+                    exporter.exportChapter(content.getContent(), typeDirectory, content.getChapterName().toString());
                     try {
                         Thread.sleep(200);
                         //sleep 2s between each

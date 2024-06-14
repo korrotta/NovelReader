@@ -41,6 +41,7 @@ public class EpubExportHandler implements IChapterExportHandler {
         EpubWriter epubWriter = new EpubWriter();
         try (FileOutputStream fos = new FileOutputStream(pdfFile.getAbsolutePath())) {
             epubWriter.write(book, fos);
+            Log.d("EPUB WRITE", "WRITTEN");
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {

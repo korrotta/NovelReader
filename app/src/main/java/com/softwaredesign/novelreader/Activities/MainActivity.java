@@ -74,11 +74,16 @@ public class MainActivity extends AppCompatActivity {
         File downloadDir =MainActivity.this.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
         String downloadDirPath = downloadDir.getAbsolutePath();
 
-        //create document directory for exporting:
-        File created = ReusableFunction.MakeDirectory( Environment.getExternalStorageDirectory().getAbsolutePath(),"NovelReader");
+        // Create document directory for exporting:
+        File exportDir = MainActivity.this.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
+        File newFolder = ReusableFunction.MakeDirectory(exportDir.getAbsolutePath(), "Export");
+        Log.d("created", newFolder.getAbsolutePath());
+
+        // Create document directory for exporting:
+        /*File created = ReusableFunction.MakeDirectory( Environment.getExternalStorageDirectory().getAbsolutePath(),"NovelReader");
         File ExportFolder = ReusableFunction.MakeDirectory(created.getAbsolutePath(),"Export");
-        Log.d("created", created.getAbsolutePath());
-        //generate directory
+        Log.d("created", created.getAbsolutePath());*/
+        // Generate directory
         makeDirectory(downloadDirPath);
 
         //Scraper add:
