@@ -60,7 +60,25 @@ public class TruyenfullScraperTest {
         assertNotNull(result);
     }
 
+    @Test
+    public void testGetChapterListInPage() {
 
+        // Instantiate TruyenfullScraper
+        TruyenfullScraper scraper = new TruyenfullScraper();
+
+        // Call getChapterListInPage method
+        List<ChapterModel> chapters = scraper.getChapterListInPage("https://truyenfull.vn/tao-hoa-chi-mon/", 1);
+
+        assertNotNull("Chapters list should not be null", chapters);
+        assertFalse("Chapters list should not be empty", chapters.isEmpty());
+        for (ChapterModel chapter : chapters) {
+            assertNotNull("Chapter name should not be null", chapter.getChapterName());
+            assertNotNull("Chapter URL should not be null", chapter.getChapterUrl());
+        }
+
+        // Assert the results
+        assertNotNull(chapters);
+    }
 
 
 }
