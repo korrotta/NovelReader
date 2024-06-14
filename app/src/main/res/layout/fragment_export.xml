@@ -6,6 +6,14 @@
     android:orientation="vertical"
     tools:context=".Fragments.ExportFragment">
 
+    <ProgressBar
+        android:id="@+id/exportFragmentPB"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_gravity="center"
+        android:indeterminate="true"
+        android:visibility="gone" />
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -22,20 +30,27 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="30dp"
         android:layout_marginTop="20dp"
-        android:orientation="horizontal"
-        android:weightSum="2">
+        android:orientation="horizontal">
 
         <androidx.appcompat.widget.AppCompatSpinner
             android:id="@+id/fromPageSpinner"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1" />
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:background="@drawable/white_transparent_rounded_corner_bg"
+            android:padding="5dp" />
+
 
         <androidx.appcompat.widget.AppCompatSpinner
-            android:id="@+id/fromChapterSinner"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1" />
+            android:id="@+id/fromChapterSpinner"
+            android:layout_width="120dp"
+            android:layout_height="50dp"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:dropDownWidth="220dp"
+            android:background="@drawable/white_transparent_rounded_corner_bg"
+            android:padding="5dp" />
     </LinearLayout>
 
     <TextView
@@ -59,15 +74,22 @@
 
         <androidx.appcompat.widget.AppCompatSpinner
             android:id="@+id/toPageSpinner"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1" />
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:background="@drawable/white_transparent_rounded_corner_bg"
+            android:padding="5dp" />
 
         <androidx.appcompat.widget.AppCompatSpinner
-            android:id="@+id/toChapterSinner"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1" />
+            android:id="@+id/toChapterSpinner"
+            android:layout_width="120dp"
+            android:layout_height="50dp"
+            android:layout_marginStart="8dp"
+            android:dropDownWidth="220dp"
+            android:layout_weight="1"
+            android:background="@drawable/white_transparent_rounded_corner_bg"
+            android:padding="5dp" />
     </LinearLayout>
 
     <TextView
@@ -84,9 +106,11 @@
     <androidx.appcompat.widget.AppCompatSpinner
         android:id="@+id/fileFormatSpinner"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="50dp"
         android:layout_gravity="center"
-        android:layout_marginTop="20dp" />
+        android:layout_marginTop="20dp"
+        android:background="@drawable/white_transparent_rounded_corner_bg"
+        android:padding="5dp" />
 
 
     <androidx.appcompat.widget.AppCompatButton

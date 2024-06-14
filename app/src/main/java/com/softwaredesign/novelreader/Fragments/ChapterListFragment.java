@@ -10,6 +10,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -18,25 +20,24 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.softwaredesign.novelreader.Activities.DetailActivity;
 import com.softwaredesign.novelreader.Adapters.ChapterListItemAdapter;
-import com.softwaredesign.novelreader.BackgroundTask;
 import com.softwaredesign.novelreader.Global.GlobalConfig;
 import com.softwaredesign.novelreader.Global.ReusableFunction;
 import com.softwaredesign.novelreader.Models.ChapterModel;
 import com.softwaredesign.novelreader.R;
-import com.softwaredesign.novelreader.Scrapers.TruyenfullScraper;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ChapterListFragment extends Fragment {
 
+    private ImageView prevChapterPage, nextChapterPage;
     private TextView pageTextView;
     private RecyclerView chapterListRV;
     private ChapterListItemAdapter chapterListItemAdapter;
     private static volatile int numberOfPages, currentPage, pageSize;
     private static volatile List<ChapterModel> pageItems;
+    private LinearLayout chapterListPageControlLayout;
     private ProgressBar chapterListFragmentPB;
     private final Handler handler = new Handler();
 
@@ -55,12 +56,7 @@ public class ChapterListFragment extends Fragment {
                 @Override
                 public void run() {
                     doInBackground();
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            onPostExecute();
-                        }
-                    });
+                    requireActivity().runOnUiThread(() -> onPostExecute());
                 }
             }).start();
         }
@@ -101,14 +97,70 @@ public class ChapterListFragment extends Fragment {
         classVarInit();
 
         // Execute the background task to fetch the number of chapter pages
-        getNumberOfChapterPagesTask.execute();
+        getTotalPagesThenNovelListTask();
 
         // Initialize and set the adapter for the chapter list RecyclerView
         chapterListItemAdapter = new ChapterListItemAdapter(getContext(), pageItems);
         chapterListRV.setAdapter(chapterListItemAdapter);
 
+        // Handle Pagination
+        handlePagination();
+
         // Return the inflated view
         return view;
+    }
+
+    @SuppressLint("SetTextI18n")
+    private void handlePagination() {
+        // Set click listener to show a popup menu for page selection
+        pageTextView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Create a PopupMenu
+                PopupMenu popupMenu = new PopupMenu(getContext(), pageTextView);
+
+                // Add pages to the PopupMenu
+                for (int i = 1; i <= numberOfPages; i++) {
+                    popupMenu.getMenu().add(0, i, i, "Trang " + i);
+                }
+
+                // Set a click listener for PopupMenu items
+                popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    @SuppressLint("SetTextI18n")
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        // Handle page selection
+                        loadPage(item.getItemId());
+                        pageTextView.setText("Trang " + item.getItemId() + " trên " + numberOfPages);
+                        return true;
+                    }
+                });
+
+                // Set the gravity of the PopupMenu
+                popupMenu.setGravity(Gravity.START);
+
+                // Show the PopupMenu
+                popupMenu.show();
+            }
+        });
+
+        // Handle Previous Page Button
+        prevChapterPage.setOnClickListener(v -> {
+            if (currentPage <= 1) return;
+            currentPage--;
+            pageTextView.setText("Trang " + currentPage + " trên " + numberOfPages);
+            loadPage(currentPage);
+
+        });
+
+        // Handle Next Page Button
+        nextChapterPage.setOnClickListener(v -> {
+            if (currentPage >= numberOfPages) return;
+            currentPage++;
+            pageTextView.setText("Trang " + currentPage + " trên " + numberOfPages);
+            loadPage(currentPage);
+
+        });
     }
 
     private void initView(View view) {
@@ -118,6 +170,11 @@ public class ChapterListFragment extends Fragment {
         pageTextView = view.findViewById(R.id.pageTextView);
         // Find and initialize the progress bar
         chapterListFragmentPB = view.findViewById(R.id.chapterListFragmentPB);
+        // Find and initialize the layout of chapter list pagination
+        chapterListPageControlLayout = view.findViewById(R.id.chapterListPageControlLayout);
+        // Find and initialize previous, next chapter page ImageView
+        prevChapterPage = view.findViewById(R.id.previousChapterPage);
+        nextChapterPage = view.findViewById(R.id.nextChapterPage);
 
         // Set up RecyclerView with a GridLayoutManager
         GridLayoutManager gridLayoutManager = new GridLayoutManager(getContext(), 1);
@@ -152,41 +209,10 @@ public class ChapterListFragment extends Fragment {
     // Method to set up pagination controls
     @SuppressLint("SetTextI18n")
     private void setupPageControls() {
-        // Make the page TextView visible
-        pageTextView.setVisibility(View.VISIBLE);
+        // Set the visibility of the pagination
+        chapterListPageControlLayout.setVisibility(View.VISIBLE);
         // Set the text of the page TextView
-        pageTextView.setText("Page 1 of " + numberOfPages);
-
-        // Set click listener to show a popup menu for page selection
-        pageTextView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Create a PopupMenu
-                PopupMenu popupMenu = new PopupMenu(getContext(), pageTextView);
-
-                // Add pages to the PopupMenu
-                for (int i = 1; i <= numberOfPages; i++) {
-                    popupMenu.getMenu().add(0, i, i, "Page " + i);
-                }
-
-                // Set a click listener for PopupMenu items
-                popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                    @Override
-                    public boolean onMenuItemClick(MenuItem item) {
-                        // Handle page selection
-                        loadPage(item.getItemId());
-                        pageTextView.setText("Page " + item.getItemId() + " of " + numberOfPages);
-                        return true;
-                    }
-                });
-
-                // Set the gravity of the PopupMenu
-                popupMenu.setGravity(Gravity.START);
-
-                // Show the PopupMenu
-                popupMenu.show();
-            }
-        });
+        pageTextView.setText("Trang 1 trên " + numberOfPages);
     }
 
     // Background task to fetch chapter list
@@ -194,28 +220,6 @@ public class ChapterListFragment extends Fragment {
         @Override
         public void onPreExecute() {
             // No pre-execution actions needed
-        }
-
-        @Override
-        public void doInBackground() {
-            // Fetch the list of chapters from the specified page URL
-            List<ChapterModel> tempPageList = GlobalConfig.Global_Current_Scraper.getChapterListInPage(NovelUrl, currentPage);
-            // Replace the current list of page items with the fetched list
-            ReusableFunction.ReplaceList(pageItems, tempPageList);
-        }
-
-        @Override
-        public void onPostExecute() {
-            // Notify adapter that data has changed
-            chapterListItemAdapter.updateList(pageItems);
-            chapterListItemAdapter.notifyDataSetChanged();
-        }
-    };
-
-    // Background task to fetch the number of chapter pages
-    private final BackgroundTask getNumberOfChapterPagesTask = new ChapterListFragment.BackgroundTask() {
-        @Override
-        public void onPreExecute() {
             // Show progress bar with fade-in animation
             handler.post(new Runnable() {
                 @Override
@@ -228,10 +232,17 @@ public class ChapterListFragment extends Fragment {
 
         @Override
         public void doInBackground() {
-            // Fetch the number of chapter pages using the scraper
-            numberOfPages = GlobalConfig.Global_Current_Scraper.getChapterListNumberOfPages(NovelUrl);
+            // Fetch the list of chapters from the specified page URL
+            List<Object> tempList = GlobalConfig.Global_Current_Scraper.getChapterListInPage(NovelUrl, currentPage);
+            if (tempList.size() ==0) {
+                Log.d("Somehow", "empty here");
+            }
+            List<ChapterModel> chapters = identifyingList(tempList);
+            // Replace the current list of page items with the fetched list
+            ReusableFunction.ReplaceList(pageItems, chapters);
         }
 
+        @SuppressLint("NotifyDataSetChanged")
         @Override
         public void onPostExecute() {
             // Hide progress bar with fade-out animation after a delay
@@ -240,13 +251,57 @@ public class ChapterListFragment extends Fragment {
                 public void run() {
                     chapterListFragmentPB.setVisibility(View.GONE);
                     chapterListFragmentPB.startAnimation(AnimationUtils.loadAnimation(getContext(), android.R.anim.fade_out));
-                    // Set up pagination controls and load the first page
-                    setupPageControls();
-                    // Load the current page
-                    loadPage(currentPage);
+
                 }
             });
+
+            // Notify adapter that data has changed
+            chapterListItemAdapter.updateList(pageItems);
+            chapterListItemAdapter.notifyDataSetChanged();
         }
     };
+
+
+    // Background task to fetch the number of chapter pages
+
+    private void getTotalPagesThenNovelListTask(){
+        new ChapterListFragment.BackgroundTask() {
+            @Override
+            public void onPreExecute() {
+
+            }
+
+            @Override
+            public void doInBackground() {
+                // Fetch the number of chapter pages using the scraper
+                numberOfPages = GlobalConfig.Global_Current_Scraper.getChapterListNumberOfPages(NovelUrl);
+            }
+
+            @Override
+            public void onPostExecute() {
+
+                // Set up pagination controls and load the first page
+                setupPageControls();
+                // Load the current page
+                loadPage(currentPage);
+            }
+        }.execute();
+    }
+    private List<ChapterModel> identifyingList(List<Object> list){
+        List<ChapterModel> chapterModels = new ArrayList<>();
+        for (Object item: list){
+            if (item instanceof ChapterModel) {
+                chapterModels.add((ChapterModel) item);
+            }
+            else {
+                String[] chapterHolder = (String[]) item;
+                Log.d("Chapter holder", chapterHolder[1]);
+                ChapterModel chapter = new ChapterModel(chapterHolder[0], chapterHolder[1], Integer.parseInt(chapterHolder[2]));
+                chapterModels.add(chapter);
+            }
+
+        }
+        return chapterModels;
+    }
 
 }

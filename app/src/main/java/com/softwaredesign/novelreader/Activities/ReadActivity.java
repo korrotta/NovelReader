@@ -1,13 +1,25 @@
 package com.softwaredesign.novelreader.Activities;
 
+
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.AppCompatSpinner;
+
 import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.core.text.HtmlCompat;
+import androidx.fragment.app.FragmentManager;
 
 import android.annotation.SuppressLint;
+
+
 import android.content.DialogInterface;
+
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.SharedPreferences;
+import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
+
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -16,55 +28,70 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.BackgroundColorSpan;
 import android.util.Log;
-import android.view.Gravity;
+
+import android.util.TypedValue;
+
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.PopupWindow;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.novelscraperfactory.INovelScraper;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.core.text.HtmlCompat;
+
+import com.example.scraper_library.INovelScraper;
+import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.bottomappbar.BottomAppBar;
-import com.softwaredesign.novelreader.Adapters.ServerSpinnerAdapter;
 import com.softwaredesign.novelreader.BackgroundTask;
+import com.softwaredesign.novelreader.Fragments.SettingsDialogFragment;
 import com.softwaredesign.novelreader.Global.GlobalConfig;
 import com.softwaredesign.novelreader.Models.ChapterContentModel;
 import com.softwaredesign.novelreader.R;
-import com.softwaredesign.novelreader.Scrapers.TangthuvienScraper;
-import com.softwaredesign.novelreader.Scrapers.TruyenfullScraper;
+import com.softwaredesign.novelreader.ScraperFactory.ScraperFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ReadActivity extends AppCompatActivity {
 
-    private TextView chapterNameTV, chapterContentTV, searchStatusTV;
-    private View overlayView;
+    private TextView chapterNameTV, chapterContentTV, searchStatusTV, novelNameTV, chapterTitleTV, serverNameTV;
     private ScrollView contentScrollView;
-    private EditText searchEditText;
+    private ImageView saveChapterIV, prevChapterIV, nextChapterIV, findInChapterIV, settingsIV, serverIV;
     private ImageButton searchUpIV, searchDownIV, searchCloseButton;
-    private LinearLayout search_layout;
-    private ImageView chapterListIV, prevChapterIV, nextChapterIV, findInChapterIV, serverIV, settingsIV;
-    private String chapterUrl, chapterTitle, content;
+    private EditText searchEditText;
     private ProgressBar progressBar;
     private BottomAppBar bottomAppBar;
-    private Handler handler = new Handler(Looper.getMainLooper());
+    private AppBarLayout topAppBar;
+    private LinearLayout search_layout;
+    private AlertDialog.Builder alertDialog;
 
+    private String chapterUrl, chapterTitle, content, novelName, nextChapterUrl, previousChapterUrl;
     private List<Integer> searchResults = new ArrayList<>();
     private int currentSearchIndex = 0;
+    final int[] selectedItem = new int[1];
+    private List<String> availableSourceList;
 
-    private String nextChapterUrl, previousChapterUrl;
+    private SharedPreferences sharedPreferences;
+
+
+    //NOTE: Local reader server:
+    private INovelScraper readerServer;
+
+    //NOTE: String variable holder:
+    private static ArrayList<String[]> serverFetchedLink;
+
+    private Handler handler = new Handler(Looper.getMainLooper());
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -72,94 +99,36 @@ public class ReadActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_read);
 
+        vitalValueInit();
+
         InitializeView();
+        sharedPreferences = this.getSharedPreferences("ReadSetting", Context.MODE_PRIVATE);
 
-        // Check for current Server from Global Scrapper
-        final int[] checkedItem = {-1};
-        switch(GlobalConfig.Global_Current_Scraper.getSourceName()) {
-            case "Truyenfull":
-                checkedItem[0] = 0;
-                break;
-            case "Tangthuvien":
-                checkedItem[0] = 1;
-                break;
-        }
-
-        // Get Chapter Url from bundle
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
             chapterUrl = bundle.getString("ChapterUrl");
-            Log.d("Tag", "ChapterURL: " + chapterUrl);
         }
 
         //execute chapter content
-        getChapterContent.execute();
+        getChapterContentTask();
 
-        // Handle Previous Chapter Button
-        prevChapterIV.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (previousChapterUrl== null) {
-                    Toast.makeText(ReadActivity.this, "Không có chương trước", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                chapterUrl = previousChapterUrl;
-                getChapterContent.execute();
-            }
-        });
-
-        // Handle Next Chapter Button
-        nextChapterIV.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (nextChapterUrl == null) {
-                    Toast.makeText(ReadActivity.this, "Không có chương tiếp", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                chapterUrl = nextChapterUrl;
-                getChapterContent.execute();
-            }
-        });
+        prevChapterIV.setOnClickListener(prevBtnClickListener);
+        nextChapterIV.setOnClickListener(nextBtnClickListener);
 
         // Handle Server Source Button
         serverIV.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.d("clicked?", "clicked");
                 // AlertDialog builder instance to build the alert dialog
-                AlertDialog.Builder alertDialog = new AlertDialog.Builder(ReadActivity.this);
+                alertDialog = new AlertDialog.Builder(ReadActivity.this);
 
                 // Set the custom icon to the alert dialog
                 alertDialog.setIcon(R.drawable.server);
 
                 // Title of the alert dialog
-                alertDialog.setTitle("Choose Server Source");
-
-                // List of items
-                final String[] listItems = new String[]{"Truyenfull", "Tangthuvien"};
-
-                // Builds the alert dialog with the single item selection
-                alertDialog.setSingleChoiceItems(listItems, checkedItem[0], new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        // Update the selected item which is selected by the user so that it should be selected
-                        // When user opens the dialog next time and pass the instance to setSingleChoiceItems method
-                        checkedItem[0] = which;
-
-                        // When selected an item the dialog should be closed with the dismiss method
-                        dialog.dismiss();
-                    }
-                });
-
-                // Set the negative button if the user is not interested to select or change already selected item
-                alertDialog.setNegativeButton("Cancel", (dialog, which) -> {
-
-                });
-
-                // Create and build the AlertDialog instance with the AlertDialog builder instance
-                AlertDialog customAlertDialog = alertDialog.create();
-
-                // Show the alert dialog when the button is clicked
-                customAlertDialog.show();
+                alertDialog.setTitle("Chọn Server Nguồn: ");
+                getContentFromNameAndChapterTask();
             }
         });
 
@@ -175,17 +144,6 @@ public class ReadActivity extends AppCompatActivity {
                 imm.showSoftInput(searchEditText, InputMethodManager.SHOW_IMPLICIT);
             }
         });
-
-        /*overlayView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //searchEditText.setVisibility(View.GONE);
-                search_layout.setVisibility(View.GONE);
-                overlayView.setVisibility(View.GONE);  // Ẩn overlay khi nhấp vào
-                InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(searchEditText.getWindowToken(), 0);
-            }
-        });*/
 
         // Hanlde search EditText
         searchEditText.setOnEditorActionListener((v, actionId, event) -> {
@@ -238,11 +196,20 @@ public class ReadActivity extends AppCompatActivity {
             }
         });
 
-        // Hanlde chapterList Button
-        chapterListIV.setOnClickListener(new View.OnClickListener() {
+        // Handle chapterName TextView
+        chapterNameTV.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(ReadActivity.this, "You clicked Chapter List", Toast.LENGTH_SHORT).show();
+                // Go back to chapter list
+                finish();
+            }
+        });
+
+        // Hanlde chapterList Button
+        saveChapterIV.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(ReadActivity.this, "You clicked Save Chapter", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -250,22 +217,40 @@ public class ReadActivity extends AppCompatActivity {
         settingsIV.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(ReadActivity.this, "You clicked Settings", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(ReadActivity.this, "You clicked Settings", Toast.LENGTH_SHORT).show();
+                FragmentManager fragmentManager = getSupportFragmentManager();
+                SettingsDialogFragment settingsDialog = new SettingsDialogFragment();
+                settingsDialog.show(fragmentManager, "settings_dialog");
             }
         });
 
     }
 
+    private void vitalValueInit() {
+        if (serverFetchedLink == null) {
+            serverFetchedLink = new ArrayList<>();
+        }
+
+        availableSourceList = new ArrayList<>();
+        readerServer = GlobalConfig.Global_Current_Scraper.clone();
+
+        //NOTE: final to pass reference in new scope
+        selectedItem[0] = -1;
+    }
+
     // search text in content function
+    @SuppressLint("SetTextI18n")
     private void performSearch() {
         String query = searchEditText.getText().toString();
-        String content = chapterContentTV.getText().toString();
+        //String content = chapterContentTV.getText().toString();
+        String plainTextContent  = HtmlCompat.fromHtml(content, HtmlCompat.FROM_HTML_MODE_LEGACY).toString();
+
 
         searchResults = new ArrayList<>();
-        int index = content.indexOf(query);
+        int index = plainTextContent .indexOf(query);
         while (index >= 0) {
             searchResults.add(index);
-            index = content.indexOf(query, index + query.length());
+            index = plainTextContent .indexOf(query, index + query.length());
         }
 
         if (!searchResults.isEmpty()) {
@@ -284,13 +269,13 @@ public class ReadActivity extends AppCompatActivity {
 
     // highlight text after found function
     private void highlightText(String searchText) {
-        if (searchResults.isEmpty()){
+        if (searchResults.isEmpty()) {
             clearHighlight();
             return;
         }
         int highlightColor = ContextCompat.getColor(this, R.color.saddle_brown);
 
-        Spannable spannable = new SpannableString(content);
+        Spannable spannable = new SpannableString(HtmlCompat.fromHtml(content, HtmlCompat.FROM_HTML_MODE_LEGACY));
 
         for (int i = 0; i < searchResults.size(); i++) {
             spannable.setSpan(new BackgroundColorSpan(highlightColor), searchResults.get(i), searchResults.get(i) + searchText.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -302,7 +287,7 @@ public class ReadActivity extends AppCompatActivity {
 
     // clear all highlight text function
     private void clearHighlight() {
-        chapterContentTV.setText(content);
+        chapterContentTV.setText(HtmlCompat.fromHtml(content, HtmlCompat.FROM_HTML_MODE_LEGACY));
     }
 
     // scroll to search result function
@@ -320,10 +305,10 @@ public class ReadActivity extends AppCompatActivity {
                     int y = layout.getLineTop(line);
 
                     int scrollY = contentScrollView.getScrollY();
-                    int scrollViewHeight = contentScrollView.getHeight() - bottomAppBar.getHeight() - searchEditText.getHeight();
+                    int scrollViewHeight = contentScrollView.getHeight() - 2*bottomAppBar.getHeight() - 2*searchEditText.getHeight();
 
                     // Only scroll if the result is not fully visible
-                    if (forceScroll || y < scrollY || y > scrollY + scrollViewHeight - chapterContentTV.getLineHeight()) {
+                    if (forceScroll || y < scrollY || y > (scrollY + scrollViewHeight - chapterContentTV.getLineHeight())) {
                         int targetScrollY = y - scrollViewHeight / 2 + chapterContentTV.getLineHeight() / 2;
                         contentScrollView.smoothScrollTo(0, targetScrollY);
                     }
@@ -335,12 +320,13 @@ public class ReadActivity extends AppCompatActivity {
     }
 
 
-    // highlight text current result, with other color
+    // Highlight text current result, with other color
     private void highlightTextWithCurrentHighlight(int currentPosition) {
         int highlightColor = ContextCompat.getColor(this, R.color.saddle_brown);
+
         int currentHighlightColor = ContextCompat.getColor(this, R.color.slate_blue);;
-        String content = chapterContentTV.getText().toString();
-        Spannable spannable = new SpannableString(content);
+        String plainTextContent = HtmlCompat.fromHtml(content, HtmlCompat.FROM_HTML_MODE_LEGACY).toString();
+        Spannable spannable = new SpannableString(plainTextContent);
 
         for (int i = 0; i < searchResults.size(); i++) {
             int start = searchResults.get(i);
@@ -354,61 +340,22 @@ public class ReadActivity extends AppCompatActivity {
         chapterContentTV.setText(spannable);
     }
 
-/*    private void showServerMenu(View view) {
-        // Inflate the layout of the popup window
-        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
-        View popupView = inflater.inflate(R.layout.server_spinner, null);
-
-        // Create the popup window
-        int width = LinearLayout.LayoutParams.WRAP_CONTENT;
-        int height = LinearLayout.LayoutParams.WRAP_CONTENT;
-        boolean focusable = true;
-        final PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
-
-        // Get a reference for the custom layout's widgets
-        TextView server1 = popupView.findViewById(R.id.server_1);
-        TextView server2 = popupView.findViewById(R.id.server_2);
-
-        // Update the text and background color based on the selected server
-        updateSelection(server1, server2);
-
-
-
-        // Show the popup window above the ServerImageView
-        int[] location = new int[2];
-        view.getLocationOnScreen(location);
-        int yOffset = location[1] - view.getHeight() - popupView.getMeasuredHeight();
-
-        popupWindow.showAtLocation(view, Gravity.NO_GRAVITY, location[0] - 200, yOffset - 130);
-    }*/
-
-/*    private void updateSelection(TextView server1, TextView server2) {
-        if (selectedServer.equals(servers[0])) {
-            server1.setBackground(ContextCompat.getDrawable(this, R.drawable.selected_rounded_corner_bg));
-            server1.setTextColor(ContextCompat.getColor(this, R.color.white));
-            server2.setBackground(ContextCompat.getDrawable(this, R.drawable.rounded_corner_bg));
-            server2.setTextColor(ContextCompat.getColor(this, R.color.black));
-        } else if (selectedServer.equals(servers[1])) {
-            server2.setBackground(ContextCompat.getDrawable(this, R.drawable.selected_rounded_corner_bg));
-            server2.setTextColor(ContextCompat.getColor(this, R.color.white));
-            server1.setBackground(ContextCompat.getDrawable(this, R.drawable.rounded_corner_bg));
-            server1.setTextColor(ContextCompat.getColor(this, R.color.black));
-        }
-    }*/
-
     private void InitializeView() {
+        novelNameTV = findViewById(R.id.novelNameRead);
+        chapterTitleTV = findViewById(R.id.chapterTitleRead);
+        serverNameTV = findViewById(R.id.serverNameRead);
         chapterNameTV = findViewById(R.id.chapterNameRead);
         chapterContentTV = findViewById(R.id.chapterContentRead);
-        chapterListIV = findViewById(R.id.chapterListRead);
+        saveChapterIV = findViewById(R.id.saveChapterRead);
         prevChapterIV = findViewById(R.id.previousChapterRead);
         nextChapterIV = findViewById(R.id.nextChapterRead);
         findInChapterIV = findViewById(R.id.findTextRead);
         settingsIV = findViewById(R.id.settingsRead);
         bottomAppBar = findViewById(R.id.bottomNavRead);
+        topAppBar = findViewById(R.id.topNavRead);
         progressBar = findViewById(R.id.readProgressBar);
         serverIV = findViewById(R.id.serverSourceRead);
         searchEditText = findViewById(R.id.search_edit_text);
-        //overlayView = findViewById(R.id.overlay_view);
         search_layout = findViewById(R.id.search_layout);
         searchDownIV = findViewById(R.id.search_down);
         searchUpIV = findViewById(R.id.search_up);
@@ -417,53 +364,308 @@ public class ReadActivity extends AppCompatActivity {
         searchCloseButton = findViewById(R.id.search_close);
 
         //Gone View
-        if (nextChapterIV.getVisibility() == View.VISIBLE || prevChapterIV.getVisibility() == View.VISIBLE) return;
+        if (nextChapterIV.getVisibility() == View.VISIBLE || prevChapterIV.getVisibility() == View.VISIBLE)
+            return;
 
         nextChapterIV.setVisibility(View.GONE);
         prevChapterIV.setVisibility(View.GONE);
     }
 
-    private final BackgroundTask getChapterContent = new BackgroundTask(ReadActivity.this) {
-        @Override
-        public void onPreExecute() {
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    progressBar.setVisibility(View.VISIBLE);
-                    progressBar.startAnimation(AnimationUtils.loadAnimation(ReadActivity.this, android.R.anim.fade_in));
+    private void getChapterContentTask() {
+        new BackgroundTask(ReadActivity.this) {
+            @Override
+            public void onPreExecute() {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        progressBar.setVisibility(View.VISIBLE);
+                        progressBar.startAnimation(AnimationUtils.loadAnimation(ReadActivity.this, android.R.anim.fade_in));
+                    }
+                });
+            }
+
+            @Override
+            public void doInBackground() {
+                //Fetch from chapterURL
+                Object item = readerServer.getChapterContent(chapterUrl);
+
+                //Ensure datatype matched
+                ChapterContentModel ccm;
+                if (item instanceof ChapterContentModel) {
+                    ccm = (ChapterContentModel) item;
+                } else {
+                    String[] holder = (String[]) item;
+                    ccm = new ChapterContentModel(holder[0], holder[1], holder[2], holder[3]);
                 }
-            });
-        }
 
-        @Override
-        public void doInBackground() {
-            //Fetch from chapterURL
-            ChapterContentModel ccm = GlobalConfig.Global_Current_Scraper.getChapterContent(chapterUrl);
-            chapterTitle = ccm.getChapterName();
-            content = ccm.getContent();
-            nextChapterUrl = GlobalConfig.Global_Current_Scraper.getNextChapterUrl(chapterUrl);
-            previousChapterUrl = GlobalConfig.Global_Current_Scraper.getPreviousChapterUrl(chapterUrl);
-//            Log.d("FETCHED CONTENT", content);
-        }
 
-        @Override
-        public void onPostExecute() {
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    progressBar.setVisibility(View.GONE);
-                    progressBar.startAnimation(AnimationUtils.loadAnimation(ReadActivity.this, android.R.anim.fade_out));
+                chapterTitle = ccm.getChapterName();
+                content = ccm.getContent();
+                novelName = ccm.getNovelName();
+
+                nextChapterUrl = readerServer.getNextChapterUrl(chapterUrl);
+                previousChapterUrl = readerServer.getPreviousChapterUrl(chapterUrl);
+            }
+
+            @SuppressLint("SetTextI18n")
+            @Override
+            public void onPostExecute() {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        progressBar.setVisibility(View.GONE);
+                        progressBar.startAnimation(AnimationUtils.loadAnimation(ReadActivity.this, android.R.anim.fade_out));
+                    }
+                });
+                // Update UI after fetch
+                novelNameTV.setText(novelName);
+                chapterTitleTV.setText(chapterTitle);
+                serverNameTV.setText("Server: " + readerServer.getSourceName());
+                chapterNameTV.setText(chapterTitle);
+                chapterContentTV.setText(HtmlCompat.fromHtml(content, HtmlCompat.FROM_HTML_MODE_LEGACY));
+
+                novelNameTV.setTypeface(null, Typeface.BOLD);
+                chapterTitleTV.setTypeface(null, Typeface.BOLD);
+                serverNameTV.setTypeface(null, Typeface.BOLD);
+
+                applyFontChange();
+                applyTextSizeChange();
+                applyThemeChange();
+
+                nextChapterIV.setVisibility(View.VISIBLE);
+                prevChapterIV.setVisibility(View.VISIBLE);
+
+                contentScrollView.fullScroll(ScrollView.FOCUS_UP);
+            }
+        }.execute();
+    }
+
+    private void getContentFromNameAndChapterTask() {
+
+        if (availableSourceList == null) return;
+        availableSourceList.clear();
+        availableSourceList.add(readerServer.getSourceName());
+        selectedItem[0] = 0; //as the first server added
+
+        new BackgroundTask(ReadActivity.this) {
+            @Override
+            public void onPreExecute() {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        progressBar.setVisibility(View.VISIBLE);
+                        progressBar.startAnimation(AnimationUtils.loadAnimation(ReadActivity.this, android.R.anim.fade_in));
+                    }
+                });
+            }
+
+            @Override
+            public void doInBackground() {
+                if (serverFetchedLink == null) serverFetchedLink = new ArrayList<>();
+                serverFetchedLink.clear();
+
+                for (INovelScraper scraper : GlobalConfig.Global_Source_List) {
+                    if (scraper.getSourceName().equalsIgnoreCase(readerServer.getSourceName()))
+                        continue;
+
+                    Object item = scraper.getContentFromNameAndChapName(novelName, chapterTitle);
+                    if (item == null) continue;
+
+                    //Ensure datatype matched
+                    ChapterContentModel ccm;
+                    if (item instanceof ChapterContentModel) {
+                        ccm = (ChapterContentModel) item;
+                    } else {
+                        //note: inner holder
+                        String[] holder = (String[]) item;
+                        ccm = new ChapterContentModel(holder[0], holder[1], holder[2], holder[3]);
+                    }
+
+                    String[] holder = new String[2];
+                    //note: holder init-ed here
+                    holder[0] = scraper.getSourceName();
+                    holder[1] = ccm.getChapterUrl();
+
+                    availableSourceList.add(holder[0]);
+                    serverFetchedLink.add(holder);
                 }
-            });
-            // Update UI after fetch
-            chapterNameTV.setText(chapterTitle);
-            chapterContentTV.setText(HtmlCompat.fromHtml(content, HtmlCompat.FROM_HTML_MODE_LEGACY));
+            }
 
-            nextChapterIV.setVisibility(View.VISIBLE);
-            prevChapterIV.setVisibility(View.VISIBLE);
+            @Override
+            public void onPostExecute() {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        progressBar.setVisibility(View.GONE);
+                        progressBar.startAnimation(AnimationUtils.loadAnimation(ReadActivity.this, android.R.anim.fade_out));
+                    }
+                });
 
-            contentScrollView.fullScroll(ScrollView.FOCUS_UP);
+
+                String[] tempServerArray = availableSourceList.toArray(new String[availableSourceList.size()]);
+
+                //Dialog setup & run below
+                alertDialog.setSingleChoiceItems(tempServerArray, selectedItem[0], new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Update the selected item which is selected by the user so that it should be selected
+                        // When user opens the dialog next time and pass the instance to setSingleChoiceItems method
+                        selectedItem[0] = which;
+                        String scraperName = availableSourceList.get(which);
+                        //Note: 1st para for getChapterContent
+                        readerServer = ScraperFactory.createScraper(scraperName);
+
+                        for (String[] data : serverFetchedLink) {
+                            if (data[0].equalsIgnoreCase(scraperName)) {
+                                chapterUrl = data[1]; //Note: 2nd para for getChapterContent
+                                break;
+                            }
+                        }
+
+                        getChapterContentTask();
+                        dialog.dismiss();
+                    }
+                });
+                // Set the negative button if the user is not interested to select or change already selected item
+                alertDialog.setNegativeButton("Cancel", (dialog, which) -> {
+
+                });
+
+                // Create and build the AlertDialog instance with the AlertDialog builder instance
+                AlertDialog customAlertDialog = alertDialog.create();
+
+                // Show the alert dialog when the button is clicked
+                customAlertDialog.show();
+            }
+        }.execute();
+    }
+
+    //NOTE:-----------------------------------------------------------------------
+    //NOTE: Some Listener
+
+    View.OnClickListener prevBtnClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if (previousChapterUrl == null) {
+                Toast.makeText(ReadActivity.this, "Không có chương trước", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            chapterUrl = previousChapterUrl;
+            getChapterContentTask();
         }
     };
 
+
+    /*private void applyFontChange() {
+        String font = sharedPreferences.getString("font", "Palatino");
+        switch (font) {
+            case "Palatino":
+                chapterContentTV.setTypeface(ResourcesCompat.getFont(this, R.font.palatino));
+                novelNameTV.setTypeface(ResourcesCompat.getFont(this, R.font.palatino));
+                chapterTitleTV.setTypeface(ResourcesCompat.getFont(this, R.font.palatino));
+                serverNameTV.setTypeface(ResourcesCompat.getFont(this, R.font.palatino));
+                break;
+            case "Times":
+                chapterContentTV.setTypeface(ResourcesCompat.getFont(this, R.font.times));
+                novelNameTV.setTypeface(ResourcesCompat.getFont(this, R.font.times));
+                chapterTitleTV.setTypeface(ResourcesCompat.getFont(this, R.font.times));
+                serverNameTV.setTypeface(ResourcesCompat.getFont(this, R.font.times));
+                break;
+            case "Arial":
+                chapterContentTV.setTypeface(ResourcesCompat.getFont(this, R.font.arial));
+                novelNameTV.setTypeface(ResourcesCompat.getFont(this, R.font.arial));
+                chapterTitleTV.setTypeface(ResourcesCompat.getFont(this, R.font.arial));
+                serverNameTV.setTypeface(ResourcesCompat.getFont(this, R.font.arial));
+                break;
+            case "Georgia":
+                chapterContentTV.setTypeface(ResourcesCompat.getFont(this, R.font.georgia));
+                novelNameTV.setTypeface(ResourcesCompat.getFont(this, R.font.georgia));
+                chapterTitleTV.setTypeface(ResourcesCompat.getFont(this, R.font.georgia));
+                serverNameTV.setTypeface(ResourcesCompat.getFont(this, R.font.georgia));
+                break;
+        }
+    }*/
+
+    private void applyFontChange() {
+        String font = sharedPreferences.getString("font", "Palatino");
+        Typeface typeface = null;
+        switch (font) {
+            case "Palatino":
+                typeface = ResourcesCompat.getFont(this, R.font.palatino);
+                break;
+            case "Times":
+                typeface = ResourcesCompat.getFont(this, R.font.times);
+                break;
+            case "Arial":
+                typeface = ResourcesCompat.getFont(this, R.font.arial);
+                break;
+            case "Georgia":
+                typeface = ResourcesCompat.getFont(this, R.font.georgia);
+                break;
+        }
+        if (typeface != null) {
+            chapterContentTV.setTypeface(typeface);
+            novelNameTV.setTypeface(typeface, Typeface.BOLD);
+            chapterTitleTV.setTypeface(typeface, Typeface.BOLD);
+            serverNameTV.setTypeface(typeface, Typeface.BOLD);
+        }
+    }
+
+
+    private void applyTextSizeChange() {
+        int textSize = sharedPreferences.getInt("textSize", 22);
+        chapterContentTV.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
+        novelNameTV.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
+        chapterTitleTV.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
+        serverNameTV.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
+    }
+
+    private void applyThemeChange(){
+        String theme = sharedPreferences.getString("theme", "dark");
+
+        if (theme.equals("light")) {
+            serverNameTV.setTextColor(getResources().getColor(R.color.black));
+            chapterTitleTV.setTextColor(getResources().getColor(R.color.black));
+            novelNameTV.setTextColor(getResources().getColor(R.color.black));
+            chapterNameTV.setTextColor(getResources().getColor(R.color.black));
+            chapterContentTV.setTextColor(getResources().getColor(R.color.black));
+            topAppBar.setBackgroundColor(getResources().getColor(R.color.floral_white));
+            bottomAppBar.setBackgroundColor(getResources().getColor(R.color.floral_white));
+            prevChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            nextChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            saveChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            serverIV.setColorFilter(getResources().getColor(R.color.black));
+            settingsIV.setColorFilter(getResources().getColor(R.color.black));
+            findInChapterIV.setColorFilter(getResources().getColor(R.color.black));
+            contentScrollView.setBackgroundColor(getResources().getColor(R.color.white));
+        } else {
+            serverNameTV.setTextColor(getResources().getColor(R.color.white));
+            chapterTitleTV.setTextColor(getResources().getColor(R.color.white));
+            novelNameTV.setTextColor(getResources().getColor(R.color.white));
+            chapterNameTV.setTextColor(getResources().getColor(R.color.white));
+            chapterContentTV.setTextColor(getResources().getColor(R.color.white));
+            topAppBar.setBackgroundColor(getResources().getColor(R.color.backgroundMaterialDark));
+            bottomAppBar.setBackgroundColor(getResources().getColor(R.color.backgroundMaterialDark));
+            prevChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            nextChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            saveChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            serverIV.setColorFilter(getResources().getColor(R.color.white));
+            settingsIV.setColorFilter(getResources().getColor(R.color.white));
+            findInChapterIV.setColorFilter(getResources().getColor(R.color.white));
+            contentScrollView.setBackgroundColor(getResources().getColor(androidx.cardview.R.color.cardview_dark_background));
+        }
+    }
+
+
+    View.OnClickListener nextBtnClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if (nextChapterUrl == null) {
+                Toast.makeText(ReadActivity.this, "Không có chương tiếp", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            chapterUrl = nextChapterUrl;
+            getChapterContentTask();
+        }
+    };
 }
