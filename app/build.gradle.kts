@@ -68,4 +68,6 @@ dependencies {
     implementation("com.positiondev.epublib:epublib-core:3.1") {
         exclude(group = "xmlpull", module = "xmlpull")
     }
+
+    implementation("androidx.test.espresso:espresso-intents:3.5.1")
 }
