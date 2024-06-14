@@ -43,6 +43,7 @@
             android:id="@+id/pluginButton"
             android:layout_width="wrap_content"
             android:layout_height="40dp"
+            android:text="@string/plugin"
             android:background="@drawable/white_transparent_rounded_corner_bg"
             android:text="@string/plugin"
             app:layout_constraintBottom_toTopOf="@id/recyclerView"

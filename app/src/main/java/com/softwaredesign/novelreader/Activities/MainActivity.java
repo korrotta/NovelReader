@@ -22,7 +22,6 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.scraper_library.INovelScraper;
-import com.softwaredesign.novelreader.Adapters.NovelAdapter;
 import com.softwaredesign.novelreader.Adapters.ServerSpinnerAdapter;
 import com.softwaredesign.novelreader.BackgroundTask;
 import com.softwaredesign.novelreader.ExportHandlers.EpubExportHandler;
@@ -31,13 +30,12 @@ import com.softwaredesign.novelreader.Global.GlobalConfig;
 import com.softwaredesign.novelreader.Global.ReusableFunction;
 import com.softwaredesign.novelreader.Interfaces.IChapterExportHandler;
 import com.softwaredesign.novelreader.Models.NovelModel;
-import com.softwaredesign.novelreader.R;
 import com.softwaredesign.novelreader.Scrapers.TangthuvienScraper;
+import com.softwaredesign.novelreader.Scrapers.TruyencvScraper;
 import com.softwaredesign.novelreader.Scrapers.TruyenfullScraper;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import dalvik.system.DexClassLoader;
@@ -186,6 +184,12 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setAdapter(novelAdapter);
     }
 
+    private void gridViewInit(GridLayoutManager gridLayoutManager) {
+        recyclerView.setLayoutManager(gridLayoutManager);
+        novelAdapter = new NovelAdapter(MainActivity.this, novelList);
+        recyclerView.setAdapter(novelAdapter);
+    }
+
     private void handleSearchView() {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -233,8 +237,7 @@ public class MainActivity extends AppCompatActivity {
         }.execute();
     }
 
-    private void makeDirectory(String downloadDirPath) {
-
+    private void makeDirectory(String downloadDirPath){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_CODE_READ_STORAGE);
@@ -249,11 +252,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //Note: on developing
-    private void loadAllPlugins(File downloadDir) {
+    private void loadAllPlugins(File downloadDir){
         if (!downloadDir.isDirectory()) return;
         File[] files = downloadDir.listFiles();
         if (files == null) return;
-        for (File file : files) {
+        for (File file: files){
             if (file.isDirectory()) return;
             //note: file is file now.
             //check if it's an apk file
@@ -278,15 +281,14 @@ public class MainActivity extends AppCompatActivity {
 
         }
     }
-
-    private void loadScraperPlugin(String pluginPath, String classPackage, String className) {
+    private void loadScraperPlugin(String pluginPath, String classPackage, String className){
         try {
             final File tmpDir = getDir("dex", 0);
             final DexClassLoader classloader = new DexClassLoader(pluginPath, tmpDir.getAbsolutePath(), null, this.getClass().getClassLoader());
-            Class<?> classToLoad = classloader.loadClass("com.example." + classPackage + "." + className);
+            Class<?> classToLoad = classloader.loadClass("com.example."+classPackage+"."+className);
             INovelScraper addedScraperPlugin = (INovelScraper) classToLoad.newInstance();
-            for (INovelScraper scraper : GlobalConfig.Global_Source_List) {
-                if (scraper.getSourceName().equals(addedScraperPlugin.getSourceName())) {
+            for (INovelScraper scraper: GlobalConfig.Global_Source_List){
+                if (scraper.getSourceName().equals(addedScraperPlugin.getSourceName())){
                     Log.d("Add plugin status", "Failed, source exists");
                     return;
                 }
@@ -298,12 +300,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private List<NovelModel> identifyingList(List<Object> list) {
+    private List<NovelModel> identifyingList(List<Object> list){
         List<NovelModel> novels = new ArrayList<>();
-        for (Object item : list) {
+        for (Object item: list){
             if (item instanceof NovelModel) {
                 novels.add((NovelModel) item);
-            } else {
+            }
+
+            else {
                 String[] novelHolder = (String[]) item;
                 NovelModel novel = new NovelModel(novelHolder[0], novelHolder[1], novelHolder[2], novelHolder[3]);
                 novels.add(novel);
