@@ -5,7 +5,7 @@ import android.util.Log;
 
 import androidx.core.text.HtmlCompat;
 
-import com.softwaredesign.novelreader.Interfaces.IChapterExportHandler;
+import com.example.exporter_library.IChapterExportHandler;
 
 import java.io.File;
 import java.io.FileOutputStream;

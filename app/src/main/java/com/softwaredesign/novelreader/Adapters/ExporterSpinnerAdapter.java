@@ -10,9 +10,8 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
+import com.example.exporter_library.IChapterExportHandler;
 import com.example.scraper_library.INovelScraper;
-import com.softwaredesign.novelreader.Interfaces.IChapterExportHandler;
-import com.softwaredesign.novelreader.R;
 
 import java.util.List;
 
@@ -25,19 +24,19 @@ public class ExporterSpinnerAdapter extends ArrayAdapter<IChapterExportHandler> 
         this.context = context;
         this.items = objects;
         this.inflater = LayoutInflater.from(context);
-        setDropDownViewResource(R.layout.custom_spinner_dropdown_item);
+        setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent){
         if (items == null) return null;
         if (convertView == null) {
-            convertView = inflater.inflate(R.layout.custom_spinner_item, parent, false);
+            convertView = inflater.inflate(android.R.layout.simple_spinner_item, parent, false);
         }
 
         IChapterExportHandler item = items.get(position);
 
-        TextView label = (TextView) convertView.findViewById(R.id.customSpinnerText);
+        TextView label = (TextView) convertView.findViewById(android.R.id.text1);
         label.setTextColor(Color.WHITE);
         label.setText(item.getExporterName());
 
@@ -47,11 +46,12 @@ public class ExporterSpinnerAdapter extends ArrayAdapter<IChapterExportHandler> 
     public View getDropDownView(int position, View convertView, ViewGroup parent) {
         if (items == null) return null;
         if (convertView == null){
-            convertView = inflater.inflate(R.layout.custom_spinner_dropdown_item, parent, false);
+            convertView = inflater.inflate(android.R.layout.simple_spinner_dropdown_item, parent, false);
+
         }
 
         IChapterExportHandler item = items.get(position);
-        TextView label = (TextView) convertView.findViewById(R.id.customSpinnerDropdownText);
+        TextView label = (TextView) convertView.findViewById(android.R.id.text1);
         label.setTextColor(Color.WHITE);
         label.setText(item.getExporterName());
 

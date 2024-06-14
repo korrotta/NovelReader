@@ -15,5 +15,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "NovelReader"
 include(":app")
-include(":novelscraperfactory")
 include(":scraper_library")
+include(":exporter_library")

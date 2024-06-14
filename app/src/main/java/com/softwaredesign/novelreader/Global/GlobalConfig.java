@@ -1,7 +1,7 @@
 package com.softwaredesign.novelreader.Global;
 
+import com.example.exporter_library.IChapterExportHandler;
 import com.example.scraper_library.INovelScraper;
-import com.softwaredesign.novelreader.Interfaces.IChapterExportHandler;
 import com.softwaredesign.novelreader.Scrapers.TruyenfullScraper;
 
 import java.util.ArrayList;
