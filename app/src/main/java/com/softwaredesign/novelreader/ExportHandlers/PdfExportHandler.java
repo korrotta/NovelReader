@@ -56,6 +56,7 @@ public class PdfExportHandler implements IChapterExportHandler {
         if (pdfFile.exists()) return;
         try {
             pdfDocument.writeTo(new FileOutputStream(pdfFile));
+            Log.d("PDF WRITE", "WRITTEN");
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
