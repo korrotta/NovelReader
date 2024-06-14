@@ -44,6 +44,7 @@ import dalvik.system.DexClassLoader;
 
 public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_CODE_READ_STORAGE = 100;
+    private static final int REQUEST_WRITE_PERMISSION = 111;
     private static final int PERMISSION_REQUEST_CODE = 1;
 
     // URL of the website to scrape novels from
@@ -75,9 +76,10 @@ public class MainActivity extends AppCompatActivity {
         String downloadDirPath = downloadDir.getAbsolutePath();
 
         //create document directory for exporting:
-        File created = ReusableFunction.MakeDirectory( Environment.getExternalStorageDirectory().getAbsolutePath(),"NovelReader");
-        File ExportFolder = ReusableFunction.MakeDirectory(created.getAbsolutePath(),"Export");
-        Log.d("created", created.getAbsolutePath());
+        File exportDir = MainActivity.this.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
+        File newFolder = ReusableFunction.MakeDirectory(exportDir.getAbsolutePath(), "Export");
+        Log.d("created", newFolder.getAbsolutePath());
+
         //generate directory
         makeDirectory(downloadDirPath);
 
@@ -263,6 +265,14 @@ public class MainActivity extends AppCompatActivity {
                 // Permission granted, you can call your export methods here
             } else {
                 // Permission denied, handle the case
+            }
+        }
+        if (requestCode == REQUEST_WRITE_PERMISSION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                //Permission granted
+            }
+            else {
+                //permission denied
             }
         }
     }
