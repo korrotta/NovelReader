@@ -11,6 +11,8 @@ import android.view.animation.AnimationUtils;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.text.HtmlCompat;
 import androidx.fragment.app.Fragment;
 
@@ -26,32 +28,10 @@ public class DetailNovelFragment extends Fragment {
     private TextView detailDescription;
     private Handler handler = new Handler();
     private ProgressBar detailNovelFragmentPB;
+    private Activity parentActivity;
 
     private static final String ARG_NOVEL_URL = "novel_url";
     private String NovelUrl;
-
-    public abstract class BackgroundTask {
-
-        public abstract void onPreExecute();
-        public abstract void doInBackground();
-        public abstract void onPostExecute();
-
-        public void execute() {
-            onPreExecute();
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    doInBackground();
-                    requireActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            onPostExecute();
-                        }
-                    });
-                }
-            }).start();
-        }
-    }
 
     public static DetailNovelFragment newInstance(String novelUrl) {
         // Create a new instance of DetailNovelFragment
@@ -85,11 +65,17 @@ public class DetailNovelFragment extends Fragment {
         // Initialize the views in the layout
         initView(view);
 
-        // Execute the background task to fetch novel details
-        getNovelDetailTask.execute();
-
         // Return the inflated view
         return view;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        this.parentActivity = getActivity();
+
+        // Execute the background task to fetch novel details
+        getNovelDetailTask();
     }
 
     private void initView(View view) {
@@ -100,42 +86,44 @@ public class DetailNovelFragment extends Fragment {
     }
 
     // Background task to fetch novel details
-    private final BackgroundTask getNovelDetailTask = new DetailNovelFragment.BackgroundTask() {
-        NovelDescriptionModel novelDescModel;
+    private void getNovelDetailTask() {
+        new BackgroundTask(parentActivity) {
+            NovelDescriptionModel novelDescModel;
 
-        @Override
-        public void onPreExecute() {
-            // Show progress bar with fade-in animation before task starts
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    detailNovelFragmentPB.setVisibility(View.VISIBLE);
-                    detailNovelFragmentPB.startAnimation(AnimationUtils.loadAnimation(getContext(), android.R.anim.fade_in));
-                }
-            });
-        }
-
-        @Override
-        public void doInBackground() {
-            // Fetch novel details using the scraper in the background
-            Object desc = GlobalConfig.Global_Current_Scraper.getNovelDetail(NovelUrl);
-            if (desc instanceof NovelDescriptionModel) novelDescModel = (NovelDescriptionModel) desc;
-            else {
-                String[] realDesc = (String[]) desc;
-                novelDescModel = new NovelDescriptionModel(realDesc[0], realDesc[1], realDesc[2],realDesc[3]);
+            @Override
+            public void onPreExecute() {
+                // Show progress bar with fade-in animation before task starts
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        detailNovelFragmentPB.setVisibility(View.VISIBLE);
+                        detailNovelFragmentPB.startAnimation(AnimationUtils.loadAnimation(getContext(), android.R.anim.fade_in));
+                    }
+                });
             }
-        }
 
-        @Override
-        public void onPostExecute() {
-            // Update UI with the fetched novel details after task completion
-            // Hide progress bar with fade-out animation after a delay
-            detailNovelFragmentPB.setVisibility(View.GONE);
-            detailNovelFragmentPB.startAnimation(AnimationUtils.loadAnimation(getContext(), android.R.anim.fade_out));
-            // Set the description text in the TextView
-            detailDescription.setText(HtmlCompat.fromHtml(novelDescModel.getDescription(), HtmlCompat.FROM_HTML_MODE_LEGACY));
-        }
+            @Override
+            public void doInBackground() {
+                // Fetch novel details using the scraper in the background
+                Object desc = GlobalConfig.Global_Current_Scraper.getNovelDetail(NovelUrl);
+                if (desc instanceof NovelDescriptionModel) novelDescModel = (NovelDescriptionModel) desc;
+                else {
+                    String[] realDesc = (String[]) desc;
+                    novelDescModel = new NovelDescriptionModel(realDesc[0], realDesc[1], realDesc[2],realDesc[3]);
+                }
+            }
 
-    };
+            @Override
+            public void onPostExecute() {
+                // Update UI with the fetched novel details after task completion
+                // Hide progress bar with fade-out animation after a delay
+                detailNovelFragmentPB.setVisibility(View.GONE);
+                detailNovelFragmentPB.startAnimation(AnimationUtils.loadAnimation(getContext(), android.R.anim.fade_out));
+                // Set the description text in the TextView
+                detailDescription.setText(HtmlCompat.fromHtml(novelDescModel.getDescription(), HtmlCompat.FROM_HTML_MODE_LEGACY));
+            }
+
+        }.execute();
+    }
 
 }
