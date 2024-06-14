@@ -17,6 +17,7 @@ import android.content.DialogInterface;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 
 import android.os.Bundle;
@@ -144,17 +145,6 @@ public class ReadActivity extends AppCompatActivity {
             }
         });
 
-        /*overlayView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //searchEditText.setVisibility(View.GONE);
-                search_layout.setVisibility(View.GONE);
-                overlayView.setVisibility(View.GONE);  // Ẩn overlay khi nhấp vào
-                InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(searchEditText.getWindowToken(), 0);
-            }
-        });*/
-
         // Hanlde search EditText
         searchEditText.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH || event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
@@ -227,7 +217,7 @@ public class ReadActivity extends AppCompatActivity {
         settingsIV.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(ReadActivity.this, "You clicked Settings", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(ReadActivity.this, "You clicked Settings", Toast.LENGTH_SHORT).show();
                 FragmentManager fragmentManager = getSupportFragmentManager();
                 SettingsDialogFragment settingsDialog = new SettingsDialogFragment();
                 settingsDialog.show(fragmentManager, "settings_dialog");
@@ -434,6 +424,10 @@ public class ReadActivity extends AppCompatActivity {
                 chapterNameTV.setText(chapterTitle);
                 chapterContentTV.setText(HtmlCompat.fromHtml(content, HtmlCompat.FROM_HTML_MODE_LEGACY));
 
+                novelNameTV.setTypeface(null, Typeface.BOLD);
+                chapterTitleTV.setTypeface(null, Typeface.BOLD);
+                serverNameTV.setTypeface(null, Typeface.BOLD);
+
                 applyFontChange();
                 applyTextSizeChange();
                 applyThemeChange();
@@ -562,27 +556,68 @@ public class ReadActivity extends AppCompatActivity {
     };
 
 
-    private void applyFontChange() {
+    /*private void applyFontChange() {
         String font = sharedPreferences.getString("font", "Palatino");
         switch (font) {
             case "Palatino":
                 chapterContentTV.setTypeface(ResourcesCompat.getFont(this, R.font.palatino));
+                novelNameTV.setTypeface(ResourcesCompat.getFont(this, R.font.palatino));
+                chapterTitleTV.setTypeface(ResourcesCompat.getFont(this, R.font.palatino));
+                serverNameTV.setTypeface(ResourcesCompat.getFont(this, R.font.palatino));
                 break;
             case "Times":
                 chapterContentTV.setTypeface(ResourcesCompat.getFont(this, R.font.times));
+                novelNameTV.setTypeface(ResourcesCompat.getFont(this, R.font.times));
+                chapterTitleTV.setTypeface(ResourcesCompat.getFont(this, R.font.times));
+                serverNameTV.setTypeface(ResourcesCompat.getFont(this, R.font.times));
                 break;
             case "Arial":
                 chapterContentTV.setTypeface(ResourcesCompat.getFont(this, R.font.arial));
+                novelNameTV.setTypeface(ResourcesCompat.getFont(this, R.font.arial));
+                chapterTitleTV.setTypeface(ResourcesCompat.getFont(this, R.font.arial));
+                serverNameTV.setTypeface(ResourcesCompat.getFont(this, R.font.arial));
                 break;
             case "Georgia":
                 chapterContentTV.setTypeface(ResourcesCompat.getFont(this, R.font.georgia));
+                novelNameTV.setTypeface(ResourcesCompat.getFont(this, R.font.georgia));
+                chapterTitleTV.setTypeface(ResourcesCompat.getFont(this, R.font.georgia));
+                serverNameTV.setTypeface(ResourcesCompat.getFont(this, R.font.georgia));
                 break;
         }
+    }*/
+
+    private void applyFontChange() {
+        String font = sharedPreferences.getString("font", "Palatino");
+        Typeface typeface = null;
+        switch (font) {
+            case "Palatino":
+                typeface = ResourcesCompat.getFont(this, R.font.palatino);
+                break;
+            case "Times":
+                typeface = ResourcesCompat.getFont(this, R.font.times);
+                break;
+            case "Arial":
+                typeface = ResourcesCompat.getFont(this, R.font.arial);
+                break;
+            case "Georgia":
+                typeface = ResourcesCompat.getFont(this, R.font.georgia);
+                break;
+        }
+        if (typeface != null) {
+            chapterContentTV.setTypeface(typeface);
+            novelNameTV.setTypeface(typeface, Typeface.BOLD);
+            chapterTitleTV.setTypeface(typeface, Typeface.BOLD);
+            serverNameTV.setTypeface(typeface, Typeface.BOLD);
+        }
     }
+
 
     private void applyTextSizeChange() {
         int textSize = sharedPreferences.getInt("textSize", 22);
         chapterContentTV.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
+        novelNameTV.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
+        chapterTitleTV.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
+        serverNameTV.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
     }
 
     private void applyThemeChange(){

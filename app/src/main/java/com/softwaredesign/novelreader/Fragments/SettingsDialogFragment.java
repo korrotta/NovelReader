@@ -5,6 +5,7 @@ import static androidx.core.app.ActivityCompat.recreate;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.util.Log;
@@ -79,17 +80,11 @@ public class SettingsDialogFragment extends DialogFragment {
                 editor.putString("theme", "light").apply();
                 getActivity().recreate();
                 dismiss();
-                //AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-                //restartActivity();
-
             } else if (checkedId == R.id.settingsDarkTheme) {
                 editor.putString("theme", "dark").apply();
                 getActivity().recreate();
                 dismiss();
-                //AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-                //restartActivity();
             }
-            //applyThemeChange();
         });
 
         String font = sharedPreferences.getString("font", "Palatino");
@@ -166,77 +161,88 @@ public class SettingsDialogFragment extends DialogFragment {
         return view;
     }
 
-    private void applyFontChange() {
+    /*private void applyFontChange() {
         String font = sharedPreferences.getString("font", "Palatino");
-        TextView chapterContent = getActivity().findViewById(R.id.chapterContentRead);
+        TextView novelNameTV, chapterTitleTV, serverNameTV, chapterContent;
+
+        chapterContent  = getActivity().findViewById(R.id.chapterContentRead);
+        novelNameTV = getActivity().findViewById(R.id.novelNameRead);
+        chapterTitleTV = getActivity().findViewById(R.id.chapterTitleRead);
+        serverNameTV = getActivity().findViewById(R.id.serverNameRead);
+
         switch (font) {
             case "Palatino":
                 chapterContent.setTypeface(ResourcesCompat.getFont(getActivity(), R.font.palatino));
+                novelNameTV.setTypeface(ResourcesCompat.getFont(getActivity(), R.font.palatino));
+                chapterTitleTV.setTypeface(ResourcesCompat.getFont(getActivity(), R.font.palatino));
+                serverNameTV.setTypeface(ResourcesCompat.getFont(getActivity(), R.font.palatino));
                 break;
             case "Times":
                 chapterContent.setTypeface(ResourcesCompat.getFont(getActivity(), R.font.times));
+                novelNameTV.setTypeface(ResourcesCompat.getFont(getActivity(), R.font.times));
+                chapterTitleTV.setTypeface(ResourcesCompat.getFont(getActivity(), R.font.times));
+                serverNameTV.setTypeface(ResourcesCompat.getFont(getActivity(), R.font.times));
                 break;
             case "Arial":
                 chapterContent.setTypeface(ResourcesCompat.getFont(getActivity(), R.font.arial));
+                novelNameTV.setTypeface(ResourcesCompat.getFont(getActivity(), R.font.arial));
+                chapterTitleTV.setTypeface(ResourcesCompat.getFont(getActivity(), R.font.arial));
+                serverNameTV.setTypeface(ResourcesCompat.getFont(getActivity(), R.font.arial));
                 break;
             case "Georgia":
                 chapterContent.setTypeface(ResourcesCompat.getFont(getActivity(), R.font.georgia));
+                novelNameTV.setTypeface(ResourcesCompat.getFont(getActivity(), R.font.georgia));
+                chapterTitleTV.setTypeface(ResourcesCompat.getFont(getActivity(), R.font.georgia));
+                serverNameTV.setTypeface(ResourcesCompat.getFont(getActivity(), R.font.georgia));
                 break;
         }
-    }
-
-    private void applyTextSizeChange(int textSize) {
-        TextView chapterContent = getActivity().findViewById(R.id.chapterContentRead);
-        chapterContent.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
-    }
-
-    /*private void restartActivity() {
-        Intent intent = new Intent(getActivity(), ReadActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
-        getActivity().finish();
     }*/
 
-    private void applyThemeChange(){
-        String theme = sharedPreferences.getString("theme", "dark");
-        if (theme.equals("light")){
-            //getActivity().setTheme(R.style.LightTheme);
-            Log.d("MyActivity", "Light");
+    private void applyFontChange() {
+        String font = sharedPreferences.getString("font", "Palatino");
+        TextView novelNameTV, chapterTitleTV, serverNameTV, chapterContentTV;
+
+        chapterContentTV  = getActivity().findViewById(R.id.chapterContentRead);
+        novelNameTV = getActivity().findViewById(R.id.novelNameRead);
+        chapterTitleTV = getActivity().findViewById(R.id.chapterTitleRead);
+        serverNameTV = getActivity().findViewById(R.id.serverNameRead);
+        Typeface typeface = null;
+        switch (font) {
+            case "Palatino":
+                typeface = ResourcesCompat.getFont(getActivity(), R.font.palatino);
+                break;
+            case "Times":
+                typeface = ResourcesCompat.getFont(getActivity(), R.font.times);
+                break;
+            case "Arial":
+                typeface = ResourcesCompat.getFont(getActivity(), R.font.arial);
+                break;
+            case "Georgia":
+                typeface = ResourcesCompat.getFont(getActivity(), R.font.georgia);
+                break;
         }
-        else {
-            //getActivity().setTheme(R.style.DarkTheme);
-            Log.d("MyActivity", "Dark");
+        if (typeface != null) {
+            chapterContentTV.setTypeface(typeface);
+            novelNameTV.setTypeface(typeface, Typeface.BOLD);
+            chapterTitleTV.setTypeface(typeface, Typeface.BOLD);
+            serverNameTV.setTypeface(typeface, Typeface.BOLD);
         }
-
-        getActivity().recreate();
-        dismiss();
-
-        /*TextView chapterNameTV = getActivity().findViewById(R.id.chapterNameRead);
-        TextView chapterContentTV = getActivity().findViewById(R.id.chapterContentRead);
-        ImageView prevChapterIV = getActivity().findViewById(R.id.previousChapterRead);
-        ImageView nextChapterIV = getActivity().findViewById(R.id.nextChapterRead);
-        ScrollView contentScrollView = getActivity().findViewById(R.id.contentScrollView);
-        AppBarLayout appBarTopLayout = getActivity().findViewById(R.id.topNavRead);
-        AppBarLayout appBarBottomLayout = getActivity().findViewById(R.id.bottomNavRead);
-        //int backgroundColor = ((ColorDrawable) contentScrollView.getBackground()).getColor();
-
-        if (theme.equals("light")) {
-            chapterContentTV.setTextColor(getResources().getColor(R.color.black));
-            chapterNameTV.setTextColor(getResources().getColor(R.color.black));
-            //prevChapterIV.setColorFilter(getResources().getColor(R.color.black));
-            //nextChapterIV.setColorFilter(getResources().getColor(R.color.black));
-            //contentScrollView.setBackgroundColor(getResources().getColor(R.color.white));
-        } else {
-            chapterContentTV.setTextColor(getResources().getColor(R.color.white));
-            chapterNameTV.setTextColor(getResources().getColor(R.color.white));
-            //prevChapterIV.setColorFilter(getResources().getColor(R.color.white));
-            //nextChapterIV.setColorFilter(getResources().getColor(R.color.white));
-            //contentScrollView.setBackgroundColor(backgroundColor);
-            //contentScrollView.setBackgroundColor(getResources().getColor(androidx.cardview.R.color.cardview_dark_background));
-            //appBarTopLayout.setBackgroundColor(((ColorDrawable) appBarTopLayout.getBackground()).getColor());
-
-        }*/
     }
+
+
+    private void applyTextSizeChange(int textSize) {
+        TextView novelNameTV, chapterTitleTV, serverNameTV, chapterContent;
+        chapterContent = getActivity().findViewById(R.id.chapterContentRead);
+        novelNameTV = getActivity().findViewById(R.id.novelNameRead);
+        chapterTitleTV = getActivity().findViewById(R.id.chapterTitleRead);
+        serverNameTV = getActivity().findViewById(R.id.serverNameRead);
+
+        chapterContent.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
+        novelNameTV.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
+        chapterTitleTV.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
+        serverNameTV.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
+    }
+
     @Override
     public void onStart() {
         super.onStart();
