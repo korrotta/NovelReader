@@ -19,9 +19,12 @@ import java.util.List;
 
 public class ReusableFunction {
     public static void LogVariable(Object var){
+        // Get the class of the object
         Class varClass = var.getClass();
+        // Get all public fields of the class
         Field[] fields = varClass.getFields();
         for (Field field: fields) {
+            // Log the name of the field and its value converted to string
             Log.d(field.getName(), var.toString());
         }
     }
@@ -32,6 +35,7 @@ public class ReusableFunction {
     }
 
     public static void ReplaceList(List destinationList, List dataList){
+        // If destinationList is null, initialize it as an empty ArrayList
         if (destinationList == null){
             destinationList = new ArrayList<>();
         }

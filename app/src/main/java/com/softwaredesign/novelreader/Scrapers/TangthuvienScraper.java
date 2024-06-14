@@ -28,24 +28,32 @@ public class TangthuvienScraper implements INovelScraper {
     public ArrayList<NovelModel> getSearchPageFromKeywordAndPageNumber(String keyword, int page) {
         ArrayList<NovelModel> novels = new ArrayList<>();
         try {
+            // Construct the search URL with the keyword and page number
             final String SearchUrl = SEARCH_DEFAULT_URL + keyword + "&page="+page;
+            // Connect to the URL and fetch the document using Jsoup
             Document doc = Jsoup.connect(SearchUrl).get();
 
+            // Select the container element containing the list of novels
             Element novelListElement = doc.select("div.rank-view-list").first();
+            // Select all individual novel elements within the container
             Elements novelElements = novelListElement.select("li");
 
             for (Element novelElement: novelElements){
+                // Select specific elements within each novel element
                 Element imgBox = novelElement.selectFirst("div.book-img-box");
                 Element infoBox = novelElement.selectFirst("div.book-mid-info");
 
+                // Extract relevant data for each novel
                 String name = infoBox.selectFirst("h4").text();
                 String author = infoBox.select("a.name").text();
                 String url = imgBox.select("a[href]").attr("href");
                 String imgUrl = imgBox.select("img.lazy").attr("src");
 
+                // Create a NovelModel object and add it to the list
                 NovelModel novel = new NovelModel(name, url, author, imgUrl);
                 novels.add(novel);
             }
+            // Return the list of novels retrieved from the page
             return novels;
 
         } catch (IOException e) {
@@ -56,29 +64,38 @@ public class TangthuvienScraper implements INovelScraper {
     @Override
     public int getNumberOfSearchResultPage(String keyword) {
         try {
+            // Connect to the search URL with the keyword
             Document doc = Jsoup.connect(SEARCH_DEFAULT_URL + keyword).get();
 
+            // Check if pagination element exists
             Element paginationElement = doc.select("ul.pagination").first();
             if (paginationElement != null) {
                 int max = 0;
+                // Select all page number elements within pagination
                 Elements allPagesElement = paginationElement.select("li");
                 for (Element pageElement : allPagesElement) {
                     Log.d("li check", pageElement.toString());
+                    // Iterate through each page number element
                     String pageNumberAsString = pageElement.text();
                     try {
+                        // Parse page number as integer
                         int pageNumber = Integer.parseInt(pageNumberAsString);
+                        // Track the maximum page number encountered
                         if (pageNumber > max) max = pageNumber;
                     } catch (NumberFormatException e) {
+                        // Ignore and continue if the text is not a valid number
                         continue;
                     }
                 }
+                // Return the maximum page number found
                 return max;
             }
 
+            // If pagination element is not found, check for no result message
             Element bookImgTextElement = doc.select("div.book-img-text").first();
             String text = bookImgTextElement.text();
-            if (text.contains("Không tìm thấy")) return 0;
-            return 1;
+            if (text.contains("Không tìm thấy")) return 0; // Return 0 if no results found
+            return 1; // Return 1 if there is only one page of results
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
@@ -87,19 +104,27 @@ public class TangthuvienScraper implements INovelScraper {
     @Override
     public NovelDescriptionModel getNovelDetail(String url) {
         try {
+            // Connect to the provided URL and retrieve the HTML document
             Document doc = Jsoup.connect(url).get();
 
+            // Extract the novel name
             String name = doc.select("h1").first().text();
+            // Extract the author information
             String author = doc.getElementById("authorId").selectFirst("p").text();
+            // Initialize description with an empty string
             String description = "";
+            // Extract the novel description if available
             Element descriptionElement = doc.select("div.book-intro").first();
             if (descriptionElement != null){
+                // Get the first paragraph inside the description element
                 description = descriptionElement.select("p").first().toString();
             }
+            // Extract the URL for the novel's thumbnail image
             String thumbnailUrl = doc.getElementById("bookImg").select("img").first().attr("src");
 
+            // Create a NovelDescriptionModel object with the extracted information
             NovelDescriptionModel ndm = new NovelDescriptionModel(name, author, description, thumbnailUrl);
-            return ndm;
+            return ndm; // Return the NovelDescriptionModel object
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
