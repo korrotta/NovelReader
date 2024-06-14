@@ -32,16 +32,19 @@ import android.util.Log;
 import android.util.TypedValue;
 
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -206,10 +209,15 @@ public class ReadActivity extends AppCompatActivity {
             }
         });
 
-        // Hanlde chapterList Button
+        // Handle chapterList Button
         saveChapterIV.setOnClickListener(v -> {
             // AlertDialog builder instance to build the alert dialog
             AlertDialog.Builder alertDialog = new AlertDialog.Builder(ReadActivity.this);
+
+            // Inflate the custom layout for the spinner
+            LayoutInflater inflater = getLayoutInflater();
+            View dialogView = inflater.inflate(R.layout.dialog_spinner, null);
+            alertDialog.setView(dialogView);
 
             // set the custom icon to the alert dialog
             alertDialog.setIcon(R.drawable.logo);
@@ -217,31 +225,35 @@ public class ReadActivity extends AppCompatActivity {
             // title of the alert dialog
             alertDialog.setTitle("Tải xuống chương với định dạng");
 
-            // list of the items to be displayed to the user in the
-            // form of list so that user can select the item from
+            // Get the spinner from the custom layout
+            Spinner spinner = dialogView.findViewById(R.id.saveChapterSpinner);
+
+            // List of the items to be displayed in the spinner
             final String[] listItems = new String[]{"EPUB", "PDF"};
 
-            // the function setSingleChoiceItems is the function which
-            // builds the alert dialog with the single item selection
-            int[] checkedItem = {-1};
-            alertDialog.setSingleChoiceItems(listItems, checkedItem[0], (dialog, which) -> {
-                // update the selected item which is selected by the user so that it should be selected
-                // when user opens the dialog next time and pass the instance to setSingleChoiceItems method
-                checkedItem[0] = which;
+            // Create an ArrayAdapter using the string array and a default spinner layout
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(ReadActivity.this, R.layout.custom_spinner_item, listItems);
+            adapter.setDropDownViewResource(R.layout.custom_spinner_dropdown_item);
+            spinner.setAdapter(adapter);
 
-                // when selected an item the dialog should be closed with the dismiss method
+            // Set the negative button if the user is not interested to select or change already selected item
+            alertDialog.setNegativeButton("Cancel", (dialog, which) -> {
+                // Dismiss the dialog
                 dialog.dismiss();
             });
 
-            // set the negative button if the user is not interested to select or change already selected item
-            alertDialog.setNegativeButton("Cancel", (dialog, which) -> {
-
+            // Set the positive button to confirm the selection
+            alertDialog.setPositiveButton("OK", (dialog, which) -> {
+                // Get the selected item
+                String selectedItem = (String) spinner.getSelectedItem();
+                // Handle the selected item
+                // downloadChapter(selectedItem);
             });
 
-            // create and build the AlertDialog instance with the AlertDialog builder instance
+            // Create and build the AlertDialog instance with the AlertDialog builder instance
             AlertDialog customAlertDialog = alertDialog.create();
 
-            // show the alert dialog when the button is clicked
+            // Show the alert dialog when the button is clicked
             customAlertDialog.show();
         });
 
