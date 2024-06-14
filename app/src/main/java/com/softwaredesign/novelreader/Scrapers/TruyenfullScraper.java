@@ -9,6 +9,7 @@ import com.softwaredesign.novelreader.Models.ChapterModel;
 import com.softwaredesign.novelreader.Models.NovelDescriptionModel;
 import com.softwaredesign.novelreader.Models.NovelModel;
 
+import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -221,9 +222,14 @@ public class TruyenfullScraper implements INovelScraper {
             Element chapterBody = doc.select("div.chapter-c").first();
             ChapterContentModel content = new ChapterContentModel(chapterName, url, chapterBody.toString(), title);
             return content;
+        } catch (HttpStatusException e){
+            if (e.getStatusCode() == 503){
+                Log.d("Log", "503");
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        return null;
     }
 
 

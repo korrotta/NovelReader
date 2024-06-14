@@ -24,8 +24,11 @@ import com.example.scraper_library.INovelScraper;
 
 import com.softwaredesign.novelreader.Adapters.ServerSpinnerAdapter;
 import com.softwaredesign.novelreader.BackgroundTask;
+import com.softwaredesign.novelreader.ExportHandlers.EpubExportHandler;
+import com.softwaredesign.novelreader.ExportHandlers.PdfExportHandler;
 import com.softwaredesign.novelreader.Global.GlobalConfig;
 import com.softwaredesign.novelreader.Global.ReusableFunction;
+import com.softwaredesign.novelreader.Interfaces.IChapterExportHandler;
 import com.softwaredesign.novelreader.Models.NovelModel;
 import com.softwaredesign.novelreader.Adapters.NovelAdapter;
 import com.softwaredesign.novelreader.Scrapers.TangthuvienScraper;
@@ -78,16 +81,18 @@ public class MainActivity extends AppCompatActivity {
         //generate directory
         makeDirectory(downloadDirPath);
 
-        // Add source truyenfull
+        //Scraper add:
         INovelScraper truyenfull = new TruyenfullScraper();
-        // Add source tangthuvien
         INovelScraper tangthuvien = new TangthuvienScraper();
-        INovelScraper truyencv = new TruyencvScraper();
-
         GlobalConfig.Global_Source_List.add(truyenfull);
         GlobalConfig.Global_Source_List.add(tangthuvien);
-//        GlobalConfig.Global_Source_List.add(truyencv);
-        //TODO: Plugin architecture for hot plugging new source - truyenchu.vn
+
+        //File format add:
+        IChapterExportHandler pdfExport = new PdfExportHandler();
+        IChapterExportHandler epubExport = new EpubExportHandler();
+
+        GlobalConfig.Global_Exporter_List.add(epubExport);
+        GlobalConfig.Global_Exporter_List.add(pdfExport);
 
         loadAllPlugins(downloadDir);
 

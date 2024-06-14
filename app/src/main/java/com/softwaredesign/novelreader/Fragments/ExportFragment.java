@@ -2,7 +2,6 @@ package com.softwaredesign.novelreader.Fragments;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 
@@ -17,7 +16,6 @@ import androidx.fragment.app.Fragment;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
-import android.text.SpannedString;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,21 +24,27 @@ import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.softwaredesign.novelreader.Adapters.ChapterListSpinnerAdapter;
+import com.softwaredesign.novelreader.Adapters.ExporterSpinnerAdapter;
 import com.softwaredesign.novelreader.BackgroundTask;
+import com.softwaredesign.novelreader.ExportHandlers.HtmlExportHandler;
 import com.softwaredesign.novelreader.ExportHandlers.PdfExportHandler;
+import com.softwaredesign.novelreader.ExportHandlers.TxtExportHandler;
 import com.softwaredesign.novelreader.Global.GlobalConfig;
 import com.softwaredesign.novelreader.Global.ReusableFunction;
+import com.softwaredesign.novelreader.Interfaces.IChapterExportHandler;
 import com.softwaredesign.novelreader.Models.ChapterContentModel;
 import com.softwaredesign.novelreader.Models.ChapterModel;
-import com.softwaredesign.novelreader.Models.NovelModel;
 import com.softwaredesign.novelreader.R;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class ExportFragment extends Fragment {
 
@@ -52,6 +56,7 @@ public class ExportFragment extends Fragment {
     private String NovelUrl;
     private Activity parentActivity;
     private Handler handler = new Handler(Looper.getMainLooper());
+    private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     private List<String> beginPage, endPage;
     private List<ChapterModel> beginChapter, endChapter;
@@ -59,10 +64,13 @@ public class ExportFragment extends Fragment {
     private ChapterListSpinnerAdapter beginChapterAdapter, endChapterAdapter;
     private int numberOfPage;
     private List<ChapterModel> chapters;
+    private static List<ChapterModel> tempList;
 
     private int selectedBeginPage, selectedEndPage;
     private ChapterModel selectedBeginChapter, selectedEndChapter;
     private int beginPageId, endPageId, beginChapterId, endChapterId;
+
+    private ExporterSpinnerAdapter exporterAdapter;
     private static final int PERMISSION_REQUEST_CODE = 1;
 
 //    public abstract class BackgroundTask {
@@ -120,6 +128,7 @@ public class ExportFragment extends Fragment {
 
         initView(view);
         initArrayList();
+
         return view;
     }
 
@@ -186,82 +195,19 @@ public class ExportFragment extends Fragment {
         exportButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                beginPageId = parsePageToId((String )beginPageSpinner.getSelectedItem());
-                endPageId = parsePageToId((String) endPageSpinner.getSelectedItem());
+                getAndExportAll();
+            }
+        });
 
-                selectedBeginChapter = (ChapterModel) beginChapterSpinner.getSelectedItem();
-                selectedEndChapter = (ChapterModel) endChapterSpinner.getSelectedItem();
+        fileFormatSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 
-                Log.d("Selected", selectedBeginChapter.getChapterName());
-                Log.d("Selected", selectedEndChapter.getChapterName());
+            }
 
-                if (beginPageId ==0 || endPageId == 0) return;
-                if (beginPageId > endPageId) return;
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
 
-
-                if (beginPageId == endPageId){
-                    //Export in first page:
-                    boolean beginReach = false;
-                    for (ChapterModel chapter: beginChapter){
-                        if (chapter.getChapterName().equals(selectedEndChapter.getChapterName())){
-                            exportChapter(chapter);
-                            Log.d("Check", selectedEndChapter.getChapterName());
-                            break;
-                        }
-                        if (beginReach){
-                            exportChapter(chapter);
-                            continue;
-                        }
-                        if (chapter.getChapterName().equals(selectedBeginChapter.getChapterName())){
-                            beginReach = true;
-
-                            exportChapter(chapter);
-
-                        }
-                    }
-                    return;
-                }
-
-                //Export in first page:
-                boolean beginReach = false;
-                for (ChapterModel chapter: beginChapter){
-                    if (chapter.getChapterName().equals(selectedEndChapter.getChapterName())){
-                        exportChapter(chapter);
-                        break;
-                    }
-                    if (beginReach){
-                        exportChapter(chapter);
-
-                        continue;
-                    }
-                    if (chapter.getChapterName().equals(selectedBeginChapter.getChapterName())){
-                        beginReach = true;
-                        exportChapter(chapter);
-
-                    }
-                }
-
-                //Export all pages between:
-                for (int i = beginPageId+1; i <= endPageId-1; i++){
-                    if (endPageId - beginPageId <= 1) break;
-                    List<ChapterModel> tempArr = new ArrayList<>();
-                    getChapterListTask(tempArr, null, NovelUrl, i);
-
-                    for (ChapterModel chapter: tempArr){
-                        exportChapter(chapter);
-                    }
-                }
-
-                //If only one page selected
-                if (beginPageId == endPageId) return;
-
-                //Export in last page:
-                for (ChapterModel chapter: endChapter){
-                    exportChapter(chapter);
-                    if (chapter.getChapterName().equals(selectedEndChapter.getChapterName())){
-                        break;
-                    }
-                }
             }
         });
     }
@@ -296,24 +242,22 @@ public class ExportFragment extends Fragment {
 
         endChapterAdapter = new ChapterListSpinnerAdapter(parentActivity, android.R.layout.simple_spinner_item, endChapter);
 
+        exporterAdapter = new ExporterSpinnerAdapter(parentActivity, android.R.layout.simple_spinner_item, GlobalConfig.Global_Exporter_List);
+
         beginPageSpinner.setAdapter(beginPageAdapter);
         endPageSpinner.setAdapter(endPageAdapter);
 
         beginChapterSpinner.setAdapter(beginChapterAdapter);
         endChapterSpinner.setAdapter(endChapterAdapter);
+
+        fileFormatSpinner.setAdapter(exporterAdapter);
     }
 
     private void getNumberOfPagesTask() {
         new BackgroundTask(parentActivity) {
             @Override
             public void onPreExecute() {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        progressBar.setVisibility(View.VISIBLE);
-                        progressBar.startAnimation(AnimationUtils.loadAnimation(parentActivity, android.R.anim.fade_in));
-                    }
-                });
+                showProgressBar();
             }
 
             @Override
@@ -333,13 +277,7 @@ public class ExportFragment extends Fragment {
 
             @Override
             public void onPostExecute() {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        progressBar.setVisibility(View.GONE);
-                        progressBar.startAnimation(AnimationUtils.loadAnimation(parentActivity, android.R.anim.fade_out));
-                    }
-                });
+               hideProgressBar();
                 beginPageAdapter.notifyDataSetChanged();
                 endPageAdapter.notifyDataSetChanged();
             }
@@ -350,9 +288,9 @@ public class ExportFragment extends Fragment {
         return Integer.parseInt(page.split(" ")[1]);
     }
 
-    private void getChapterListTask(List<ChapterModel> refChapters, ChapterListSpinnerAdapter refChapterAdapter, String NovelUrl, int pageId){
-        new BackgroundTask(this.parentActivity){
-
+    private void getAndExportAll(){
+        new BackgroundTask(parentActivity){
+            long finalDelay;
             @Override
             public void onPreExecute() {
                 handler.post(new Runnable() {
@@ -362,14 +300,114 @@ public class ExportFragment extends Fragment {
                         progressBar.startAnimation(AnimationUtils.loadAnimation(parentActivity, android.R.anim.fade_in));
                     }
                 });
+
+                beginPageId = parsePageToId((String )beginPageSpinner.getSelectedItem());
+                endPageId = parsePageToId((String) endPageSpinner.getSelectedItem());
+
+                selectedBeginChapter = (ChapterModel) beginChapterSpinner.getSelectedItem();
+                selectedEndChapter = (ChapterModel) endChapterSpinner.getSelectedItem();
+
+                int begin = 0, end = 0,diff = 0;
+                for (ChapterModel chapter: beginChapter){
+                    if (chapter.getChapterName().equals(selectedBeginChapter.getChapterName())){
+                        begin = beginChapter.indexOf(chapter)+1;
+                        break;
+                    }
+                }
+                for (ChapterModel chapter: endChapter){
+                    if (chapter.getChapterName().equals(selectedEndChapter.getChapterName())){
+                        end = endChapter.indexOf(chapter)+1;
+                        break;
+                    }
+                }
+                if (beginPageId == endPageId) {
+                    diff = end -begin +1;
+                }
+                else {
+                    int pageDiff = endPageId - beginPageId;
+                    final int MAX_CHAPTER = GlobalConfig.Global_Current_Scraper.getNumberOfChaptersPerPage();
+                    diff = pageDiff*MAX_CHAPTER + (beginPage.size() - begin+1) + end;
+                 }
+                Log.d("diff", String.valueOf(diff));
+                finalDelay = diff* 400L;
+            }
+
+            @Override
+            public void doInBackground() {
+                if (beginPageId ==0 || endPageId == 0) return;
+                if (beginPageId > endPageId) return;
+
+                firstPageExportHandling();
+                middlePagesExportHandling();
+                if (beginPageId == endPageId) return;
+                lastPageExportHandling();
+            }
+            @Override
+            public void onPostExecute() {
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        progressBar.setVisibility(View.GONE);
+                        progressBar.startAnimation(AnimationUtils.loadAnimation(parentActivity, android.R.anim.fade_out));
+                        Toast.makeText(parentActivity, "Done after "+ finalDelay, Toast.LENGTH_SHORT).show();
+                    }
+                }, finalDelay);
+            }
+
+            private void lastPageExportHandling() {
+                for (ChapterModel chapter: endChapter){
+                    exportChapter(chapter);
+                    if (chapter.getChapterName().equals(selectedEndChapter.getChapterName())){
+                        break;
+                    }
+                }
+            }
+
+            private void middlePagesExportHandling() {
+                for (int i = beginPageId+1; i <= endPageId-1; i++){
+                    if (endPageId - beginPageId <= 1) {
+                        break;
+                    }
+
+                    List<Object> tempList = GlobalConfig.Global_Current_Scraper.getChapterListInPage(NovelUrl, i);
+                    List<ChapterModel> chapters = identifyingList(tempList);
+
+                    for (ChapterModel chapter: chapters){
+                        exportChapter(chapter);
+                    }
+                }
+            }
+
+            private void firstPageExportHandling() {
+                boolean beginReach = false;
+                for (ChapterModel chapter: beginChapter){
+                    if (chapter.getChapterName().equals(selectedEndChapter.getChapterName())){
+                        exportChapter(chapter);
+                        break;
+                    }
+                    if (beginReach){
+                        exportChapter(chapter);
+                        continue;
+                    }
+                    if (chapter.getChapterName().equals(selectedBeginChapter.getChapterName())){
+                        beginReach = true;
+                        exportChapter(chapter);
+                    }
+                }
+            }
+        }.execute();
+    }
+    private void getChapterListTask(List<ChapterModel> refChapters, ChapterListSpinnerAdapter refChapterAdapter, String NovelUrl, int pageId){
+        new BackgroundTask(this.parentActivity){
+
+            @Override
+            public void onPreExecute() {
+                showProgressBar();
             }
 
             @Override
             public void doInBackground() {
                 List<Object> tempList = GlobalConfig.Global_Current_Scraper.getChapterListInPage(NovelUrl, pageId);
-                if (tempList.size() ==0) {
-                    Log.d("Somehow", "empty here");
-                }
                 List<ChapterModel> chapters = identifyingList(tempList);
                 // Replace the current list of page items with the fetched list
                 ReusableFunction.ReplaceList(refChapters, chapters);
@@ -377,13 +415,8 @@ public class ExportFragment extends Fragment {
 
             @Override
             public void onPostExecute() {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        progressBar.setVisibility(View.GONE);
-                        progressBar.startAnimation(AnimationUtils.loadAnimation(parentActivity, android.R.anim.fade_out));
-                    }
-                });
+                hideProgressBar();
+
                 if (refChapterAdapter == null) return;
                 refChapterAdapter.notifyDataSetChanged();
             }
@@ -408,60 +441,100 @@ public class ExportFragment extends Fragment {
     }
 
     private void exportChapter(ChapterModel chapter){
-        getAndExportChapterContentTask(chapter);
-    }
-
-    private void getAndExportChapterContentTask(ChapterModel chapter){
-        new BackgroundTask(this.parentActivity){
-
+        new ExecutorBackgroundTask(this.parentActivity){
             @Override
             public void onPreExecute() {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        progressBar.setVisibility(View.VISIBLE);
-                        progressBar.startAnimation(AnimationUtils.loadAnimation(parentActivity, android.R.anim.fade_in));
-                    }
-                });
             }
 
             @Override
             public void doInBackground() {
-                ChapterContentModel content =  GlobalConfig.Global_Current_Scraper.getChapterContent(chapter.getChapterUrl());
-                PdfExportHandler ePdf = new PdfExportHandler();
+                Object contentOri = GlobalConfig.Global_Current_Scraper.getChapterContent(chapter.getChapterUrl());
+                ChapterContentModel content;
+                if (contentOri instanceof ChapterContentModel) content = (ChapterContentModel) contentOri;
+                else {
+                    String[] holder = (String[])contentOri;
+                    content = new ChapterContentModel(holder[0], holder[1], holder[2], holder[3]);
+                }
 
                 //NOTE: PERMISSION
                 if (ContextCompat.checkSelfPermission(ExportFragment.this.parentActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                         != PackageManager.PERMISSION_GRANTED) {
                     ActivityCompat.requestPermissions(ExportFragment.this.parentActivity, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
                 } else {
-
                     String dir = Environment.getExternalStorageDirectory().getAbsolutePath()+"/NovelReader/Export";
                     File directory = ReusableFunction.MakeDirectory(dir, content.getNovelName());
-                    ePdf.exportChapter(content.getContent(), directory, content.getChapterName().toString());
+
+                    IChapterExportHandler exporter = (IChapterExportHandler) fileFormatSpinner.getSelectedItem();
+                    exporter.exportChapter(content.getContent(), directory, content.getChapterName().toString());
+                    try {
+                        Thread.sleep(200);
+                        //sleep 2s between each
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             }
 
             @Override
             public void onPostExecute() {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        progressBar.setVisibility(View.GONE);
-                        progressBar.startAnimation(AnimationUtils.loadAnimation(parentActivity, android.R.anim.fade_out));
-                    }
-                });
             }
         }.execute();
-
     }
 
-    private void delay500ms(){
-        handler.postDelayed(new Runnable() {
+    private void showProgressBar(){
+        handler.post(new Runnable() {
             @Override
             public void run() {
+                progressBar.setVisibility(View.VISIBLE);
+                progressBar.startAnimation(AnimationUtils.loadAnimation(parentActivity, android.R.anim.fade_in));
             }
-        }, 500);
-        Log.d("called", "called");
+        });
+    }
+
+    private void hideProgressBar(){
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                progressBar.setVisibility(View.GONE);
+                progressBar.startAnimation(AnimationUtils.loadAnimation(parentActivity, android.R.anim.fade_out));
+            }
+        });
+    }
+
+
+    //Note: Thread with executor
+    public abstract class ExecutorBackgroundTask {
+        private Activity activity;
+
+        public ExecutorBackgroundTask(Activity activity){
+            this.activity = activity;
+            onPreExecute();
+        }
+
+        private void startBackgroundTask() {
+            executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    doInBackground();
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            onPostExecute();
+                        }
+                    });
+                }
+            });
+        }
+
+        public void execute(){
+            startBackgroundTask();
+        }
+
+        public void cancel(){
+            executorService.shutdownNow();
+        }
+        public abstract void onPreExecute();
+        public abstract void doInBackground();
+        public abstract void onPostExecute();
     }
 }
