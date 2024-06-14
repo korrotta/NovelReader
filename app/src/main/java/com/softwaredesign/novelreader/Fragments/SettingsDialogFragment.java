@@ -73,14 +73,22 @@ public class SettingsDialogFragment extends DialogFragment {
         }
 
         modeRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            // Get the SharedPreferences editor to modify preferences
             SharedPreferences.Editor editor = sharedPreferences.edit();
+            // Check which radio button is checked
             if (checkedId == R.id.settingsLightTheme) {
+                // Store "light" theme in SharedPreferences
                 editor.putString("theme", "light").apply();
+                // Recreate the activity to apply the theme change
                 getActivity().recreate();
+                // Dismiss the dialog after theme change
                 dismiss();
             } else if (checkedId == R.id.settingsDarkTheme) {
+                // Store "dark" theme in SharedPreferences
                 editor.putString("theme", "dark").apply();
+                // Recreate the activity to apply the theme change
                 getActivity().recreate();
+                // Dismiss the dialog after theme change
                 dismiss();
             }
         });
@@ -125,28 +133,42 @@ public class SettingsDialogFragment extends DialogFragment {
 
         buttonIncrease.setOnClickListener(v -> {
 
+            // Check if current text size is less than 40
             if (textSize[0] < 40) {
+                // Increment text size by 1
                 textSize[0]++;
+                // Update TextView to display the new text size
                 textSizeTextView.setText(String.valueOf(textSize[0]));
+                // Save the updated text size to SharedPreferences
                 sharedPreferences.edit().putInt("textSize", textSize[0]).apply();
+                // Apply the new text size
                 applyTextSizeChange(textSize[0]);
             }
+            // Adjust alpha (opacity) of buttons based on text size limits
             buttonIncrease.setAlpha(textSize[0] >= 40 ? 0.2f : 1.0f);
             buttonDecrease.setAlpha(textSize[0] <= 16 ? 0.2f : 1.0f);
+            // Adjust clickable state of buttons based on text size limits
             buttonIncrease.setClickable(textSize[0] < 40);
             buttonDecrease.setClickable(textSize[0] > 16);
         });
 
         buttonDecrease.setOnClickListener(v -> {
 
+            // Check if current text size is greater than 16
             if (textSize[0] > 16) {
+                // Decrease text size by 1
                 textSize[0]--;
+                // Update TextView to display the new text size
                 textSizeTextView.setText(String.valueOf(textSize[0]));
+                // Save the updated text size to SharedPreferences
                 sharedPreferences.edit().putInt("textSize", textSize[0]).apply();
+                // Apply the new text size
                 applyTextSizeChange(textSize[0]);
             }
+            // Adjust alpha (opacity) of buttons based on text size limits
             buttonIncrease.setAlpha(textSize[0] >= 40 ? 0.2f : 1.0f);
             buttonDecrease.setAlpha(textSize[0] <= 16 ? 0.2f : 1.0f);
+            // Adjust clickable state of buttons based on text size limits
             buttonIncrease.setClickable(textSize[0] < 40);
             buttonDecrease.setClickable(textSize[0] > 16);
         });
