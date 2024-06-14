@@ -237,6 +237,37 @@ public class TruyenfullScraperTest {
 
 
 
+    @Test
+    public void testGetContentFromNameAndChapName() {
+
+        // Instantiate TruyenfullScraper
+        TruyenfullScraper scraper = new TruyenfullScraper();
+
+        // Call getContentFromNameAndChapName method
+        ChapterContentModel result = scraper.getContentFromNameAndChapName("tự cẩm", "Chương 1");
+
+        // Kiểm tra kết quả trả về
+        assertNotNull("Chapter content should not be null", result);
+        assertNotNull("Chapter content text should not be null", result.getContent());
+
+        // Kiểm tra title và content có hợp lệ không (không rỗng)
+        assertFalse("Chapter content should not be empty", result.getContent().isEmpty());
+    }
+
+    // Invalid test case
+    @Test
+    public void testGetSearchPageFromKeywordAndPageNumberInvalidKeyword() {
+        TruyenfullScraper scraper = new TruyenfullScraper();
+        ArrayList<NovelModel> result = scraper.getSearchPageFromKeywordAndPageNumber("invalidKeyword", 1);
+        assertTrue(result.isEmpty());
+    }
+
+
+
+
+
+    // Testing Unit for important Functions in file TruyenfullScraper
+
 
 
 
