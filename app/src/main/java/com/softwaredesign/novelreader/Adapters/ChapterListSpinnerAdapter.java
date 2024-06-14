@@ -37,7 +37,7 @@ public class ChapterListSpinnerAdapter extends ArrayAdapter<ChapterModel> {
 
         ChapterModel item = chapters.get(position);
 
-        TextView label = (TextView) convertView.findViewById(R.id.exportSpinnerText);
+        TextView label = (TextView) convertView.findViewById(R.id.customSpinnerText);
         label.setTextColor(Color.WHITE);
         label.setText(item.getChapterName());
 
@@ -51,7 +51,7 @@ public class ChapterListSpinnerAdapter extends ArrayAdapter<ChapterModel> {
         }
 
         ChapterModel chapter = chapters.get(position);
-        TextView label = (TextView) convertView.findViewById(R.id.exportSpinnerDropdownText);
+        TextView label = (TextView) convertView.findViewById(R.id.customSpinnerDropdownText);
         label.setTextColor(Color.WHITE);
         label.setText(chapter.getChapterName());
 

@@ -36,7 +36,7 @@ import java.util.List;
 public class ChapterListFragment extends Fragment {
 
     private ImageView prevChapterPage, nextChapterPage;
-    private TextView pageTextView;
+    private TextView pageTextView, chapterListLabel;
     private RecyclerView chapterListRV;
     private Activity parentActivity;
     private ChapterListItemAdapter chapterListItemAdapter;
@@ -48,24 +48,6 @@ public class ChapterListFragment extends Fragment {
 
     private static String NovelUrl;
     private static final String ARG_NOVEL_URL = "novel_url";
-
-/*    public abstract class BackgroundTask {
-
-        public abstract void onPreExecute();
-        public abstract void doInBackground();
-        public abstract void onPostExecute();
-
-        public void execute() {
-            onPreExecute();
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    doInBackground();
-                    requireActivity().runOnUiThread(() -> onPostExecute());
-                }
-            }).start();
-        }
-    }*/
 
     public static ChapterListFragment newInstance(String novelUrl) {
         // Create a new instance of ChapterListFragment
@@ -102,7 +84,6 @@ public class ChapterListFragment extends Fragment {
         classVarInit();
 
         // Return the inflated view
-        this.parentActivity = getActivity();
         return view;
     }
 
@@ -240,7 +221,6 @@ public class ChapterListFragment extends Fragment {
                 // No pre-execution actions needed
                 // Show progress bar with fade-in animation
                 handler.post(() -> {
-                    Log.d("CONTEXT", String.valueOf(parentActivity));
                     chapterListFragmentPB.setVisibility(View.VISIBLE);
                     chapterListFragmentPB.startAnimation(AnimationUtils.loadAnimation(parentActivity, android.R.anim.fade_in));
                 });
@@ -250,7 +230,7 @@ public class ChapterListFragment extends Fragment {
             public void doInBackground() {
                 // Fetch the list of chapters from the specified page URL
                 List<Object> tempList = GlobalConfig.Global_Current_Scraper.getChapterListInPage(NovelUrl, currentPage);
-                if (tempList.size() ==0) {
+                if (tempList.size() == 0) {
                     Log.d("Somehow", "empty here");
                 }
                 List<ChapterModel> chapters = identifyingList(tempList);
@@ -281,7 +261,7 @@ public class ChapterListFragment extends Fragment {
 
     // Background task to fetch the number of chapter pages
 
-    private void getTotalPagesThenNovelListTask(){
+    private void getTotalPagesThenNovelListTask() {
         new BackgroundTask(parentActivity) {
             @Override
             public void onPreExecute() {
@@ -296,21 +276,20 @@ public class ChapterListFragment extends Fragment {
 
             @Override
             public void onPostExecute() {
-
-                // Set up pagination controls and load the first page
-                setupPageControls();
                 // Load the current page
                 loadPage(currentPage);
+                // Set up pagination controls and load the first page
+                setupPageControls();
             }
         }.execute();
     }
-    private List<ChapterModel> identifyingList(List<Object> list){
+
+    private List<ChapterModel> identifyingList(List<Object> list) {
         List<ChapterModel> chapterModels = new ArrayList<>();
-        for (Object item: list){
+        for (Object item : list) {
             if (item instanceof ChapterModel) {
                 chapterModels.add((ChapterModel) item);
-            }
-            else {
+            } else {
                 String[] chapterHolder = (String[]) item;
                 Log.d("Chapter holder", chapterHolder[1]);
                 ChapterModel chapter = new ChapterModel(chapterHolder[0], chapterHolder[1], Integer.parseInt(chapterHolder[2]));

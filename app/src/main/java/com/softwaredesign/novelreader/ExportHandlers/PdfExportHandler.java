@@ -53,7 +53,10 @@ public class PdfExportHandler implements IChapterExportHandler {
         printingLoop(finalContent, pdfDocument, startLine, textPaint, totalLines);
 
         File pdfFile = new File(directory, filename +".pdf");
-        if (pdfFile.exists()) return;
+        if (pdfFile.exists()) {
+            Log.d("PDF EXIST", "YES");
+            return;
+        }
         try {
             pdfDocument.writeTo(new FileOutputStream(pdfFile));
             Log.d("PDF WRITE", "WRITTEN");
