@@ -1,6 +1,7 @@
 package com.softwaredesign.novelreader.Fragments;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -16,11 +17,14 @@ import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.softwaredesign.novelreader.Adapters.ChapterListItemAdapter;
+import com.softwaredesign.novelreader.BackgroundTask;
 import com.softwaredesign.novelreader.Global.GlobalConfig;
 import com.softwaredesign.novelreader.Global.ReusableFunction;
 import com.softwaredesign.novelreader.Models.ChapterModel;
@@ -34,6 +38,7 @@ public class ChapterListFragment extends Fragment {
     private ImageView prevChapterPage, nextChapterPage;
     private TextView pageTextView;
     private RecyclerView chapterListRV;
+    private Activity parentActivity;
     private ChapterListItemAdapter chapterListItemAdapter;
     private static volatile int numberOfPages, currentPage, pageSize;
     private static volatile List<ChapterModel> pageItems;
@@ -44,7 +49,7 @@ public class ChapterListFragment extends Fragment {
     private static String NovelUrl;
     private static final String ARG_NOVEL_URL = "novel_url";
 
-    public abstract class BackgroundTask {
+/*    public abstract class BackgroundTask {
 
         public abstract void onPreExecute();
         public abstract void doInBackground();
@@ -60,7 +65,7 @@ public class ChapterListFragment extends Fragment {
                 }
             }).start();
         }
-    }
+    }*/
 
     public static ChapterListFragment newInstance(String novelUrl) {
         // Create a new instance of ChapterListFragment
@@ -96,18 +101,30 @@ public class ChapterListFragment extends Fragment {
         // Initialize class variables
         classVarInit();
 
+        // Return the inflated view
+        this.parentActivity = getActivity();
+        return view;
+    }
+
+    private void initAdapter() {
+        // Initialize and set the adapter for the chapter list RecyclerView
+        chapterListItemAdapter = new ChapterListItemAdapter(parentActivity, pageItems);
+        chapterListRV.setAdapter(chapterListItemAdapter);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        this.parentActivity = getActivity();
+
         // Execute the background task to fetch the number of chapter pages
         getTotalPagesThenNovelListTask();
 
-        // Initialize and set the adapter for the chapter list RecyclerView
-        chapterListItemAdapter = new ChapterListItemAdapter(getContext(), pageItems);
-        chapterListRV.setAdapter(chapterListItemAdapter);
+        // Initialize adapter
+        initAdapter();
 
         // Handle Pagination
         handlePagination();
-
-        // Return the inflated view
-        return view;
     }
 
     @SuppressLint("SetTextI18n")
@@ -177,7 +194,7 @@ public class ChapterListFragment extends Fragment {
         nextChapterPage = view.findViewById(R.id.nextChapterPage);
 
         // Set up RecyclerView with a GridLayoutManager
-        GridLayoutManager gridLayoutManager = new GridLayoutManager(getContext(), 1);
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(parentActivity, 1);
         chapterListRV.setLayoutManager(gridLayoutManager);
     }
 
@@ -203,7 +220,7 @@ public class ChapterListFragment extends Fragment {
         // Set the current page to the specified page
         currentPage = page;
         // Execute task to fetch chapters for the specified page
-        getChapterListTask.execute();
+        getChapterListTask();
     }
 
     // Method to set up pagination controls
@@ -216,56 +233,56 @@ public class ChapterListFragment extends Fragment {
     }
 
     // Background task to fetch chapter list
-    private final BackgroundTask getChapterListTask = new ChapterListFragment.BackgroundTask() {
-        @Override
-        public void onPreExecute() {
-            // No pre-execution actions needed
-            // Show progress bar with fade-in animation
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
+    private void getChapterListTask() {
+        new BackgroundTask(parentActivity) {
+            @Override
+            public void onPreExecute() {
+                // No pre-execution actions needed
+                // Show progress bar with fade-in animation
+                handler.post(() -> {
+                    Log.d("CONTEXT", String.valueOf(parentActivity));
                     chapterListFragmentPB.setVisibility(View.VISIBLE);
-                    chapterListFragmentPB.startAnimation(AnimationUtils.loadAnimation(getContext(), android.R.anim.fade_in));
-                }
-            });
-        }
-
-        @Override
-        public void doInBackground() {
-            // Fetch the list of chapters from the specified page URL
-            List<Object> tempList = GlobalConfig.Global_Current_Scraper.getChapterListInPage(NovelUrl, currentPage);
-            if (tempList.size() ==0) {
-                Log.d("Somehow", "empty here");
+                    chapterListFragmentPB.startAnimation(AnimationUtils.loadAnimation(parentActivity, android.R.anim.fade_in));
+                });
             }
-            List<ChapterModel> chapters = identifyingList(tempList);
-            // Replace the current list of page items with the fetched list
-            ReusableFunction.ReplaceList(pageItems, chapters);
-        }
 
-        @SuppressLint("NotifyDataSetChanged")
-        @Override
-        public void onPostExecute() {
-            // Hide progress bar with fade-out animation after a delay
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    chapterListFragmentPB.setVisibility(View.GONE);
-                    chapterListFragmentPB.startAnimation(AnimationUtils.loadAnimation(getContext(), android.R.anim.fade_out));
-
+            @Override
+            public void doInBackground() {
+                // Fetch the list of chapters from the specified page URL
+                List<Object> tempList = GlobalConfig.Global_Current_Scraper.getChapterListInPage(NovelUrl, currentPage);
+                if (tempList.size() ==0) {
+                    Log.d("Somehow", "empty here");
                 }
-            });
+                List<ChapterModel> chapters = identifyingList(tempList);
+                // Replace the current list of page items with the fetched list
+                ReusableFunction.ReplaceList(pageItems, chapters);
+            }
 
-            // Notify adapter that data has changed
-            chapterListItemAdapter.updateList(pageItems);
-            chapterListItemAdapter.notifyDataSetChanged();
-        }
-    };
+            @SuppressLint("NotifyDataSetChanged")
+            @Override
+            public void onPostExecute() {
+                // Hide progress bar with fade-out animation after a delay
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        chapterListFragmentPB.setVisibility(View.GONE);
+                        chapterListFragmentPB.startAnimation(AnimationUtils.loadAnimation(parentActivity, android.R.anim.fade_out));
+
+                    }
+                });
+
+                // Notify adapter that data has changed
+                chapterListItemAdapter.updateList(pageItems);
+                chapterListItemAdapter.notifyDataSetChanged();
+            }
+        }.execute();
+    }
 
 
     // Background task to fetch the number of chapter pages
 
     private void getTotalPagesThenNovelListTask(){
-        new ChapterListFragment.BackgroundTask() {
+        new BackgroundTask(parentActivity) {
             @Override
             public void onPreExecute() {
 

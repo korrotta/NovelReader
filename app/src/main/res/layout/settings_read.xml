@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
-    android:layout_height="250dp"
+    android:layout_height="350dp"
     android:background="@drawable/rounded_corner_black_bg"
     android:padding="20dp">
 
@@ -9,18 +9,10 @@
         android:id="@+id/settingsTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/settings"
+        android:text="Tùy Chỉnh"
         android:textColor="@color/white"
         android:textSize="24sp"
         android:textStyle="bold" />
-
-<!--    <ImageView
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:scaleType="centerCrop"
-        android:layout_marginStart="250dp"
-        android:layout_toEndOf="@id/settingsTitle"
-        android:src="@drawable/close" />-->
 
     <TextView
         android:id="@+id/theme"
@@ -28,7 +20,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/settingsTitle"
         android:layout_marginTop="30dp"
-        android:text="@string/theme"
+        android:text="Màu Nền"
         android:textColor="@color/white"
         android:textSize="20sp" />
 
@@ -44,20 +36,18 @@
             android:id="@+id/settingsLightTheme"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:layout_below="@id/settingsTitle"
             android:layout_marginStart="50dp"
-            android:layout_toEndOf="@id/theme"
             android:button="@android:color/transparent"
             android:background="@drawable/light_mode_selector"
+            android:tooltipText="Nền Sáng"
             />
 
         <RadioButton
             android:id="@+id/settingsDarkTheme"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:layout_below="@id/settingsTitle"
             android:layout_marginStart="80dp"
-            android:layout_toEndOf="@id/settingsLightTheme"
+            android:tooltipText="Nền Tối"
             android:button="@android:color/transparent"
             android:background="@drawable/dark_mode_selector"/>
     </RadioGroup>
@@ -68,18 +58,10 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/theme"
         android:layout_marginTop="30dp"
-        android:text="@string/font"
+        android:text="Font Chữ"
         android:textColor="@color/white"
         android:textSize="20sp" />
 
-    <!--<Spinner
-        android:id="@+id/fontSpinner"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/theme"
-        android:layout_toEndOf="@+id/font"
-        android:layout_marginTop="30dp"
-        android:layout_marginStart="20dp"/>-->
     <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -95,13 +77,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
-            <!--android:layout_below="@+id/theme"
-            android:layout_marginStart="10dp"
-            android:layout_marginTop="30dp"
-            android:layout_marginEnd="10dp"
-            android:layout_marginBottom="10dp"
-            android:layout_toEndOf="@+id/font"-->
-
 
             <RadioButton
                 android:id="@+id/fontPalatino"
@@ -160,7 +135,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/font"
         android:layout_marginTop="30dp"
-        android:text="@string/text_size"
+        android:text="Kích Thước Chữ"
         android:textColor="@color/white"
         android:textSize="20sp" />
 
@@ -181,7 +156,8 @@
             android:layout_width="60dp"
             android:layout_height="wrap_content"
             android:text="A-"
-            android:textSize="15sp"
+            android:tooltipText="Giảm kích thước"
+            android:textSize="18sp"
             android:background="@drawable/font_size_button_background_selector_left"
             android:textColor="@drawable/font_text_color_selector"
             />
@@ -198,7 +174,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="26"
-            android:textSize="15sp"
+            android:textSize="18sp"
             android:layout_marginHorizontal="10dp"
             android:textColor="@color/black"
             />
@@ -215,9 +191,48 @@
             android:layout_width="60dp"
             android:layout_height="wrap_content"
             android:text="A+"
-            android:textSize="15sp"
+            android:textSize="18sp"
+            android:tooltipText="Tăng kích thước"
             android:background="@drawable/font_size_button_background_selector_right"
             android:textColor="@drawable/font_text_color_selector"/>
+    </LinearLayout>
+
+    <!-- Line Spacing Label -->
+    <TextView
+        android:id="@+id/line_spacing_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/font_size"
+        android:layout_marginTop="30dp"
+        android:text="Khoảng Cách Dòng"
+        android:textColor="@color/white"
+        android:textSize="20sp" />
+
+    <!-- Line Spacing SeekBar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/line_spacing_label"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <SeekBar
+            android:id="@+id/line_spacing_seekbar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:max="13" />
+
+        <!-- TextView for displaying the current line spacing -->
+        <TextView
+            android:id="@+id/line_spacing_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1.0"
+            android:textSize="18sp"
+            android:layout_marginStart="10dp"
+            android:textColor="@color/white" />
     </LinearLayout>
 
 </RelativeLayout>
