@@ -62,5 +62,10 @@ dependencies {
 
     // Import Android Paging Runtime
     implementation ("androidx.paging:paging-runtime:3.3.0")
+//    implementation ("org.apache.poi:poi:5.2.2")
+//    implementation ("org.apache.poi:poi-ooxml:5.2.2")
 
+    implementation("com.positiondev.epublib:epublib-core:3.1") {
+        exclude(group = "xmlpull", module = "xmlpull")
+    }
 }
