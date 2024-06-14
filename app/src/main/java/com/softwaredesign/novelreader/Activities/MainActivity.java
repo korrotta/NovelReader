@@ -22,6 +22,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.scraper_library.INovelScraper;
+import com.softwaredesign.novelreader.Adapters.NovelAdapter;
 import com.softwaredesign.novelreader.Adapters.ServerSpinnerAdapter;
 import com.softwaredesign.novelreader.BackgroundTask;
 import com.softwaredesign.novelreader.ExportHandlers.EpubExportHandler;
@@ -30,12 +31,14 @@ import com.softwaredesign.novelreader.Global.GlobalConfig;
 import com.softwaredesign.novelreader.Global.ReusableFunction;
 import com.softwaredesign.novelreader.Interfaces.IChapterExportHandler;
 import com.softwaredesign.novelreader.Models.NovelModel;
+import com.softwaredesign.novelreader.R;
 import com.softwaredesign.novelreader.Scrapers.TangthuvienScraper;
 import com.softwaredesign.novelreader.Scrapers.TruyencvScraper;
 import com.softwaredesign.novelreader.Scrapers.TruyenfullScraper;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import dalvik.system.DexClassLoader;
@@ -173,12 +176,6 @@ public class MainActivity extends AppCompatActivity {
             AlertDialog alertDialog = builder.create();
             alertDialog.show();
         });
-    }
-
-    private void gridViewInit(GridLayoutManager gridLayoutManager) {
-        recyclerView.setLayoutManager(gridLayoutManager);
-        novelAdapter = new NovelAdapter(MainActivity.this, novelList);
-        recyclerView.setAdapter(novelAdapter);
     }
 
     private void gridViewInit(GridLayoutManager gridLayoutManager) {
