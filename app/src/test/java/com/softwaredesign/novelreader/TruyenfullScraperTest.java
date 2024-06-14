@@ -18,6 +18,9 @@ import java.util.List;
 
 public class TruyenfullScraperTest {
 
+
+
+
     @Test
     public void testGetSearchPageFromKeywordAndPageNumber() {
         // Instantiate TruyenfullScraper
@@ -29,6 +32,9 @@ public class TruyenfullScraperTest {
         // Assert the results
         assertNotNull(result);
     }
+
+
+
 
     @Test
     public void testGetNovelDetail() {
@@ -47,6 +53,9 @@ public class TruyenfullScraperTest {
         assertNotNull(detail);
     }
 
+
+
+
     @Test
     public void testGetHomePage() {
 
@@ -59,6 +68,9 @@ public class TruyenfullScraperTest {
         // Assert the results
         assertNotNull(result);
     }
+
+
+
 
     @Test
     public void testGetChapterListInPage() {
@@ -80,6 +92,8 @@ public class TruyenfullScraperTest {
         assertNotNull(chapters);
     }
 
+
+
     @Test
     public void testGetNumberOfSearchResultPage() {
 
@@ -92,6 +106,9 @@ public class TruyenfullScraperTest {
         // Assert the results
         assertNotNull(result);
     }
+
+
+
 
     @Test
     public void testGetChapterListNumberOfPages() {
@@ -108,6 +125,32 @@ public class TruyenfullScraperTest {
         // Assert the results
         assertNotNull(result);
     }
+
+
+
+    @Test
+    public void testGetChapterContent() {
+
+        // Instantiate TruyenfullScraper
+        TruyenfullScraper scraper = new TruyenfullScraper();
+
+        // Call getChapterContent method
+        ChapterContentModel result = scraper.getChapterContent("https://truyenfull.vn/tao-hoa-chi-mon/chuong-1-1/");
+
+        // Kiểm tra kết quả trả về
+        assertNotNull("Chapter content should not be null", result);
+
+        // Assert the results
+        assertNotNull("Chapter content text should not be null", result.getContent());
+
+        // Kiểm tra  content có hợp lệ không (không rỗng)
+        assertFalse("Chapter content should not be empty", result.getContent().isEmpty());
+
+    }
+
+
+
+
 
 }
 
