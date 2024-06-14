@@ -6,17 +6,17 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:icon="@drawable/list"
-        android:title="@string/chapters_list" />
+        android:title="Danh sách chương" />
     <item
         android:id="@+id/detailBottomNavDetail"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:icon="@drawable/info"
-        android:title="@string/detail" />
+        android:title="Thông tin" />
     <item
         android:id="@+id/detailBottomNavExport"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:icon="@drawable/download"
-        android:title="@string/export" />
+        android:title="Tải xuống" />
 </menu>
