@@ -196,12 +196,18 @@ public class TruyencvScraper implements INovelScraper {
     public List<NovelModel> getHomePage() {
         List<NovelModel> novels = new ArrayList<>();
         try {
+            // Connect to the HOME_PAGE_URL and retrieve the HTML document
             Document document = Jsoup.connect(HOME_PAGE_URL).get();
+            // Select the <div> element with class 'grid' which contains the list of novels
             Element hot = document.selectFirst("div.grid");
+            // Select all <div> elements with itemtype equal to ITEM_TYPE
             Elements books = hot.select("div[itemtype=" + ITEM_TYPE + "]");
             for (Element book: books){
+                // Extract novel name from the <a> element's 'title' attribute
                 String name = book.selectFirst("a[href]").attr("title");
+                // Extract URL of the novel from the <a> element's 'href' attribute
                 String url = book.selectFirst("a[href]").attr("href");
+                // Extract URL of the novel's image from the <img> element's 'src' attribute
                 String img = book.selectFirst("img[src]").attr("src");
                 String author = ""; //Note: No author needed here for main page, not a fault.
 
@@ -213,7 +219,6 @@ public class TruyencvScraper implements INovelScraper {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
     }
 
     @Override
@@ -279,6 +284,7 @@ public class TruyencvScraper implements INovelScraper {
         int numberOfPage = getNumberOfSearchResultPage(name); //name as a keyword;
         NovelModel wantedNovel =null;
         List<NovelModel> results = new ArrayList<>();
+        // Fetch all novels from search results across all pages
         for (int i = 1; i<= numberOfPage; i++){
             results.addAll(getSearchPageFromKeywordAndPageNumber(name, i));
         }
@@ -289,11 +295,13 @@ public class TruyencvScraper implements INovelScraper {
                 break; //get first one only, who care?
             }
         }
+        // If no novel with the specified name is found, return null
         if (!isBreak) return null;
         Log.d("Wanted novel ", wantedNovel.getUrl()); //NOTE: ok
 
         //NOTE 2: Search for the wanted chapter
         ChapterModel resultChapter = smartChapterSearch(wantedNovel.getUrl(), chapterName);
+        // If the chapter is not found, return null
         if (resultChapter == null) return null;
         return getChapterContent(resultChapter.getChapterUrl());
     }
@@ -311,22 +319,28 @@ public class TruyencvScraper implements INovelScraper {
     //NOTE:BORDER-----------------------------------------------------------------------------------
 
     private String parseUrlForPageId(String url){
+        // Split the URL by "=" to get parts
         String[] holder = url.split("=");
+        // Return the last part of the split array, which should be the page ID
         return holder[holder.length-1];
-
     }
 
     private String parseChapterListUrlForPageId(String url){
+        // Split the URL by "?" to isolate the query part
         String[] holder = url.split("\\?");
+        // Split the last part by "/" to further isolate components
         String[] holder2 = holder[holder.length-1].split("/");
+        // Split the first part of subParts by "=" to extract the page ID
         String finalString = holder2[0].split("=")[1];
         return finalString;
     }
 
     private String capitalizeFirstLetterOfWord(String sentence){
+        // Split the sentence into words based on spaces
         String[] holder = sentence.split(" ");
         String finalSentence = "";
         for (int i= 0; i< holder.length; i++){
+            // Capitalize the first letter of the word and append it to finalSentence
             finalSentence = finalSentence + captializeLetter(holder[i]);
             finalSentence += " ";
         }
@@ -374,29 +388,37 @@ public class TruyencvScraper implements INovelScraper {
         }
     }
     private int parseIdFromChapterName(String chapterName){
+        // Replace ":" with space to handle potential separators
         chapterName = chapterName.replaceAll(":", " ");
+        // Split the chapter name into words
         String[] holder = chapterName.split("\\s+");
         String possibleId;
         int id;
         if (chapterName.toUpperCase().contains("CHƯƠNG")){
+            // If the chapter name contains "CHƯƠNG", assume the ID is after it
             possibleId = holder[1];
         }
         else {
+            // Otherwise, assume the ID is the first word
             possibleId = holder[0];
         }
         try {
             id = Integer.parseInt(possibleId);
             return id;
         }catch (NumberFormatException e){
+            // Return -1 if parsing fails
             return -1;
         }
     }
 
     private ChapterModel searchChapterById(List<ChapterModel> list, int id){
         for (ChapterModel chapterModel: list){
+            // Parse the chapter ID from the chapter name
             int chapterId = parseIdFromChapterName(chapterModel.getChapterName());
-            if (chapterId == id) return chapterModel;
+            // Check if the parsed chapter ID matches the specified ID
+            if (chapterId == id) return chapterModel; // Return the ChapterModel if IDs match
         }
+        // Return null if no ChapterModel with the specified ID is found
         return null;
     }
 }
