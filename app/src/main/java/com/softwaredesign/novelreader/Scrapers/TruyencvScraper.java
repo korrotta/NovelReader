@@ -104,11 +104,17 @@ public class TruyencvScraper implements INovelScraper {
     @Override
     public NovelDescriptionModel getNovelDetail(String url) {
         try {
+            // Connect to the provided URL and retrieve the HTML document
             Document doc = Jsoup.connect(url).get();
+            // Select the <div> element with the specified item type (ITEM_TYPE)
             Element info = doc.selectFirst("div[itemtype="+ITEM_TYPE+"]");
+            // Extract the novel name from the first <h3> element within the info <div>
             String name = info.selectFirst("h3").text();
+            // Extract the author name from the <span> element with itemprop='name' within the author <div>
             String author = info.selectFirst("div[itemprop=author]").selectFirst("span[itemprop=name]").text();
+            // Extract the description from the element with id 'gioi-thieu-truyen'
             String description = doc.getElementById("gioi-thieu-truyen").toString();
+            // Extract the URL of the novel's image from the <img> element with 'src' attribute within the info <div>
             String img = info.selectFirst("img[src]").attr("src");
             NovelDescriptionModel ndm = new NovelDescriptionModel(name, author, description, img);
             return ndm;
