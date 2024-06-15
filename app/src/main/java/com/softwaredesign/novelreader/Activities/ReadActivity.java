@@ -224,6 +224,7 @@ public class ReadActivity extends AppCompatActivity {
     }
 
     // scroll to search result function
+    @SuppressLint("SetTextI18n")
     private void scrollToSearchResult(boolean forceScroll) {
         if (!searchResults.isEmpty() && currentSearchIndex < searchResults.size()) {
             int position = searchResults.get(currentSearchIndex);
@@ -463,6 +464,7 @@ public class ReadActivity extends AppCompatActivity {
             if (path != null && path.length() > 0 && path.charAt(path.length() - 1) == '/') {
                 path = path.substring(0, path.length() - 1);
             }
+            assert path != null;
             int lastIndex = path.lastIndexOf('/');
             if (lastIndex != -1) {
                 path = path.substring(0, lastIndex + 1);
@@ -480,8 +482,6 @@ public class ReadActivity extends AppCompatActivity {
     private void navigateToDetail() {
         // Change chapterUrl to novelUrl
         String novelUrl = chapterToNovelUrl(chapterUrl);
-        Log.d("CHAPTERURL", chapterUrl);
-        Log.d("NOVELURL", novelUrl);
         // Go back to chapter list
         ReusableFunction.ChangeActivityWithString(ReadActivity.this, DetailActivity.class, "NovelUrl", novelUrl);
         finish();
@@ -542,39 +542,33 @@ public class ReadActivity extends AppCompatActivity {
 
             @Override
             public void onPostExecute() {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.d("End progress bar", " Bar");
-                        progressBar.setVisibility(View.GONE);
-                        progressBar.startAnimation(AnimationUtils.loadAnimation(ReadActivity.this, android.R.anim.fade_out));
-                    }
+                handler.post(() -> {
+                    Log.d("End progress bar", " Bar");
+                    progressBar.setVisibility(View.GONE);
+                    progressBar.startAnimation(AnimationUtils.loadAnimation(ReadActivity.this, android.R.anim.fade_out));
                 });
 
 
                 String[] tempServerArray = availableSourceList.toArray(new String[availableSourceList.size()]);
 
                 //Dialog setup & run below
-                alertDialog.setSingleChoiceItems(tempServerArray, selectedItem[0], new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        // Update the selected item which is selected by the user so that it should be selected
-                        // When user opens the dialog next time and pass the instance to setSingleChoiceItems method
-                        selectedItem[0] = which;
-                        String scraperName = availableSourceList.get(which);
-                        //Note: 1st para for getChapterContent
-                        readerServer = ScraperFactory.createScraper(scraperName);
+                alertDialog.setSingleChoiceItems(tempServerArray, selectedItem[0], (dialog, which) -> {
+                    // Update the selected item which is selected by the user so that it should be selected
+                    // When user opens the dialog next time and pass the instance to setSingleChoiceItems method
+                    selectedItem[0] = which;
+                    String scraperName = availableSourceList.get(which);
+                    //Note: 1st para for getChapterContent
+                    readerServer = ScraperFactory.createScraper(scraperName);
 
-                        for (String[] data : serverFetchedLink) {
-                            if (data[0].equalsIgnoreCase(scraperName)) {
-                                chapterUrl = data[1]; //Note: 2nd para for getChapterContent
-                                break;
-                            }
+                    for (String[] data : serverFetchedLink) {
+                        if (data[0].equalsIgnoreCase(scraperName)) {
+                            chapterUrl = data[1]; //Note: 2nd para for getChapterContent
+                            break;
                         }
-
-                        getChapterContentTask();
-                        dialog.dismiss();
                     }
+
+                    getChapterContentTask();
+                    dialog.dismiss();
                 });
                 // Set the negative button if the user is not interested to select or change already selected item
                 alertDialog.setNegativeButton("Hủy", (dialog, which) -> {
@@ -718,9 +712,6 @@ public class ReadActivity extends AppCompatActivity {
             // Get the spinner from the custom layout
             Spinner spinner = dialogView.findViewById(R.id.saveChapterSpinner);
 
-            // List of the items to be displayed in the spinner
-            final String[] listItems = new String[]{"EPUB", "PDF"};
-
             // Create an ArrayAdapter using the string array and a default spinner layout
             ExporterSpinnerAdapter adapter = new ExporterSpinnerAdapter(ReadActivity.this,
                     android.R.layout.simple_spinner_item,GlobalConfig.Global_Exporter_List);
@@ -728,7 +719,7 @@ public class ReadActivity extends AppCompatActivity {
             spinner.setAdapter(adapter);
 
             // Set the negative button if the user is not interested to select or change already selected item
-            alertDialog.setNegativeButton("Cancel", (dialog, which) -> {
+            alertDialog.setNegativeButton("Hủy", (dialog, which) -> {
                 // Dismiss the dialog
                 dialog.dismiss();
             });
