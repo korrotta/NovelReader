@@ -431,6 +431,7 @@ public class ReadActivity extends AppCompatActivity {
         prevChapterIV.setVisibility(View.GONE);
     }
 
+    // get Chapter Content Task function
     private void getChapterContentTask() {
         new BackgroundTask(ReadActivity.this) {
             @Override
@@ -484,6 +485,7 @@ public class ReadActivity extends AppCompatActivity {
                 chapterNameTV.setText(chapterTitle);
                 chapterContentTV.setText(HtmlCompat.fromHtml(content, HtmlCompat.FROM_HTML_MODE_LEGACY));
 
+                // Set Bold for these 3 line
                 novelNameTV.setTypeface(null, Typeface.BOLD);
                 chapterTitleTV.setTypeface(null, Typeface.BOLD);
                 serverNameTV.setTypeface(null, Typeface.BOLD);
@@ -502,6 +504,7 @@ public class ReadActivity extends AppCompatActivity {
     }
 
 
+    // Apply Font Change Function
     private void applyFontChange() {
         String font = sharedPreferences.getString("font", "Palatino");
         Typeface typeface = null;
@@ -525,11 +528,13 @@ public class ReadActivity extends AppCompatActivity {
     }
 
 
+    // apply text size change function
     private void applyTextSizeChange() {
         int textSize = sharedPreferences.getInt("textSize", 22);
         chapterContentTV.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
     }
 
+    // apply Theme Change Function
     private void applyThemeChange() {
         String theme = sharedPreferences.getString("theme", "dark");
 
@@ -567,6 +572,7 @@ public class ReadActivity extends AppCompatActivity {
         }
     }
 
+    // apply Line Spacing Change function
     private void applyLineSpacingChange() {
         float lineSpacing = sharedPreferences.getFloat("lineSpacing", 1.0f);
         chapterContentTV.setLineSpacing(1.0f, lineSpacing);
