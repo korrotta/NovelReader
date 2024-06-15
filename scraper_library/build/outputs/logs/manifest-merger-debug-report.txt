@@ -1,16 +1,16 @@
 -- Merging decision tree log ---
 manifest
-ADDED from F:\K21_HCMUS\NAM-3-HK2\TKPM\Project_Final\NovelReader\NovelReader\scraper_library\src\main\AndroidManifest.xml:2:1-4:12
-INJECTED from F:\K21_HCMUS\NAM-3-HK2\TKPM\Project_Final\NovelReader\NovelReader\scraper_library\src\main\AndroidManifest.xml:2:1-4:12
+ADDED from D:\IT\Github\NovelReader\scraper_library\src\main\AndroidManifest.xml:2:1-4:12
+INJECTED from D:\IT\Github\NovelReader\scraper_library\src\main\AndroidManifest.xml:2:1-4:12
 	package
-		INJECTED from F:\K21_HCMUS\NAM-3-HK2\TKPM\Project_Final\NovelReader\NovelReader\scraper_library\src\main\AndroidManifest.xml
+		INJECTED from D:\IT\Github\NovelReader\scraper_library\src\main\AndroidManifest.xml
 	xmlns:android
-		ADDED from F:\K21_HCMUS\NAM-3-HK2\TKPM\Project_Final\NovelReader\NovelReader\scraper_library\src\main\AndroidManifest.xml:2:11-69
+		ADDED from D:\IT\Github\NovelReader\scraper_library\src\main\AndroidManifest.xml:2:11-69
 uses-sdk
-INJECTED from F:\K21_HCMUS\NAM-3-HK2\TKPM\Project_Final\NovelReader\NovelReader\scraper_library\src\main\AndroidManifest.xml reason: use-sdk injection requested
-INJECTED from F:\K21_HCMUS\NAM-3-HK2\TKPM\Project_Final\NovelReader\NovelReader\scraper_library\src\main\AndroidManifest.xml
-INJECTED from F:\K21_HCMUS\NAM-3-HK2\TKPM\Project_Final\NovelReader\NovelReader\scraper_library\src\main\AndroidManifest.xml
+INJECTED from D:\IT\Github\NovelReader\scraper_library\src\main\AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from D:\IT\Github\NovelReader\scraper_library\src\main\AndroidManifest.xml
+INJECTED from D:\IT\Github\NovelReader\scraper_library\src\main\AndroidManifest.xml
 	android:targetSdkVersion
-		INJECTED from F:\K21_HCMUS\NAM-3-HK2\TKPM\Project_Final\NovelReader\NovelReader\scraper_library\src\main\AndroidManifest.xml
+		INJECTED from D:\IT\Github\NovelReader\scraper_library\src\main\AndroidManifest.xml
 	android:minSdkVersion
-		INJECTED from F:\K21_HCMUS\NAM-3-HK2\TKPM\Project_Final\NovelReader\NovelReader\scraper_library\src\main\AndroidManifest.xml
+		INJECTED from D:\IT\Github\NovelReader\scraper_library\src\main\AndroidManifest.xml
