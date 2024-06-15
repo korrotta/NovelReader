@@ -441,6 +441,7 @@ public class ReadActivity extends AppCompatActivity {
         prevChapterIV.setVisibility(View.GONE);
     }
 
+    // get Chapter Content Task function
     private void getChapterContentTask() {
         new BackgroundTask(ReadActivity.this) {
             @Override
@@ -494,6 +495,7 @@ public class ReadActivity extends AppCompatActivity {
                 chapterNameTV.setText(chapterTitle);
                 chapterContentTV.setText(HtmlCompat.fromHtml(content, HtmlCompat.FROM_HTML_MODE_LEGACY));
 
+                // Set Bold for these 3 line
                 novelNameTV.setTypeface(null, Typeface.BOLD);
                 chapterTitleTV.setTypeface(null, Typeface.BOLD);
                 serverNameTV.setTypeface(null, Typeface.BOLD);
@@ -510,6 +512,80 @@ public class ReadActivity extends AppCompatActivity {
         }.execute();
     }
 
+    // Apply Font Change Function
+    private void applyFontChange() {
+        String font = sharedPreferences.getString("font", "Palatino");
+        Typeface typeface = null;
+        switch (font) {
+            case "Palatino":
+                typeface = ResourcesCompat.getFont(this, R.font.palatino);
+                break;
+            case "Times":
+                typeface = ResourcesCompat.getFont(this, R.font.times);
+                break;
+            case "Arial":
+                typeface = ResourcesCompat.getFont(this, R.font.arial);
+                break;
+            case "Georgia":
+                typeface = ResourcesCompat.getFont(this, R.font.georgia);
+                break;
+        }
+        if (typeface != null) {
+            chapterContentTV.setTypeface(typeface);
+        }
+    }
+
+
+    // apply text size change function
+    private void applyTextSizeChange() {
+        int textSize = sharedPreferences.getInt("textSize", 22);
+        chapterContentTV.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
+    }
+
+    // apply Theme Change Function
+    private void applyThemeChange() {
+        String theme = sharedPreferences.getString("theme", "dark");
+
+
+        if (theme.equals("light")) {
+            serverNameTV.setTextColor(ContextCompat.getColor(this, R.color.black));
+            chapterTitleTV.setTextColor(ContextCompat.getColor(this, R.color.black));
+            novelNameTV.setTextColor(ContextCompat.getColor(this, R.color.black));
+            chapterNameTV.setTextColor(ContextCompat.getColor(this, R.color.black));
+            chapterContentTV.setTextColor(ContextCompat.getColor(this, R.color.black));
+            topAppBar.setBackgroundColor(ContextCompat.getColor(this, R.color.floral_white));
+            bottomAppBar.setBackgroundColor(ContextCompat.getColor(this, R.color.floral_white));
+            prevChapterIV.setColorFilter(ContextCompat.getColor(this, R.color.black));
+            nextChapterIV.setColorFilter(ContextCompat.getColor(this, R.color.black));
+            saveChapterIV.setColorFilter(ContextCompat.getColor(this, R.color.black));
+            serverIV.setColorFilter(ContextCompat.getColor(this, R.color.black));
+            settingsIV.setColorFilter(ContextCompat.getColor(this, R.color.black));
+            findInChapterIV.setColorFilter(ContextCompat.getColor(this, R.color.black));
+            contentScrollView.setBackgroundColor(ContextCompat.getColor(this, R.color.white));
+        } else {
+            serverNameTV.setTextColor(ContextCompat.getColor(this, R.color.white));
+            chapterTitleTV.setTextColor(ContextCompat.getColor(this, R.color.white));
+            novelNameTV.setTextColor(ContextCompat.getColor(this, R.color.white));
+            chapterNameTV.setTextColor(ContextCompat.getColor(this, R.color.white));
+            chapterContentTV.setTextColor(ContextCompat.getColor(this, R.color.white));
+            topAppBar.setBackgroundColor(ContextCompat.getColor(this, R.color.backgroundMaterialDark));
+            bottomAppBar.setBackgroundColor(ContextCompat.getColor(this, R.color.backgroundMaterialDark));
+            prevChapterIV.setColorFilter(ContextCompat.getColor(this, R.color.white));
+            nextChapterIV.setColorFilter(ContextCompat.getColor(this, R.color.white));
+            saveChapterIV.setColorFilter(ContextCompat.getColor(this, R.color.white));
+            serverIV.setColorFilter(ContextCompat.getColor(this, R.color.white));
+            settingsIV.setColorFilter(ContextCompat.getColor(this, R.color.white));
+            findInChapterIV.setColorFilter(ContextCompat.getColor(this, R.color.white));
+            contentScrollView.setBackgroundColor(ContextCompat.getColor(this, androidx.cardview.R.color.cardview_dark_background));
+        }
+    }
+
+    // apply Line Spacing Change function
+    private void applyLineSpacingChange() {
+        float lineSpacing = sharedPreferences.getFloat("lineSpacing", 1.0f);
+        chapterContentTV.setLineSpacing(1.0f, lineSpacing);
+    }
+  
     private void getContentFromNameAndChapterTask() {
 
         if (availableSourceList == null) return;
@@ -626,76 +702,6 @@ public class ReadActivity extends AppCompatActivity {
             getChapterContentTask();
         }
     };
-
-    private void applyFontChange() {
-        String font = sharedPreferences.getString("font", "Palatino");
-        Typeface typeface = null;
-        switch (font) {
-            case "Palatino":
-                typeface = ResourcesCompat.getFont(this, R.font.palatino);
-                break;
-            case "Times":
-                typeface = ResourcesCompat.getFont(this, R.font.times);
-                break;
-            case "Arial":
-                typeface = ResourcesCompat.getFont(this, R.font.arial);
-                break;
-            case "Georgia":
-                typeface = ResourcesCompat.getFont(this, R.font.georgia);
-                break;
-        }
-        if (typeface != null) {
-            chapterContentTV.setTypeface(typeface);
-            novelNameTV.setTypeface(typeface, Typeface.BOLD);
-            chapterTitleTV.setTypeface(typeface, Typeface.BOLD);
-            serverNameTV.setTypeface(typeface, Typeface.BOLD);
-        }
-    }
-
-
-    private void applyTextSizeChange() {
-        int textSize = sharedPreferences.getInt("textSize", 22);
-        chapterContentTV.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
-        novelNameTV.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
-        chapterTitleTV.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
-        serverNameTV.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
-    }
-
-    private void applyThemeChange(){
-        String theme = sharedPreferences.getString("theme", "dark");
-
-        if (theme.equals("light")) {
-            serverNameTV.setTextColor(getResources().getColor(R.color.black));
-            chapterTitleTV.setTextColor(getResources().getColor(R.color.black));
-            novelNameTV.setTextColor(getResources().getColor(R.color.black));
-            chapterNameTV.setTextColor(getResources().getColor(R.color.black));
-            chapterContentTV.setTextColor(getResources().getColor(R.color.black));
-            topAppBar.setBackgroundColor(getResources().getColor(R.color.floral_white));
-            bottomAppBar.setBackgroundColor(getResources().getColor(R.color.floral_white));
-            prevChapterIV.setColorFilter(getResources().getColor(R.color.black));
-            nextChapterIV.setColorFilter(getResources().getColor(R.color.black));
-            saveChapterIV.setColorFilter(getResources().getColor(R.color.black));
-            serverIV.setColorFilter(getResources().getColor(R.color.black));
-            settingsIV.setColorFilter(getResources().getColor(R.color.black));
-            findInChapterIV.setColorFilter(getResources().getColor(R.color.black));
-            contentScrollView.setBackgroundColor(getResources().getColor(R.color.white));
-        } else {
-            serverNameTV.setTextColor(getResources().getColor(R.color.white));
-            chapterTitleTV.setTextColor(getResources().getColor(R.color.white));
-            novelNameTV.setTextColor(getResources().getColor(R.color.white));
-            chapterNameTV.setTextColor(getResources().getColor(R.color.white));
-            chapterContentTV.setTextColor(getResources().getColor(R.color.white));
-            topAppBar.setBackgroundColor(getResources().getColor(R.color.backgroundMaterialDark));
-            bottomAppBar.setBackgroundColor(getResources().getColor(R.color.backgroundMaterialDark));
-            prevChapterIV.setColorFilter(getResources().getColor(R.color.white));
-            nextChapterIV.setColorFilter(getResources().getColor(R.color.white));
-            saveChapterIV.setColorFilter(getResources().getColor(R.color.white));
-            serverIV.setColorFilter(getResources().getColor(R.color.white));
-            settingsIV.setColorFilter(getResources().getColor(R.color.white));
-            findInChapterIV.setColorFilter(getResources().getColor(R.color.white));
-            contentScrollView.setBackgroundColor(getResources().getColor(androidx.cardview.R.color.cardview_dark_background));
-        }
-    }
 
     View.OnClickListener nextBtnClickListener = new View.OnClickListener() {
         @Override

@@ -134,22 +134,31 @@ public class TangthuvienScraper implements INovelScraper {
     @Override
     public int getChapterListNumberOfPages(String url) {
         try {
+            // Connect to the given URL and retrieve the HTML document
             Document doc = Jsoup.connect(url).get();
+            // Select the first <ul> element with the class 'pagination' and then get all <li> elements within it
             Elements paginationElements = doc.select("ul.pagination").first().select("li");
             if (paginationElements != null){
                 int maxPage = 0;
 
                 for (Element page: paginationElements) {
+                    // Select the first <a> element within the current <li> element
                     Element pageIdElement = page.select("a").first();
+                    // If no <a> element is found, skip to the next iteration
                     if (pageIdElement == null) continue;
+                    // Get the text content of the <a> element
                     String pageIdString = pageIdElement.text();
                     if (page.text().contains("cuối")) {
+                        // Extract the page number from the 'onclick' attribute and return it, incremented by 1
                         return parseOnClickGetNumber(pageIdElement.attr("onclick"))+1;
                     }
                     try {
+                        // Attempt to parse the text content as an integer (page number)
                         int pageId = Integer.parseInt(pageIdString);
+                        // Update the maximum page number if the current one is greater
                         if (pageId>maxPage) maxPage = pageId;
                     } catch (NumberFormatException e){
+                        // If parsing fails (text is not a number), continue to the next iteration
                         continue;
                     }
                 }
@@ -165,27 +174,38 @@ public class TangthuvienScraper implements INovelScraper {
     public List<ChapterModel> getChapterListInPage(String novelUrl, int pageNumber) {
         List<ChapterModel> chapters = new ArrayList<>();
 
+        // Retrieve the novel ID from the novel URL
         String novelId = getStoryId(novelUrl);
 
+        // Construct the URL for the chapter page using the novel ID and page number
         final String CHAPTER_PAGE_URL = "https://truyen.tangthuvien.vn/doc-truyen/page/ " +novelId+ "?page=" +(pageNumber-1)+ "&limit=75&web=1";
         try {
+            // Connect to the chapter page URL and retrieve the HTML document
             Document doc = Jsoup.connect(CHAPTER_PAGE_URL).get();
+            // Select the first <ul> element with class 'cf' and then select all <a> elements with href attributes within it
             Elements chapterElements = doc.selectFirst("ul.cf").select("a[href]");
             for (Element chapter: chapterElements){
+                // Get the raw name of the chapter from the title attribute of the <a> element
                 String rawName = chapter.attr("title");
+                // Replace HTML non-breaking space entities with actual spaces in the chapter name
                 String name = rawName.replaceAll("&nbsp;", " ");
+                // Get the URL of the chapter from the href attribute of the <a> element
                 String url = chapter.attr("href");
                 int number = 0;
                 try {
+                    // Attempt to extract the chapter number from the chapter name
                     number = Integer.parseInt(name.split(" ")[1]);
                 }catch (NumberFormatException e){
+                    // If parsing fails, set the chapter number to 0
                     number = 0;
                 }
 
+                // Create a new ChapterModel object with the chapter name, URL, and number
                 ChapterModel c = new ChapterModel(name, url, number);
+                // Add the ChapterModel object to the list of chapters
                 chapters.add(c);
             }
-            return chapters;
+            return chapters; // Return the list of chapters
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -195,9 +215,13 @@ public class TangthuvienScraper implements INovelScraper {
     public List<NovelModel> getHomePage() {
         List<NovelModel> novels = new ArrayList<>();
         try {
+            // Connect to the home page URL and retrieve the HTML document
             Document doc = Jsoup.connect(HOME_PAGE_URL).get();
+            // Select the last <div> element with the class 'center-book-list fl'
             Element novelListElement = doc.select("div.center-book-list.fl").last();
+            // Ensure the selected element is not null
             assert novelListElement != null;
+            // Select all <li> elements within the novel list element
             Elements novelElements = novelListElement.select("li");
             for (Element novelElement: novelElements) {
                 String imgUrl = novelElement.selectFirst("div.book-img").selectFirst("img.lazy").attr("src");
@@ -221,12 +245,16 @@ public class TangthuvienScraper implements INovelScraper {
     public ChapterContentModel getChapterContent(String url) {
         String content ="";
         try {
+            // Connect to the given URL and retrieve the HTML document
             Document doc = Jsoup.connect(url).get();
+            // Select the first <div> element with the class 'box-chap'
             Element boxchaps = doc.select("div.box-chap").first();
+            // Extract the whole text content of the 'box-chap' element
             content = boxchaps.wholeText();
             String name = doc.select("h1.truyen-title").text();
             String chapterName = doc.selectFirst("h2").text().replaceAll("&nbsp;", " ");
 
+            // Replace newline characters in the content with HTML line break tags
             content = content.replaceAll("\n", "<br>");
             ChapterContentModel contentModel = new ChapterContentModel(chapterName, url, content, name);
             return contentModel;
@@ -242,13 +270,17 @@ public class TangthuvienScraper implements INovelScraper {
         try {
             //doc1 fetching
             Document doc = Jsoup.connect(url).get();
+            // Extract the URL of the novel from the first <a> element within the <h1> element with class 'truyen-title'
             String novelUrl = doc.selectFirst("h1.truyen-title").selectFirst("a[href]").attr("href");
 
             Log.d("Novel URL", novelUrl);
+            // Retrieve the novel ID using a helper method
             novelId = getStoryId(novelUrl);
             Log.d("Novel id latest", novelId);
 
+            // Select the first <div> element with class 'box-chap'
             Element boxChap = doc.selectFirst("div.box-chap");
+            // Get the class name of the 'box-chap' element and split it to extract the chapter ID
             String boxChapName = boxChap.className();
             String[] splitCarriage = boxChapName.split("-");
             chapterId = splitCarriage[splitCarriage.length - 1];
@@ -258,14 +290,20 @@ public class TangthuvienScraper implements INovelScraper {
             Document doc2 = Jsoup.connect(ALL_CHAPTERS_URL).get();
             int total = Integer.parseInt(doc2.select("li").last().attr("title"));
 
+            // Select the current chapter element using the 'ng-chap' attribute
             Element current = doc2.selectFirst("li[ng-chap="+chapterId+"]");
             if (current!=null){
+                // Get the current chapter ID from the 'title' attribute
                 int currentId = Integer.parseInt(current.attr("title"));
+                // Check if the current chapter is the last one
                 if (currentId >= total){
                     return null; //NO next chap
                 }
+                // Calculate the next chapter ID
                 int nextId = currentId +1;
+                // Select the next chapter element using the 'title' attribute
                 Element next = doc2.selectFirst("li[title="+nextId+"]");
+                // Return the URL of the next chapter
                 return next.selectFirst("a[href]").attr("href");
             }
 
@@ -282,13 +320,18 @@ public class TangthuvienScraper implements INovelScraper {
         String novelId = "";
         String chapterId = "";
         try {
+            // Fetch the HTML document from the given URL
             Document doc = Jsoup.connect(url).get();
+            // Extract the URL of the novel from the first <a> element within the <h1> element with class 'truyen-title'
             String novelUrl = doc.selectFirst("h1.truyen-title").selectFirst("a[href]").attr("href");
 
+            // Retrieve the novel ID using a helper method
             novelId = getStoryId(novelUrl);
             Log.d("Novel id latest", novelId);
 
+            // Select the first <div> element with class 'box-chap'
             Element boxChap = doc.selectFirst("div.box-chap");
+            // Get the class name of the 'box-chap' element and split it to extract the chapter ID
             String boxChapName = boxChap.className();
             String[] splitCarriage = boxChapName.split("-");
             chapterId = splitCarriage[splitCarriage.length - 1];
@@ -297,15 +340,20 @@ public class TangthuvienScraper implements INovelScraper {
             final String ALL_CHAPTERS_URL = "https://truyen.tangthuvien.vn/story/chapters?story_id=" + novelId;
             Document doc2 = Jsoup.connect(ALL_CHAPTERS_URL).get();
 
-
+            // Select the current chapter element using the 'ng-chap' attribute
             Element current = doc2.selectFirst("li[ng-chap="+chapterId+"]");
             if (current!=null){
+                // Get the current chapter ID from the 'title' attribute
                 int currentId = Integer.parseInt(current.attr("title"));
+                // Check if the current chapter is the first one
                 if (currentId <= 1){
                     return null; // no prev chap
                 }
+                // Calculate the previous chapter ID
                 int prevId = currentId -1;
+                // Select the previous chapter element using the 'title' attribute
                 Element prev = doc2.selectFirst("li[title="+prevId+"]");
+                // Return the URL of the previous chapter
                 return prev.selectFirst("a[href]").attr("href");
             }
 
@@ -319,9 +367,11 @@ public class TangthuvienScraper implements INovelScraper {
     public ChapterContentModel getContentFromNameAndChapName(String name, String chapterName){
         //NOTE 1: First step to search name on source
         boolean isBreak = false;
+        // Get the number of pages of search results for the given name
         int numberOfPage = getNumberOfSearchResultPage(name); //name as a keyword;
         NovelModel wantedNovel =null;
         List<NovelModel> results = new ArrayList<>();
+        // Retrieve all search results across all pages
         for (int i = 1; i<= numberOfPage; i++){
             results.addAll(getSearchPageFromKeywordAndPageNumber(name, i));
         }
@@ -334,12 +384,15 @@ public class TangthuvienScraper implements INovelScraper {
                 break; //get first one only, who care?
             }
         }
+        // If the novel is not found, return null
         if (!isBreak) return null;
         Log.d("Wanted novel ", wantedNovel.getUrl()); //NOTE: ok
 
         //NOTE 2: Search for the wanted chapter
         ChapterModel resultChapter = smartChapterSearch(wantedNovel.getUrl(), chapterName);
+        // If the chapter is not found, return null
         if (resultChapter == null) return null;
+        // Retrieve and return the content of the found chapter
         return getChapterContent(resultChapter.getChapterUrl());
     }
 
@@ -351,8 +404,6 @@ public class TangthuvienScraper implements INovelScraper {
             throw new RuntimeException(e);
         }
     }
-
-
 
     @Override
     public int getNumberOfChaptersPerPage() {
@@ -368,15 +419,22 @@ public class TangthuvienScraper implements INovelScraper {
     //NOTE: BORDER==================================================================================
     //NOTE: BORDER==================================================================================
     private int parseOnClickGetNumber(String loadingCall){
+        // Split the string by "(" and take the part after it
         String rightStr = loadingCall.split("\\(")[1];
+        // Split the resulting string by ")" and take the part before it
         String finalStr = rightStr.split("\\)")[0];
+        // Convert the extracted string to an integer and return it
         return Integer.parseInt(finalStr);
     }
 
+    // This method retrieves the story ID from the novel URL
     private String getStoryId(String novelUrl){
         try {
+            // Connect to the given novel URL and retrieve the HTML document
             Document doc = Jsoup.connect(novelUrl).get();
+            // Select the first <meta> element with the name attribute 'book_detail'
             Element idElement = doc.select("meta[name=book_detail]").first();
+            // If the element is found, extract and return the value of the 'content' attribute
             if (idElement !=null){
                String novelId = idElement.attr("content");
                return novelId;
@@ -384,6 +442,7 @@ public class TangthuvienScraper implements INovelScraper {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        // Return an empty string if the story ID is not found
         return "";
     }
 

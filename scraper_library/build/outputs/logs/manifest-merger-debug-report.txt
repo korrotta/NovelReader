@@ -14,3 +14,4 @@ INJECTED from C:\Users\Admins\AndroidStudioProjects\NovelReader\scraper_library\
 		INJECTED from C:\Users\Admins\AndroidStudioProjects\NovelReader\scraper_library\src\main\AndroidManifest.xml
 	android:minSdkVersion
 		INJECTED from C:\Users\Admins\AndroidStudioProjects\NovelReader\scraper_library\src\main\AndroidManifest.xml
+

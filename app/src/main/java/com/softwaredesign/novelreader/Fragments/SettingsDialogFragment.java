@@ -110,6 +110,7 @@ public class SettingsDialogFragment extends DialogFragment {
                 break;
         }
 
+        // Radio Group change when clicked
         fontRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
             SharedPreferences.Editor editor = sharedPreferences.edit();
             if (checkedId == R.id.fontPalatino){
@@ -173,10 +174,10 @@ public class SettingsDialogFragment extends DialogFragment {
             buttonDecrease.setClickable(textSize[0] > 16);
         });
 
-        buttonIncrease.setAlpha(textSize[0] >= 40 ? 0.2f : 1.0f);
-        buttonDecrease.setAlpha(textSize[0] <= 16 ? 0.2f : 1.0f);
-        buttonIncrease.setClickable(textSize[0] < 40);
-        buttonDecrease.setClickable(textSize[0] > 16);
+        buttonIncrease.setAlpha(textSize[0] >= 40 ? 0.2f : 1.0f); // set max text size and change in opacity and clarity of the button
+        buttonDecrease.setAlpha(textSize[0] <= 16 ? 0.2f : 1.0f); // set min text size and change in opacity and clarity of the button
+        buttonIncrease.setClickable(textSize[0] < 40); // Control the ability to press when reaching the limit
+        buttonDecrease.setClickable(textSize[0] > 16); // Control the ability to press when reaching the limit
 
         // Line Spacing
         float lineSpacing = sharedPreferences.getFloat("lineSpacing", 1.0f);
@@ -187,6 +188,7 @@ public class SettingsDialogFragment extends DialogFragment {
         lineSpacingSeekBar.setMax(maxProgress);
         lineSpacingSeekBar.setProgress((int) ((lineSpacing - MIN_LINE_SPACING) / INCREMENT)); // Set progress based on saved line spacing value
 
+        // event of LineSpacing SeekBar
         lineSpacingSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -211,17 +213,20 @@ public class SettingsDialogFragment extends DialogFragment {
         return view;
     }
 
+    // apply Line Spacing Change Function
     private void applyLineSpacingChange(float lineSpacing) {
         TextView chapterContentTV = getActivity().findViewById(R.id.chapterContentRead);
         chapterContentTV.setLineSpacing(1.0f, lineSpacing);
     }
 
+    // save Line Spacing function
     private void saveLineSpacing(float lineSpacing) {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putFloat("lineSpacing", lineSpacing);
         editor.apply();
     }
 
+    // apply Font Change Function, Font will be change when we click font button
     private void applyFontChange() {
         String font = sharedPreferences.getString("font", "Palatino");
         TextView chapterContentTV  = getActivity().findViewById(R.id.chapterContentRead);
@@ -246,6 +251,7 @@ public class SettingsDialogFragment extends DialogFragment {
     }
 
 
+    // apply Text Size Change function, TextSize will be change when we click to increase or decrease button
     private void applyTextSizeChange(int textSize) {
         TextView chapterContent = getActivity().findViewById(R.id.chapterContentRead);
         chapterContent.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);

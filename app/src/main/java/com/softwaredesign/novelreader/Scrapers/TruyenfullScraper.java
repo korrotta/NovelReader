@@ -72,7 +72,7 @@ public class TruyenfullScraper implements INovelScraper {
             // Fetch and parse the novel detail page
             Document doc = Jsoup.connect(url).timeout(6000).get();
             Element headerNode = doc.getElementById("truyen");
-//            Log.d("headerNode", headerNode.toString());
+            // Log.d("headerNode", headerNode.toString());
 
             // Extract novel details
             String novelName = headerNode.selectFirst("h3.title").text();
@@ -83,7 +83,7 @@ public class TruyenfullScraper implements INovelScraper {
             if (novelDescriptionNode!=null){
                 content = novelDescriptionNode.toString();
                 content = content.replace("<div class=\"desc-text desc-text-full\" itemprop=\"description\">", "");
-//                Log.d("content", content);
+            // Log.d("content", content);
             }
 
             // Create and return a new NovelDescriptionModel object
@@ -115,7 +115,7 @@ public class TruyenfullScraper implements INovelScraper {
 
                     // Create a new NovelModel object and add it to the list
                     NovelModel novelToAdd = new NovelModel(name, novelUrl, author, imgUrl);
-//                    logToCheck(novelToAdd);
+                    // logToCheck(novelToAdd);
                     novels.add(novelToAdd);
                 }
             }
@@ -148,7 +148,7 @@ public class TruyenfullScraper implements INovelScraper {
                     String title = parseTitle(child_node.attr("title"));
                     int chapterNumber = parseChapterNumber(title);
                     ChapterModel chapter = new ChapterModel(title, chapterUrl, chapterNumber);
-//                    Log.d("chapter: ", chapter.getChapterName());
+                    // Log.d("chapter: ", chapter.getChapterName());
                     chapters.add(chapter);
                 }
             }
