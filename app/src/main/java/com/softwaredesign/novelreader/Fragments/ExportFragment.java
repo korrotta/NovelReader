@@ -51,46 +51,19 @@ public class ExportFragment extends Fragment {
     private static final String ARG_NOVEL_URL = "novel_url";
     private String NovelUrl;
     private Activity parentActivity;
-    private Handler handler = new Handler(Looper.getMainLooper());
-    private ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     private List<String> beginPage, endPage;
     private List<ChapterModel> beginChapter, endChapter;
     private ArrayAdapter<String> beginPageAdapter, endPageAdapter;
     private ChapterListSpinnerAdapter beginChapterAdapter, endChapterAdapter;
     private int numberOfPage;
-    private List<ChapterModel> chapters;
-    private static List<ChapterModel> tempList;
 
-    private int selectedBeginPage, selectedEndPage;
     private ChapterModel selectedBeginChapter, selectedEndChapter;
-    private int beginPageId, endPageId, beginChapterId, endChapterId;
+    private int beginPageId, endPageId;
 
-    private ExporterSpinnerAdapter exporterAdapter;
     private static final int PERMISSION_REQUEST_CODE = 1;
-
-//    public abstract class BackgroundTask {
-//
-//        public abstract void onPreExecute();
-//        public abstract void doInBackground();
-//        public abstract void onPostExecute();
-//
-//        public void execute() {
-//            onPreExecute();
-//            new Thread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    doInBackground();
-//                    requireActivity().runOnUiThread(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            onPostExecute();
-//                        }
-//                    });
-//                }
-//            }).start();
-//        }
-//    }
 
     public static ExportFragment newInstance(String novelUrl) {
         // Create a new instance of ExportFragment
@@ -176,8 +149,7 @@ public class ExportFragment extends Fragment {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 // Get selected ChapterModel from spinner
-                ChapterModel chapter = (ChapterModel) parent.getItemAtPosition(position);
-                selectedBeginChapter =chapter;
+                selectedBeginChapter = (ChapterModel) parent.getItemAtPosition(position);
             }
 
             @Override
@@ -190,8 +162,7 @@ public class ExportFragment extends Fragment {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 // Get selected ChapterModel from spinner
-                ChapterModel chapter = (ChapterModel) parent.getItemAtPosition(position);
-                selectedEndChapter =chapter;
+                selectedEndChapter = (ChapterModel) parent.getItemAtPosition(position);
             }
 
             @Override
@@ -251,7 +222,7 @@ public class ExportFragment extends Fragment {
 
         endChapterAdapter = new ChapterListSpinnerAdapter(parentActivity, android.R.layout.simple_spinner_item, endChapter);
 
-        exporterAdapter = new ExporterSpinnerAdapter(parentActivity, android.R.layout.simple_spinner_item, GlobalConfig.Global_Exporter_List);
+        ExporterSpinnerAdapter exporterAdapter = new ExporterSpinnerAdapter(parentActivity, android.R.layout.simple_spinner_item, GlobalConfig.Global_Exporter_List);
 
         beginPageSpinner.setAdapter(beginPageAdapter);
         endPageSpinner.setAdapter(endPageAdapter);
@@ -361,16 +332,13 @@ public class ExportFragment extends Fragment {
             }
             @Override
             public void onPostExecute() {
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        // Hide progress bar with animation
-                        progressBar.setVisibility(View.GONE);
-                        progressBar.startAnimation(AnimationUtils.loadAnimation(parentActivity, android.R.anim.fade_out));
-                        // Show completion message with calculated delay
-                        Toast.makeText(parentActivity, "Done after "+ finalDelay, Toast.LENGTH_SHORT).show();
-                    }
-                }, finalDelay); // Delayed execution after task completion
+                handler.postDelayed(() -> {
+                    // Hide progress bar with animation
+                    progressBar.setVisibility(View.GONE);
+                    progressBar.startAnimation(AnimationUtils.loadAnimation(parentActivity, android.R.anim.fade_out));
+                    // Show completion message with calculated delay
+                    Toast.makeText(parentActivity, "Hoàn tất sau " + finalDelay, Toast.LENGTH_SHORT).show();
+                }, finalDelay * 10); // Delayed execution after task completion
             }
 
             private void lastPageExportHandling() {
@@ -496,7 +464,7 @@ public class ExportFragment extends Fragment {
                     // Create a subdirectory based on the exporter's name
                     File typeDirectory = ReusableFunction.MakeDirectory(directory.getAbsolutePath(), exporter.getExporterName());
                     // Create a subdirectory based on the exporter's name
-                    exporter.exportChapter(content.getContent(), typeDirectory, content.getChapterName().toString());
+                    exporter.exportChapter(content.getContent(), typeDirectory, content.getChapterName());
                     try {
                         Thread.sleep(200);
                         //sleep 2s between each
@@ -508,35 +476,29 @@ public class ExportFragment extends Fragment {
 
             @Override
             public void onPostExecute() {
-                // Post-execution tasks (e.g., update UI, handle completion)
+
             }
         }.execute();
     }
 
     private void showProgressBar(){
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                progressBar.setVisibility(View.VISIBLE);
-                progressBar.startAnimation(AnimationUtils.loadAnimation(parentActivity, android.R.anim.fade_in));
-            }
+        handler.post(() -> {
+            progressBar.setVisibility(View.VISIBLE);
+            progressBar.startAnimation(AnimationUtils.loadAnimation(parentActivity, android.R.anim.fade_in));
         });
     }
 
     private void hideProgressBar(){
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                progressBar.setVisibility(View.GONE);
-                progressBar.startAnimation(AnimationUtils.loadAnimation(parentActivity, android.R.anim.fade_out));
-            }
+        handler.post(() -> {
+            progressBar.setVisibility(View.GONE);
+            progressBar.startAnimation(AnimationUtils.loadAnimation(parentActivity, android.R.anim.fade_out));
         });
     }
 
 
     //Note: Thread with executor
     public abstract class ExecutorBackgroundTask {
-        private Activity activity;
+        private final Activity activity;
 
         public ExecutorBackgroundTask(Activity activity){
             this.activity = activity;
@@ -544,17 +506,9 @@ public class ExportFragment extends Fragment {
         }
 
         private void startBackgroundTask() {
-            executorService.execute(new Runnable() {
-                @Override
-                public void run() {
-                    doInBackground();
-                    activity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            onPostExecute();
-                        }
-                    });
-                }
+            executorService.execute(() -> {
+                doInBackground();
+                activity.runOnUiThread(this::onPostExecute);
             });
         }
 

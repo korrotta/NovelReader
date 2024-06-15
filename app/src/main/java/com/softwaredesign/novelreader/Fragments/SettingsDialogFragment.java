@@ -1,6 +1,7 @@
 package com.softwaredesign.novelreader.Fragments;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
@@ -28,7 +29,15 @@ public class SettingsDialogFragment extends DialogFragment {
     private static final float MIN_LINE_SPACING = 1.0f;
     private static final float MAX_LINE_SPACING = 3.0f;
     private static final float INCREMENT = 0.5f;
+
+    private RadioGroup modeRadioGroup, fontRadioGroup;
+    private RadioButton lightTheme, darkTheme, fontPalatino, fontTimes, fontArial, fontGeorgia;
+    private TextView textSizeTextView, lineSpacingTextView;
+    private AppCompatButton buttonIncrease, buttonDecrease;
+    private SeekBar lineSpacingSeekBar;
+
     private SharedPreferences sharedPreferences;
+    private Activity parentActivity;
 
     @Override
     public void onAttach(@NonNull Context context) {
@@ -36,7 +45,6 @@ public class SettingsDialogFragment extends DialogFragment {
         sharedPreferences = context.getSharedPreferences("ReadSetting", context.MODE_PRIVATE);
     }
 
-    @SuppressLint("DefaultLocale")
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -47,86 +55,65 @@ public class SettingsDialogFragment extends DialogFragment {
         // Inflate the settings layout
         View view = inflater.inflate(R.layout.settings_read, container, false);
 
-        RadioGroup modeRadioGroup = view.findViewById(R.id.modeRadioGroup);
-        RadioButton lightTheme = view.findViewById(R.id.settingsLightTheme);
-        RadioButton darkTheme = view.findViewById(R.id.settingsDarkTheme);
+        // Initialize View
+        initializeView(view);
 
-        RadioGroup fontRadioGroup = view.findViewById(R.id.fontRadioGroup);
-        RadioButton fontPalatino = view.findViewById(R.id.fontPalatino);
-        RadioButton fontTimes = view.findViewById(R.id.fontTimes);
-        RadioButton fontArial = view.findViewById(R.id.fontArial);
-        RadioButton fontGeorgia = view.findViewById(R.id.fontGeorgia);
+        return view;
+    }
 
-        TextView textSizeTextView = view.findViewById(R.id.text_size);
-        AppCompatButton buttonIncrease = view.findViewById(R.id.button_increase);
-        AppCompatButton buttonDecrease = view.findViewById(R.id.button_decrease);
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        this.parentActivity = getActivity();
 
-        TextView lineSpacingTextView = view.findViewById(R.id.lineSpacingValue);
-        SeekBar lineSpacingSeekBar = view.findViewById(R.id.lineSpacingSeekbar);
+        // Handle Theme
+        handleTheme();
 
-        // Theme
-        String theme = sharedPreferences.getString("theme", "dark");
-        if (theme.equals("light")) {
-            lightTheme.setChecked(true);
-        } else {
-            darkTheme.setChecked(true);
-        }
+        // Handle Fonts
+        handleFont();
 
-        modeRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
-            // Get the SharedPreferences editor to modify preferences
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            // Check which radio button is checked
-            if (checkedId == R.id.settingsLightTheme) {
-                // Store "light" theme in SharedPreferences
-                editor.putString("theme", "light").apply();
-                // Recreate the activity to apply the theme change
-                getActivity().recreate();
-                // Dismiss the dialog after theme change
-                dismiss();
-            } else if (checkedId == R.id.settingsDarkTheme) {
-                // Store "dark" theme in SharedPreferences
-                editor.putString("theme", "dark").apply();
-                // Recreate the activity to apply the theme change
-                getActivity().recreate();
-                // Dismiss the dialog after theme change
-                dismiss();
+        // Handle Text Size
+        handleTextSize();
+
+        // Handle Line Spacing
+        handleLineSpacing();
+    }
+
+    @SuppressLint("DefaultLocale")
+    private void handleLineSpacing() {
+        // Line Spacing
+        float lineSpacing = sharedPreferences.getFloat("lineSpacing", 1.0f);
+        lineSpacingTextView.setText(String.format("%.2f", lineSpacing));
+        applyLineSpacingChange(lineSpacing);
+
+        int maxProgress = (int) ((MAX_LINE_SPACING - MIN_LINE_SPACING) / INCREMENT); // Calculate max progress
+        lineSpacingSeekBar.setMax(maxProgress);
+        lineSpacingSeekBar.setProgress((int) ((lineSpacing - MIN_LINE_SPACING) / INCREMENT)); // Set progress based on saved line spacing value
+
+        // event of LineSpacing SeekBar
+        lineSpacingSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                float lineSpacing = MIN_LINE_SPACING + (progress * INCREMENT);
+                lineSpacingTextView.setText(String.format("%.2f", lineSpacing));
+                applyLineSpacingChange(lineSpacing);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                // Do something when tracking starts, if needed
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                // Save the line spacing value when the user stops interacting with the SeekBar
+                float lineSpacing = MIN_LINE_SPACING + (seekBar.getProgress() * INCREMENT);
+                saveLineSpacing(lineSpacing);
             }
         });
+    }
 
-        // Font
-        String font = sharedPreferences.getString("font", "Palatino");
-        switch (font) {
-            case "Palatino":
-                fontPalatino.setChecked(true);
-                break;
-            case "Times":
-                fontTimes.setChecked(true);
-                break;
-            case "Arial":
-                fontArial.setChecked(true);
-                break;
-            case "Georgia":
-                fontGeorgia.setChecked(true);
-                break;
-        }
-
-        // Radio Group change when clicked
-        fontRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            if (checkedId == R.id.fontPalatino){
-                editor.putString("font", "Palatino");
-            } else if (checkedId == R.id.fontTimes) {
-                editor.putString("font", "Times");
-            } else if (checkedId == R.id.fontArial) {
-                editor.putString("font", "Arial");
-            } else if (checkedId == R.id.fontGeorgia) {
-                editor.putString("font", "Georgia");
-            }
-            editor.apply();
-            applyFontChange();
-        });
-
-
+    private void handleTextSize() {
         // Text Size
         final int[] textSize = {sharedPreferences.getInt("textSize", 22)}; // Đặt giá trị mặc định là 22
         textSizeTextView.setText(String.valueOf(textSize[0]));
@@ -178,44 +165,96 @@ public class SettingsDialogFragment extends DialogFragment {
         buttonDecrease.setAlpha(textSize[0] <= 16 ? 0.2f : 1.0f); // set min text size and change in opacity and clarity of the button
         buttonIncrease.setClickable(textSize[0] < 40); // Control the ability to press when reaching the limit
         buttonDecrease.setClickable(textSize[0] > 16); // Control the ability to press when reaching the limit
+    }
 
-        // Line Spacing
-        float lineSpacing = sharedPreferences.getFloat("lineSpacing", 1.0f);
-        lineSpacingTextView.setText(String.format("%.2f", lineSpacing));
-        applyLineSpacingChange(lineSpacing);
+    private void handleFont() {
+        // Font
+        String font = sharedPreferences.getString("font", "Palatino");
+        switch (font) {
+            case "Palatino":
+                fontPalatino.setChecked(true);
+                break;
+            case "Times":
+                fontTimes.setChecked(true);
+                break;
+            case "Arial":
+                fontArial.setChecked(true);
+                break;
+            case "Georgia":
+                fontGeorgia.setChecked(true);
+                break;
+        }
 
-        int maxProgress = (int) ((MAX_LINE_SPACING - MIN_LINE_SPACING) / INCREMENT); // Calculate max progress
-        lineSpacingSeekBar.setMax(maxProgress);
-        lineSpacingSeekBar.setProgress((int) ((lineSpacing - MIN_LINE_SPACING) / INCREMENT)); // Set progress based on saved line spacing value
-
-        // event of LineSpacing SeekBar
-        lineSpacingSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                float lineSpacing = MIN_LINE_SPACING + (progress * INCREMENT);
-                lineSpacingTextView.setText(String.format("%.2f", lineSpacing));
-                applyLineSpacingChange(lineSpacing);
+        // Radio Group change when clicked
+        fontRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            if (checkedId == R.id.fontPalatino){
+                editor.putString("font", "Palatino");
+            } else if (checkedId == R.id.fontTimes) {
+                editor.putString("font", "Times");
+            } else if (checkedId == R.id.fontArial) {
+                editor.putString("font", "Arial");
+            } else if (checkedId == R.id.fontGeorgia) {
+                editor.putString("font", "Georgia");
             }
+            editor.apply();
+            applyFontChange();
+        });
+    }
 
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-                // Do something when tracking starts, if needed
-            }
+    private void handleTheme() {
+        // Theme
+        String theme = sharedPreferences.getString("theme", "dark");
+        if (theme.equals("light")) {
+            lightTheme.setChecked(true);
+        } else {
+            darkTheme.setChecked(true);
+        }
 
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                // Save the line spacing value when the user stops interacting with the SeekBar
-                float lineSpacing = MIN_LINE_SPACING + (seekBar.getProgress() * INCREMENT);
-                saveLineSpacing(lineSpacing);
+        modeRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            // Get the SharedPreferences editor to modify preferences
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            // Check which radio button is checked
+            if (checkedId == R.id.settingsLightTheme) {
+                // Store "light" theme in SharedPreferences
+                editor.putString("theme", "light").apply();
+                // Recreate the activity to apply the theme change
+                parentActivity.recreate();
+                // Dismiss the dialog after theme change
+                dismiss();
+            } else if (checkedId == R.id.settingsDarkTheme) {
+                // Store "dark" theme in SharedPreferences
+                editor.putString("theme", "dark").apply();
+                // Recreate the activity to apply the theme change
+                parentActivity.recreate();
+                // Dismiss the dialog after theme change
+                dismiss();
             }
         });
+    }
 
-        return view;
+    private void initializeView(View view) {
+        modeRadioGroup = view.findViewById(R.id.modeRadioGroup);
+        lightTheme = view.findViewById(R.id.settingsLightTheme);
+        darkTheme = view.findViewById(R.id.settingsDarkTheme);
+
+        fontRadioGroup = view.findViewById(R.id.fontRadioGroup);
+        fontPalatino = view.findViewById(R.id.fontPalatino);
+        fontTimes = view.findViewById(R.id.fontTimes);
+        fontArial = view.findViewById(R.id.fontArial);
+        fontGeorgia = view.findViewById(R.id.fontGeorgia);
+
+        textSizeTextView = view.findViewById(R.id.text_size);
+        buttonIncrease = view.findViewById(R.id.button_increase);
+        buttonDecrease = view.findViewById(R.id.button_decrease);
+
+        lineSpacingTextView = view.findViewById(R.id.lineSpacingValue);
+        lineSpacingSeekBar = view.findViewById(R.id.lineSpacingSeekbar);
     }
 
     // apply Line Spacing Change Function
     private void applyLineSpacingChange(float lineSpacing) {
-        TextView chapterContentTV = getActivity().findViewById(R.id.chapterContentRead);
+        TextView chapterContentTV = parentActivity.findViewById(R.id.chapterContentRead);
         chapterContentTV.setLineSpacing(1.0f, lineSpacing);
     }
 
@@ -229,20 +268,20 @@ public class SettingsDialogFragment extends DialogFragment {
     // apply Font Change Function, Font will be change when we click font button
     private void applyFontChange() {
         String font = sharedPreferences.getString("font", "Palatino");
-        TextView chapterContentTV  = getActivity().findViewById(R.id.chapterContentRead);
+        TextView chapterContentTV  = parentActivity.findViewById(R.id.chapterContentRead);
         Typeface typeface = null;
         switch (font) {
             case "Palatino":
-                typeface = ResourcesCompat.getFont(getActivity(), R.font.palatino);
+                typeface = ResourcesCompat.getFont(parentActivity, R.font.palatino);
                 break;
             case "Times":
-                typeface = ResourcesCompat.getFont(getActivity(), R.font.times);
+                typeface = ResourcesCompat.getFont(parentActivity, R.font.times);
                 break;
             case "Arial":
-                typeface = ResourcesCompat.getFont(getActivity(), R.font.arial);
+                typeface = ResourcesCompat.getFont(parentActivity, R.font.arial);
                 break;
             case "Georgia":
-                typeface = ResourcesCompat.getFont(getActivity(), R.font.georgia);
+                typeface = ResourcesCompat.getFont(parentActivity, R.font.georgia);
                 break;
         }
         if (typeface != null) {
@@ -253,7 +292,7 @@ public class SettingsDialogFragment extends DialogFragment {
 
     // apply Text Size Change function, TextSize will be change when we click to increase or decrease button
     private void applyTextSizeChange(int textSize) {
-        TextView chapterContent = getActivity().findViewById(R.id.chapterContentRead);
+        TextView chapterContent = parentActivity.findViewById(R.id.chapterContentRead);
         chapterContent.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
     }
 

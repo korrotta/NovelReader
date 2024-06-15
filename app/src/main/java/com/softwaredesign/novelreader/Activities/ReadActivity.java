@@ -109,6 +109,8 @@ public class ReadActivity extends AppCompatActivity {
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
             chapterUrl = bundle.getString("ChapterUrl");
+            assert chapterUrl != null;
+            Log.d("BUNDLE CHAPTER URL", chapterUrl);
         }
 
         // Execute chapter content
@@ -448,13 +450,13 @@ public class ReadActivity extends AppCompatActivity {
             // Create a URL object
             java.net.URL urlObj = new java.net.URL(chapterUrl);
 
-            // Get the protocol (e.g., https)
+            // Get the protocol
             String protocol = urlObj.getProtocol();
 
-            // Get the host (e.g., truyenfull.vn)
+            // Get the host
             String host = urlObj.getHost();
 
-            // Get the path (e.g., /nang-khong-muon-lam-hoang-hau/chuong-6/)
+            // Get the path
             String path = urlObj.getPath();
 
             // Remove the last segment of the path
@@ -575,7 +577,7 @@ public class ReadActivity extends AppCompatActivity {
                     }
                 });
                 // Set the negative button if the user is not interested to select or change already selected item
-                alertDialog.setNegativeButton("Cancel", (dialog, which) -> {
+                alertDialog.setNegativeButton("Hủy", (dialog, which) -> {
 
                 });
 
