@@ -1,6 +1,7 @@
 package com.softwaredesign.novelreader.Activities;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
@@ -32,9 +33,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.exporter_library.IChapterExportHandler;
 import com.example.scraper_library.INovelScraper;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.softwaredesign.novelreader.Adapters.NovelAdapter;
@@ -69,18 +67,18 @@ public class MainActivity extends AppCompatActivity {
     // URL of the website to scrape novels from
     private SearchView searchView; // SearchView for searching novels
     private RecyclerView recyclerView; // RecyclerView for displaying novels
-    private List<NovelModel> novelList = new ArrayList<>(); // List to hold novel data
+    private final List<NovelModel> novelList = new ArrayList<>(); // List to hold novel data
     private NovelAdapter novelAdapter; // Adapter for the RecyclerView
     private ProgressBar progressBar; // ProgressBar to indicate loading
     private AppCompatSpinner serverSpinner; // Spinner for server sources
     private AppCompatButton pluginButton, continueButton; // Button for download pluins
+    private ServerSpinnerAdapter serverAdapter; // Server Spinner Adapter
 
     private String lastrunName, lastrunChapterName, lastrunServer, lastrunChapterUrl;
 
-    private String[] pluginList = new String[]{"Source: Truyencv", "Format: Html"};
+    private final String[] pluginList = new String[]{"Source: Truyencv", "Format: Html"};
     final boolean[] pluginChecked = new boolean[]{false, false};
 
-    private Handler handler = new Handler(Looper.getMainLooper());
     private final String TRUYENCV_PLUGIN
             = "https://raw.githubusercontent.com/nohiup/NovelReaderPluginHost/main/scraper_truyencvtest_TruyencvScraper.apk";
     private final String HTML_PLUGIN = "https://raw.githubusercontent.com/nohiup/NovelReaderPluginHost/main/exporter_htmlexporter_HtmlExportHandler.apk";
@@ -95,69 +93,46 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main); //Set the layout for this activity
 
-        downloadDir = MainActivity.this.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+        // Get ExternalPath
+        getExternalPath();
 
         //Initialize views
-        searchView = findViewById(R.id.searchView);
-        recyclerView = findViewById(R.id.recyclerView);
-        progressBar = findViewById(R.id.progressBar);
-        serverSpinner = findViewById(R.id.serverSpinner);
-        pluginButton = findViewById(R.id.pluginButton);
-        continueButton = findViewById(R.id.continueButton);
+        initializeView();
 
-        //Init server adapter
-        ServerSpinnerAdapter serverAdapter = new ServerSpinnerAdapter(this, android.R.layout.simple_spinner_item, GlobalConfig.Global_Source_List);
-        serverSpinner.setAdapter(serverAdapter);
+        // Init server adapter
+        initializeAdapter();
 
-        String downloadDirPath = downloadDir.getAbsolutePath();
+        // Generate directory
+        makeDirectory();
 
-        //create document directory for exporting:
-        File exportDir = MainActivity.this.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
-
-        File newFolder = ReusableFunction.MakeDirectory(exportDir.getAbsolutePath(), "Export");
-        Log.d("created", newFolder.getAbsolutePath());
-
-        //generate directory
-        makeDirectory(downloadDirPath);
-
-        //Get last read Novel
+        // Get last read Novel
         readLastRunLog();
 
-        //Scraper add:
-        INovelScraper truyenfull = new TruyenfullScraper();
-        INovelScraper tangthuvien = new TangthuvienScraper();
-        GlobalConfig.Global_Source_List.add(truyenfull);
-        GlobalConfig.Global_Source_List.add(tangthuvien);
-
-        //File format add:
-        IChapterExportHandler pdfExport = new PdfExportHandler();
-        IChapterExportHandler epubExport = new EpubExportHandler();
-
-        //Add epubExport and pdfExport to the global exporter list
-        GlobalConfig.Global_Exporter_List.add(epubExport);
-        GlobalConfig.Global_Exporter_List.add(pdfExport);
+        // Initialize scrapper
+        initializeScrapper();
 
         // Load all plugins using the specified download directory
         loadAllPlugins(downloadDir);
 
-        // Notify the server adapter that the data set has changed
-        serverAdapter.notifyDataSetChanged();
         // Handle the initialization or configuration of the search view
         handleSearchView();
 
-        // Initialize the grid view with the created GridLayoutManager
-        GridLayoutManager gridLayoutManager = new GridLayoutManager(MainActivity.this, 2);
-        gridViewInit(gridLayoutManager);
+        // Initialize GridLayout
+        initializeGridLayout();
 
         //Note:Resource getter here
         getMainPageTask();
 
+        // Handle Listeners
+        handleListeners();
+    }
+
+    private void handleListeners() {
         // Handle Server Spinner
         serverSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                INovelScraper scraperInstance = (INovelScraper) parent.getItemAtPosition(position);
-                GlobalConfig.Global_Current_Scraper = scraperInstance;
+                GlobalConfig.Global_Current_Scraper = (INovelScraper) parent.getItemAtPosition(position);
                 getMainPageTask(); //Get the main page task
                 Log.d("Source check: ", GlobalConfig.Global_Current_Scraper.getSourceName());
             }
@@ -196,7 +171,6 @@ public class MainActivity extends AppCompatActivity {
             // Sets the alert dialog for multiple item selection
             builder.setMultiChoiceItems(pluginList, pluginChecked, (dialog, which, isChecked) -> {
                 pluginChecked[which] = isChecked;
-                String currentItem = selectedItems.get(which);
             });
 
             builder.setCancelable(false);
@@ -272,6 +246,46 @@ public class MainActivity extends AppCompatActivity {
             AlertDialog alertDialog = builder.create();
             alertDialog.show();
         });
+    }
+
+    private void initializeGridLayout() {
+        // Initialize the grid view with the created GridLayoutManager
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(MainActivity.this, 2);
+        gridViewInit(gridLayoutManager);
+    }
+
+    private void initializeAdapter() {
+        serverAdapter = new ServerSpinnerAdapter(this, android.R.layout.simple_spinner_item, GlobalConfig.Global_Source_List);
+        serverSpinner.setAdapter(serverAdapter);
+    }
+
+    private void initializeScrapper() {
+        // Scraper add
+        INovelScraper truyenfull = new TruyenfullScraper();
+        INovelScraper tangthuvien = new TangthuvienScraper();
+        GlobalConfig.Global_Source_List.add(truyenfull);
+        GlobalConfig.Global_Source_List.add(tangthuvien);
+
+        // File format add
+        IChapterExportHandler pdfExport = new PdfExportHandler();
+        IChapterExportHandler epubExport = new EpubExportHandler();
+
+        // Add epubExport and pdfExport to the global exporter list
+        GlobalConfig.Global_Exporter_List.add(epubExport);
+        GlobalConfig.Global_Exporter_List.add(pdfExport);
+    }
+
+    private void getExternalPath() {
+        downloadDir = MainActivity.this.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+    }
+
+    private void initializeView() {
+        searchView = findViewById(R.id.searchView);
+        recyclerView = findViewById(R.id.recyclerView);
+        progressBar = findViewById(R.id.progressBar);
+        serverSpinner = findViewById(R.id.serverSpinner);
+        pluginButton = findViewById(R.id.pluginButton);
+        continueButton = findViewById(R.id.continueButton);
     }
 
     private void showConfirmationDialogBox() {
@@ -374,18 +388,27 @@ public class MainActivity extends AppCompatActivity {
                 ReusableFunction.ReplaceList(novelList, novels);
             }
 
+            @SuppressLint("NotifyDataSetChanged")
             @Override
             public void onPostExecute() {
                 // Hide and animate the progress bar after the task is completed
                 progressBar.setVisibility(View.GONE);
                 progressBar.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, android.R.anim.fade_out));
-
                 novelAdapter.notifyDataSetChanged();
             }
         }.execute();
     }
 
-    private void makeDirectory(String downloadDirPath) {
+    private void makeDirectory() {
+        String downloadDirPath = downloadDir.getAbsolutePath();
+
+        // Create document directory for exporting:
+        File exportDir = MainActivity.this.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
+        assert exportDir != null;
+        File newFolder = ReusableFunction.MakeDirectory(exportDir.getAbsolutePath(), "Export");
+        assert newFolder != null;
+        Log.d("created", newFolder.getAbsolutePath());
+
         // Check if the device is running Android 6.0 (API level 23) or higher
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             // Check if the app has permission to read external storage
@@ -436,6 +459,8 @@ public class MainActivity extends AppCompatActivity {
             }
 
         }
+        // Notify the server adapter that the data set has changed
+        serverAdapter.notifyDataSetChanged();
     }
 
     private void loadScraperPlugin(String pluginPath, String classPackage, String className) {
@@ -505,7 +530,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -567,25 +592,17 @@ public class MainActivity extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
         progressBar.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, android.R.anim.fade_in));
         notificationProgressBarInit();
-        reference.getFile(file).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
-            @Override
-            public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
-                //success
-                Log.d("SuccessNotif", file.toString());
-                // Hide and animate the progress bar after the task is completed
-                progressBar.setVisibility(View.GONE);
-                progressBar.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, android.R.anim.fade_out));
+        reference.getFile(file).addOnSuccessListener(taskSnapshot -> {
+            // Success
+            Log.d("SuccessNotif", file.toString());
+            // Hide and animate the progress bar after the task is completed
+            progressBar.setVisibility(View.GONE);
+            progressBar.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, android.R.anim.fade_out));
 
-                notificationFinishInit();
+            notificationFinishInit();
 
-                loadAllPlugins(downloadDir);
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Log.e("Download Error", e.toString());
-            }
-        });
+            loadAllPlugins(downloadDir);
+        }).addOnFailureListener(e -> Log.e("Download Error", e.toString()));
     }
 
     private void notificationProgressBarInit() {
@@ -629,10 +646,9 @@ public class MainActivity extends AppCompatActivity {
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID);
 
-        builder.setContentTitle("My app").setContentText("Finished");
-        builder.setSmallIcon(R.drawable.ic_launcher_background);
+        builder.setContentTitle("Novel Reader").setContentText("Finished");
+        builder.setSmallIcon(R.drawable.logo);
         notificationManager.notify(1, builder.build());
     }
-
 
 }

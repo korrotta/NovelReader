@@ -54,6 +54,7 @@ public class SearchActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
 
+        // Initialize View
         viewInit();
 
         // Handle fetch Novel from query
@@ -66,28 +67,25 @@ public class SearchActivity extends AppCompatActivity {
         searchView();
         listViewInit();
 
+        // Perform get total pages searched and results
         getTotalPagesThenResultTask();
 
         // Handle Item Click
-        novelSearchListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                // Create an intent to start DetailActivity
-                Intent intent = new Intent(getApplicationContext(), DetailActivity.class);
-
-                // Pass the novel URL to the DetailActivity
-                intent.putExtra("NovelUrl", novelList.get(position).getUrl());
-
-                // Start the DetailActivity
-                startActivity(intent);
-            }
-        });
+        handleItemClick();
 
         // Setup search pagination
         setupPageControls();
 
         // Handle Paginagtion
         handlePagination();
+    }
+
+    private void handleItemClick() {
+        novelSearchListView.setOnItemClickListener((parent, view, position, id) -> {
+            // Switch to Detail Activity for the selected Novel
+            ReusableFunction.ChangeActivityWithString(SearchActivity.this, DetailActivity.class,
+                    "NovelUrl", novelList.get(position).getUrl());
+        });
     }
 
     private void listViewInit() {
@@ -112,57 +110,45 @@ public class SearchActivity extends AppCompatActivity {
 
     private void handlePagination() {
         // Set click listener to show a popup menu for page selection
-        searchPageTextView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        searchPageTextView.setOnClickListener(v -> {
 
-                // Create a PopupMenu
-                PopupMenu popupMenu = new PopupMenu(SearchActivity.this, searchPageTextView);
+            // Create a PopupMenu
+            PopupMenu popupMenu = new PopupMenu(SearchActivity.this, searchPageTextView);
 
-                // Add pages to the PopupMenu
-                for (int i = 1; i <= numberOfPages; i++) {
-                    popupMenu.getMenu().add(0, i, i, "Trang " + i);
-                }
-
-                // Set a click listener for PopupMenu items
-                popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                    @Override
-                    public boolean onMenuItemClick(MenuItem item) {
-                        // Handle page selection
-                        loadPage(item.getItemId());
-                        return true;
-                    }
-                });
-
-                // Set the gravity of the PopupMenu
-                popupMenu.setGravity(Gravity.START);
-
-                // Show the PopupMenu
-                popupMenu.show();
-
+            // Add pages to the PopupMenu
+            for (int i = 1; i <= numberOfPages; i++) {
+                popupMenu.getMenu().add(0, i, i, "Trang " + i);
             }
+
+            // Set a click listener for PopupMenu items
+            popupMenu.setOnMenuItemClickListener(item -> {
+                // Handle page selection
+                loadPage(item.getItemId());
+                return true;
+            });
+
+            // Set the gravity of the PopupMenu
+            popupMenu.setGravity(Gravity.START);
+
+            // Show the PopupMenu
+            popupMenu.show();
+
         });
 
         // Handle Previous Page Button
-        prevSearchPage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (currentPage <= 1) return;
-                currentPage--;
-                loadPage(currentPage);
+        prevSearchPage.setOnClickListener(v -> {
+            if (currentPage <= 1) return;
+            currentPage--;
+            loadPage(currentPage);
 
-            }
         });
 
         // Handle Next Page Button
-        nextSearchPage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (currentPage >= numberOfPages) return;
-                currentPage++;
-                loadPage(currentPage);
+        nextSearchPage.setOnClickListener(v -> {
+            if (currentPage >= numberOfPages) return;
+            currentPage++;
+            loadPage(currentPage);
 
-            }
         });
     }
 
@@ -171,7 +157,7 @@ public class SearchActivity extends AppCompatActivity {
         currentPage = 1;
 
         searchPageControlLayout.setVisibility(View.VISIBLE);
-        searchPageTextView.setText("Page 1 of " + numberOfPages);
+        searchPageTextView.setText("Trang 1 of " + Math.max(numberOfPages, 1));
     }
 
     // Method to load a specific page of search results
@@ -227,7 +213,7 @@ public class SearchActivity extends AppCompatActivity {
                 });
                 novelSearchAdapter.notifyDataSetChanged();
                 novelSearchListView.smoothScrollToPosition(0);
-                SearchActivity.this.searchPageTextView.setText("Page " + currentPage + " of " + numberOfPages);
+                SearchActivity.this.searchPageTextView.setText("Trang " + currentPage + " trên " + Math.max(numberOfPages, 1));
             }
         }.execute();
     }
