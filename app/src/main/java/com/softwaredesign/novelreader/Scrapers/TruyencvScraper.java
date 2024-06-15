@@ -126,24 +126,32 @@ public class TruyencvScraper implements INovelScraper {
     @Override
     public int getChapterListNumberOfPages(String url) {
         try {
+            // Connect to the provided URL with an anchor to jump to the chapter list section
             Document doc = Jsoup.connect(url+"#danh-sach-chuong").get();
 
+            // Select the pagination <ul> element
             Element pagination = doc.selectFirst("ul.flex.mx-auto");
+            // If there is no pagination found, assume there is only one page
             if (pagination == null) {
                 return 1;
             }
 
+            // Select all <li> elements within the pagination
             Elements pages = pagination.select("li");
+            // If there are no <li> elements, assume there is only one page
             if (pages.size() == 0 ) {
                 return 1;
             }
 
+            // Get the last <li> element in the pagination
             Element lastPage = pages.last();
+            // If the last page contains "Cuối" (End), extract the page number from its URL
             if (lastPage.text().contains("Cuối")){
                 String pageId = parseChapterListUrlForPageId(lastPage.selectFirst("a[href]").attr("href"));
                 return Integer.parseInt(pageId);
             }
             //Note: -2 to ignore > but can be wrong
+            // If there is more than one page, get the second-to-last <li> element
             Element preLastPage = pages.get(pages.size()-2);
             String pageId = parseChapterListUrlForPageId(preLastPage.selectFirst("a[href]").attr("href"));
             return Integer.parseInt(pageId);
@@ -155,18 +163,25 @@ public class TruyencvScraper implements INovelScraper {
 
     @Override
     public List<ChapterModel> getChapterListInPage(String novelUrl, int pageNumber) {
+        // Construct the final URL with the novel URL, page number, and anchor to chapter list section
         final String finalUrl = novelUrl + "?page=" + pageNumber + "#danh-sach-chuong";
         List<ChapterModel> chapters = new ArrayList<>();
         try {
+            // Connect to the final URL to retrieve the HTML document
             Document doc = Jsoup.connect(finalUrl).get();
+            // Select the element with id 'danh-sach-chuong' which contains the list of chapters
             Element dsChuong = doc.getElementById("danh-sach-chuong");
+            // Select all <ul> elements with class 'col-span-6' within 'danh-sach-chuong'
             Elements cols = dsChuong.select("ul.col-span-6");
             for (Element col: cols){
+                // Select all <li> elements within the current <ul>
                 Elements rows = col.select("li");
                 for (Element row: rows){
                     String name = capitalizeFirstLetterOfWord(row.text());
+                    // Extract the URL of the chapter from the <a> element's 'href' attribute
                     String url = row.selectFirst("a[href]").attr("href");
                     int number = 0;
+                    // Create a new ChapterModel object and add it to the list
                     chapters.add(new ChapterModel(name, url, number));
                     //FIXME: 0 here for faster dev, changing later
                 }
