@@ -1,25 +1,11 @@
 package com.softwaredesign.novelreader.Activities;
 
 
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-
-import androidx.core.content.ContextCompat;
-import androidx.core.content.res.ResourcesCompat;
-import androidx.core.text.HtmlCompat;
-import androidx.fragment.app.FragmentManager;
-
 import android.annotation.SuppressLint;
-
-
-import android.content.DialogInterface;
-
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
-import android.graphics.drawable.ColorDrawable;
-
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -29,16 +15,13 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.BackgroundColorSpan;
 import android.util.Log;
-
 import android.util.TypedValue;
-
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -52,7 +35,9 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.core.text.HtmlCompat;
+import androidx.fragment.app.FragmentManager;
 
 import com.example.exporter_library.IChapterExportHandler;
 import com.example.scraper_library.INovelScraper;
@@ -60,6 +45,7 @@ import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.bottomappbar.BottomAppBar;
 import com.softwaredesign.novelreader.Adapters.ExporterSpinnerAdapter;
 import com.softwaredesign.novelreader.BackgroundTask;
+import com.softwaredesign.novelreader.Fragments.ChapterListFragment;
 import com.softwaredesign.novelreader.Fragments.SettingsDialogFragment;
 import com.softwaredesign.novelreader.Global.GlobalConfig;
 import com.softwaredesign.novelreader.Global.ReusableFunction;
@@ -85,7 +71,7 @@ public class ReadActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private BottomAppBar bottomAppBar;
     private AppBarLayout topAppBar;
-    private LinearLayout search_layout;
+    private LinearLayout searchLayout;
     private AlertDialog.Builder alertDialog;
 
     private String chapterUrl, chapterTitle, content, novelName, nextChapterUrl, previousChapterUrl;
@@ -96,14 +82,13 @@ public class ReadActivity extends AppCompatActivity {
 
     private SharedPreferences sharedPreferences;
 
-
-    //NOTE: Local reader server:
+    //NOTE: Local reader server
     private INovelScraper readerServer;
 
-    //NOTE: String variable holder:
+    //NOTE: String variable holder
     private static ArrayList<String[]> serverFetchedLink;
 
-    private Handler handler = new Handler(Looper.getMainLooper());
+    private final Handler handler = new Handler(Looper.getMainLooper());
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -111,210 +96,86 @@ public class ReadActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_read);
 
-        vitalValueInit();
+        // Initialize some vital variables
+        initializeVariables();
 
+        // Initialize view
         InitializeView();
-        sharedPreferences = this.getSharedPreferences("ReadSetting", Context.MODE_PRIVATE);
 
+        // Load preferences
+        loadPreferences();
+
+        // Get chapterUrl from previous intent
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
             chapterUrl = bundle.getString("ChapterUrl");
         }
 
-        //execute chapter content
+        // Execute chapter content
         getChapterContentTask();
 
+        // Handle Listeners
+        handleListeners();
+    }
+
+    private void handleListeners() {
+        // Handle Chapter Navigation Buttons
         prevChapterIV.setOnClickListener(prevBtnClickListener);
         nextChapterIV.setOnClickListener(nextBtnClickListener);
 
         // Handle Server Source Button
-        serverIV.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d("clicked?", "clicked");
-                // AlertDialog builder instance to build the alert dialog
-                alertDialog = new AlertDialog.Builder(ReadActivity.this);
-
-                // Set the custom icon to the alert dialog
-                alertDialog.setIcon(R.drawable.server);
-
-                // Title of the alert dialog
-                alertDialog.setTitle("Chọn Server Nguồn: ");
-                getContentFromNameAndChapterTask();
-            }
-        });
+        serverIV.setOnClickListener(serverIVClickListener);
 
         // Handle Find text in page Button
-        findInChapterIV.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //searchEditText.setVisibility(View.VISIBLE);
-                search_layout.setVisibility(View.VISIBLE);
-                searchEditText.requestFocus();
-                //overlayView.setVisibility(View.VISIBLE);  // Hiển thị overlay khi EditText hiển thị
-                InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-                imm.showSoftInput(searchEditText, InputMethodManager.SHOW_IMPLICIT);
-            }
-        });
+        findInChapterIV.setOnClickListener(findInChapterIVClickListener);
 
         // Hanlde search EditText
-        searchEditText.setOnEditorActionListener((v, actionId, event) -> {
-            if (actionId == EditorInfo.IME_ACTION_SEARCH || event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
-                String searchText = searchEditText.getText().toString();
-                if (!searchText.isEmpty()) {
-                    performSearch();
-                    highlightText(searchText);
-                }
-                return true;
-            }
-            return false;
-        });
+        searchEditText.setOnEditorActionListener(searchEditTextListener);
 
         // Hanlde searchUp Button
-        searchUpIV.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!searchResults.isEmpty()) {
-                    currentSearchIndex = (currentSearchIndex - 1 + searchResults.size()) % searchResults.size();
-                    scrollToSearchResult(false);
-                }
-            }
-        });
+        searchUpIV.setOnClickListener(searchUpIVClickListener);
 
         // Hanlde searchDown Button
-        searchDownIV.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!searchResults.isEmpty()) {
-                    currentSearchIndex = (currentSearchIndex + 1) % searchResults.size();
-                    scrollToSearchResult(false);
-                }
-            }
-        });
+        searchDownIV.setOnClickListener(searchDownIVClickListener);
 
         // Hanlde searchClose Button
-        searchCloseButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                searchResults.clear();
-                searchEditText.setText("");
-                search_layout.setVisibility(View.GONE);
-                clearHighlight();
-                searchUpIV.setAlpha(searchResults.size() > 1 ? 1.0f : 0.2f);
-                searchDownIV.setAlpha(searchResults.size() > 1 ? 1.0f : 0.2f);
-                searchUpIV.setClickable(searchResults.size() > 1);
-                searchDownIV.setClickable(searchResults.size() > 1);
-                searchStatusTV.setText("");
-            }
-        });
+        searchCloseButton.setOnClickListener(searchCloseButtonListener);
 
         // Handle chapterName TextView
-        chapterNameTV.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Go back to chapter list
-                finish();
-            }
-        });
+        chapterNameTV.setOnClickListener(chapterNameTVListener);
 
         // Hanlde chapterList Button
-        saveChapterIV.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Handle chapterList Button
-                saveChapterIV.setOnClickListener(view -> {
-                    // AlertDialog builder instance to build the alert dialog
-                    AlertDialog.Builder alertDialog = new AlertDialog.Builder(ReadActivity.this);
-
-                    // Inflate the custom layout for the spinner
-                    LayoutInflater inflater = getLayoutInflater();
-                    View dialogView = inflater.inflate(R.layout.dialog_spinner, null);
-                    alertDialog.setView(dialogView);
-
-                    // set the custom icon to the alert dialog
-                    alertDialog.setIcon(R.drawable.logo);
-
-                    // title of the alert dialog
-                    alertDialog.setTitle("Tải xuống chương với định dạng");
-
-                    // Get the spinner from the custom layout
-                    Spinner spinner = dialogView.findViewById(R.id.saveChapterSpinner);
-
-                    // List of the items to be displayed in the spinner
-                    final String[] listItems = new String[]{"EPUB", "PDF"};
-
-                    // Create an ArrayAdapter using the string array and a default spinner layout
-                    ExporterSpinnerAdapter adapter = new ExporterSpinnerAdapter(ReadActivity.this,
-                            android.R.layout.simple_spinner_item,GlobalConfig.Global_Exporter_List);
-
-                    spinner.setAdapter(adapter);
-
-                    // Set the negative button if the user is not interested to select or change already selected item
-                    alertDialog.setNegativeButton("Cancel", (dialog, which) -> {
-                        // Dismiss the dialog
-                        dialog.dismiss();
-                    });
-
-                    // Set the positive button to confirm the selection
-                    alertDialog.setPositiveButton("OK", (dialog, which) -> {
-                        // Get the selected item
-                        IChapterExportHandler selectedItem = (IChapterExportHandler) spinner.getSelectedItem();
-                        // Handle the selected item
-                        String dir = ReadActivity.this.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS).getAbsolutePath()+"/Export";
-
-                        File directory = ReusableFunction.MakeDirectory(dir, novelName);
-                        File typeDirectory = ReusableFunction.MakeDirectory(directory.getAbsolutePath(), selectedItem.getExporterName());
-
-                        selectedItem.exportChapter(content, typeDirectory, chapterTitle);
-                        handler.postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(ReadActivity.this, "Done!", Toast.LENGTH_SHORT).show();
-                            }
-                        }, 500);
-                    });
-
-                    // Create and build the AlertDialog instance with the AlertDialog builder instance
-                    AlertDialog customAlertDialog = alertDialog.create();
-
-                    // Show the alert dialog when the button is clicked
-                    customAlertDialog.show();
-                });
-            }
-        });
+        saveChapterIV.setOnClickListener(saveChapterTVListener);
 
         // Handle Settings Button
-        settingsIV.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //Toast.makeText(ReadActivity.this, "You clicked Settings", Toast.LENGTH_SHORT).show();
-                FragmentManager fragmentManager = getSupportFragmentManager();
-                SettingsDialogFragment settingsDialog = new SettingsDialogFragment();
-                settingsDialog.show(fragmentManager, "settings_dialog");
-            }
-        });
-
+        settingsIV.setOnClickListener(settingsIVListener);
     }
 
-    private void vitalValueInit() {
+    private void loadPreferences() {
+        sharedPreferences = this.getSharedPreferences("ReadSetting", Context.MODE_PRIVATE);
+    }
+
+    private void initializeVariables() {
         if (serverFetchedLink == null) {
             serverFetchedLink = new ArrayList<>();
         }
 
         availableSourceList = new ArrayList<>();
         readerServer = GlobalConfig.Global_Current_Scraper.clone();
+        selectedItem[0] = -1; // Initialize selected item for the dialog
+    }
 
-        //NOTE: final to pass reference in new scope
-        selectedItem[0] = -1;
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        navigateToDetail();
     }
 
     // search text in content function
     @SuppressLint("SetTextI18n")
     private void performSearch() {
         String query = searchEditText.getText().toString();
-        //String content = chapterContentTV.getText().toString();
         String plainTextContent  = HtmlCompat.fromHtml(content, HtmlCompat.FROM_HTML_MODE_LEGACY).toString();
-
 
         searchResults = new ArrayList<>();
         int index = plainTextContent .indexOf(query);
@@ -426,7 +287,7 @@ public class ReadActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.readProgressBar);
         serverIV = findViewById(R.id.serverSourceRead);
         searchEditText = findViewById(R.id.search_edit_text);
-        search_layout = findViewById(R.id.search_layout);
+        searchLayout = findViewById(R.id.search_layout);
         searchDownIV = findViewById(R.id.search_down);
         searchUpIV = findViewById(R.id.search_up);
         searchStatusTV = findViewById(R.id.search_status);
@@ -446,21 +307,18 @@ public class ReadActivity extends AppCompatActivity {
         new BackgroundTask(ReadActivity.this) {
             @Override
             public void onPreExecute() {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        progressBar.setVisibility(View.VISIBLE);
-                        progressBar.startAnimation(AnimationUtils.loadAnimation(ReadActivity.this, android.R.anim.fade_in));
-                    }
+                handler.post(() -> {
+                    progressBar.setVisibility(View.VISIBLE);
+                    progressBar.startAnimation(AnimationUtils.loadAnimation(ReadActivity.this, android.R.anim.fade_in));
                 });
             }
 
             @Override
             public void doInBackground() {
-                //Fetch from chapterURL
+                // Fetch from chapterURL
                 Object item = readerServer.getChapterContent(chapterUrl);
 
-                //Ensure datatype matched
+                // Ensure datatype matched
                 ChapterContentModel ccm;
                 if (item instanceof ChapterContentModel) {
                     ccm = (ChapterContentModel) item;
@@ -481,13 +339,11 @@ public class ReadActivity extends AppCompatActivity {
             @SuppressLint("SetTextI18n")
             @Override
             public void onPostExecute() {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        progressBar.setVisibility(View.GONE);
-                        progressBar.startAnimation(AnimationUtils.loadAnimation(ReadActivity.this, android.R.anim.fade_out));
-                    }
+                handler.post(() -> {
+                    progressBar.setVisibility(View.GONE);
+                    progressBar.startAnimation(AnimationUtils.loadAnimation(ReadActivity.this, android.R.anim.fade_out));
                 });
+
                 // Update UI after fetch
                 novelNameTV.setText(novelName);
                 chapterTitleTV.setText(chapterTitle);
@@ -503,6 +359,7 @@ public class ReadActivity extends AppCompatActivity {
                 applyFontChange();
                 applyTextSizeChange();
                 applyThemeChange();
+                applyLineSpacingChange();
 
                 nextChapterIV.setVisibility(View.VISIBLE);
                 prevChapterIV.setVisibility(View.VISIBLE);
@@ -546,7 +403,6 @@ public class ReadActivity extends AppCompatActivity {
     private void applyThemeChange() {
         String theme = sharedPreferences.getString("theme", "dark");
 
-
         if (theme.equals("light")) {
             serverNameTV.setTextColor(ContextCompat.getColor(this, R.color.black));
             chapterTitleTV.setTextColor(ContextCompat.getColor(this, R.color.black));
@@ -580,12 +436,56 @@ public class ReadActivity extends AppCompatActivity {
         }
     }
 
-    // apply Line Spacing Change function
+    // Apply Line Spacing Change function
     private void applyLineSpacingChange() {
         float lineSpacing = sharedPreferences.getFloat("lineSpacing", 1.0f);
         chapterContentTV.setLineSpacing(1.0f, lineSpacing);
     }
-  
+
+    // Change chapterUrl into novelUrl
+    private String chapterToNovelUrl(String chapterUrl) {
+        try {
+            // Create a URL object
+            java.net.URL urlObj = new java.net.URL(chapterUrl);
+
+            // Get the protocol (e.g., https)
+            String protocol = urlObj.getProtocol();
+
+            // Get the host (e.g., truyenfull.vn)
+            String host = urlObj.getHost();
+
+            // Get the path (e.g., /nang-khong-muon-lam-hoang-hau/chuong-6/)
+            String path = urlObj.getPath();
+
+            // Remove the last segment of the path
+            if (path != null && path.length() > 0 && path.charAt(path.length() - 1) == '/') {
+                path = path.substring(0, path.length() - 1);
+            }
+            int lastIndex = path.lastIndexOf('/');
+            if (lastIndex != -1) {
+                path = path.substring(0, lastIndex + 1);
+            }
+
+            // Combine protocol, host, and path to get the base URL
+            return protocol + "://" + host + path;
+        } catch (java.net.MalformedURLException e) {
+            // Handle the exception if the URL is malformed
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private void navigateToDetail() {
+        // Change chapterUrl to novelUrl
+        String novelUrl = chapterToNovelUrl(chapterUrl);
+        Log.d("CHAPTERURL", chapterUrl);
+        Log.d("NOVELURL", novelUrl);
+        // Go back to chapter list
+        ReusableFunction.ChangeActivityWithString(ReadActivity.this, DetailActivity.class, "NovelUrl", novelUrl);
+        finish();
+    }
+
+    // Get Content
     private void getContentFromNameAndChapterTask() {
 
         if (availableSourceList == null) return;
@@ -599,7 +499,7 @@ public class ReadActivity extends AppCompatActivity {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        Log.d("Reach progress bả", " Bar");
+                        Log.d("Reach progress bar", " Bar");
                         progressBar.setVisibility(View.VISIBLE);
                         progressBar.startAnimation(AnimationUtils.loadAnimation(ReadActivity.this, android.R.anim.fade_in));
                     }
@@ -623,13 +523,13 @@ public class ReadActivity extends AppCompatActivity {
                     if (item instanceof ChapterContentModel) {
                         ccm = (ChapterContentModel) item;
                     } else {
-                        //note: inner holder
+                        //Note: inner holder
                         String[] holder = (String[]) item;
                         ccm = new ChapterContentModel(holder[0], holder[1], holder[2], holder[3]);
                     }
 
                     String[] holder = new String[2];
-                    //note: holder init-ed here
+                    //Note: holder init-ed here
                     holder[0] = scraper.getSourceName();
                     holder[1] = ccm.getChapterUrl();
 
@@ -643,7 +543,7 @@ public class ReadActivity extends AppCompatActivity {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        Log.d("End progress bả", " Bar");
+                        Log.d("End progress bar", " Bar");
                         progressBar.setVisibility(View.GONE);
                         progressBar.startAnimation(AnimationUtils.loadAnimation(ReadActivity.this, android.R.anim.fade_out));
                     }
@@ -715,6 +615,155 @@ public class ReadActivity extends AppCompatActivity {
         }
     };
 
+    View.OnClickListener serverIVClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            Log.d("clicked?", "clicked");
+            // AlertDialog builder instance to build the alert dialog
+            alertDialog = new AlertDialog.Builder(ReadActivity.this);
+
+            // Set the custom icon to the alert dialog
+            alertDialog.setIcon(R.drawable.server);
+
+            // Title of the alert dialog
+            alertDialog.setTitle("Chọn Server Nguồn: ");
+            getContentFromNameAndChapterTask();
+        }
+    };
+
+    View.OnClickListener findInChapterIVClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            searchLayout.setVisibility(View.VISIBLE);
+            searchEditText.requestFocus();
+            InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+            imm.showSoftInput(searchEditText, InputMethodManager.SHOW_IMPLICIT);
+        }
+    };
+
+    TextView.OnEditorActionListener searchEditTextListener = new TextView.OnEditorActionListener() {
+        @Override
+        public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+            if (actionId == EditorInfo.IME_ACTION_SEARCH || event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
+                String searchText = searchEditText.getText().toString();
+                if (!searchText.isEmpty()) {
+                    performSearch();
+                    highlightText(searchText);
+                }
+                return true;
+            }
+            return false;
+        }
+    };
+
+    View.OnClickListener searchUpIVClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if (!searchResults.isEmpty()) {
+                currentSearchIndex = (currentSearchIndex - 1 + searchResults.size()) % searchResults.size();
+                scrollToSearchResult(false);
+            }
+        }
+    };
+
+    View.OnClickListener searchDownIVClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if (!searchResults.isEmpty()) {
+                currentSearchIndex = (currentSearchIndex + 1) % searchResults.size();
+                scrollToSearchResult(false);
+            }
+        }
+    };
+
+    View.OnClickListener searchCloseButtonListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            searchResults.clear();
+            searchEditText.setText("");
+            searchLayout.setVisibility(View.GONE);
+            clearHighlight();
+            searchUpIV.setAlpha(searchResults.size() > 1 ? 1.0f : 0.2f);
+            searchDownIV.setAlpha(searchResults.size() > 1 ? 1.0f : 0.2f);
+            searchUpIV.setClickable(searchResults.size() > 1);
+            searchDownIV.setClickable(searchResults.size() > 1);
+            searchStatusTV.setText("");
+        }
+    };
+
+    View.OnClickListener chapterNameTVListener = v -> {
+        // Switch to DetailNovel with appropriate novelUrl
+        navigateToDetail();
+    };
+
+    View.OnClickListener saveChapterTVListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            // AlertDialog builder instance to build the alert dialog
+            AlertDialog.Builder alertDialog = new AlertDialog.Builder(ReadActivity.this);
+
+            // Inflate the custom layout for the spinner
+            LayoutInflater inflater = getLayoutInflater();
+            View dialogView = inflater.inflate(R.layout.dialog_spinner, null);
+            alertDialog.setView(dialogView);
+
+            // set the custom icon to the alert dialog
+            alertDialog.setIcon(R.drawable.logo);
+
+            // title of the alert dialog
+            alertDialog.setTitle("Tải xuống chương với định dạng");
+
+            // Get the spinner from the custom layout
+            Spinner spinner = dialogView.findViewById(R.id.saveChapterSpinner);
+
+            // List of the items to be displayed in the spinner
+            final String[] listItems = new String[]{"EPUB", "PDF"};
+
+            // Create an ArrayAdapter using the string array and a default spinner layout
+            ExporterSpinnerAdapter adapter = new ExporterSpinnerAdapter(ReadActivity.this,
+                    android.R.layout.simple_spinner_item,GlobalConfig.Global_Exporter_List);
+
+            spinner.setAdapter(adapter);
+
+            // Set the negative button if the user is not interested to select or change already selected item
+            alertDialog.setNegativeButton("Cancel", (dialog, which) -> {
+                // Dismiss the dialog
+                dialog.dismiss();
+            });
+
+            // Set the positive button to confirm the selection
+            alertDialog.setPositiveButton("OK", (dialog, which) -> {
+                // Get the selected item
+                IChapterExportHandler selectedItem = (IChapterExportHandler) spinner.getSelectedItem();
+                // Handle the selected item
+                String dir = ReadActivity.this.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS).getAbsolutePath()+"/Export";
+
+                File directory = ReusableFunction.MakeDirectory(dir, novelName);
+                File typeDirectory = ReusableFunction.MakeDirectory(directory.getAbsolutePath(), selectedItem.getExporterName());
+
+                selectedItem.exportChapter(content, typeDirectory, chapterTitle);
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(ReadActivity.this, "Done!", Toast.LENGTH_SHORT).show();
+                    }
+                }, 500);
+            });
+
+            // Create and build the AlertDialog instance with the AlertDialog builder instance
+            AlertDialog customAlertDialog = alertDialog.create();
+
+            // Show the alert dialog when the button is clicked
+            customAlertDialog.show();
+        }
+    };
+
+    View.OnClickListener settingsIVListener = v -> {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        SettingsDialogFragment settingsDialog = new SettingsDialogFragment();
+        settingsDialog.show(fragmentManager, "settings_dialog");
+    };
+
     @Override
     protected void onStop() {
         super.onStop();
@@ -730,8 +779,6 @@ public class ReadActivity extends AppCompatActivity {
         try (FileOutputStream fos = new FileOutputStream(finalFile)) {
             ObjectOutputStream out = new ObjectOutputStream(fos);
             out.writeObject(data);
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -2,15 +2,12 @@ package com.softwaredesign.novelreader.Activities;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
-
 import android.os.Bundle;
 import android.os.Handler;
-
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.AnimationUtils;
-
 import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -31,7 +28,6 @@ import com.softwaredesign.novelreader.R;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class SearchActivity extends AppCompatActivity {
 
@@ -48,7 +44,7 @@ public class SearchActivity extends AppCompatActivity {
 
     private String searchQuery;
 
-    private Handler handler = new Handler();
+    private final Handler handler = new Handler();
 
     private static ArrayList<NovelModel> novelList;
     private static volatile int numberOfPages, currentPage;
@@ -125,7 +121,7 @@ public class SearchActivity extends AppCompatActivity {
 
                 // Add pages to the PopupMenu
                 for (int i = 1; i <= numberOfPages; i++) {
-                    popupMenu.getMenu().add(0, i, i, "Page " + i);
+                    popupMenu.getMenu().add(0, i, i, "Trang " + i);
                 }
 
                 // Set a click listener for PopupMenu items
@@ -208,12 +204,9 @@ public class SearchActivity extends AppCompatActivity {
         new BackgroundTask(SearchActivity.this) {
             @Override
             public void onPreExecute () {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        searchProgressBar.setVisibility(View.VISIBLE);
-                        searchProgressBar.startAnimation(AnimationUtils.loadAnimation(SearchActivity.this, android.R.anim.fade_in));
-                    }
+                handler.post(() -> {
+                    searchProgressBar.setVisibility(View.VISIBLE);
+                    searchProgressBar.startAnimation(AnimationUtils.loadAnimation(SearchActivity.this, android.R.anim.fade_in));
                 });
             }
 
@@ -228,12 +221,9 @@ public class SearchActivity extends AppCompatActivity {
             @SuppressLint("SetTextI18n")
             @Override
             public void onPostExecute () {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        searchProgressBar.setVisibility(View.GONE);
-                        searchProgressBar.startAnimation(AnimationUtils.loadAnimation(SearchActivity.this, android.R.anim.fade_out));
-                    }
+                handler.post(() -> {
+                    searchProgressBar.setVisibility(View.GONE);
+                    searchProgressBar.startAnimation(AnimationUtils.loadAnimation(SearchActivity.this, android.R.anim.fade_out));
                 });
                 novelSearchAdapter.notifyDataSetChanged();
                 novelSearchListView.smoothScrollToPosition(0);

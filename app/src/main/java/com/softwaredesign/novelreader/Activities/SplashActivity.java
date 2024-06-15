@@ -10,30 +10,25 @@ import com.softwaredesign.novelreader.databinding.ActivitySplashBinding;
 
 public class SplashActivity extends AppCompatActivity {
 
-    // View binding for the SplashActivity
-    private ActivitySplashBinding binding;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         // Inflate the layout using view binding
-        binding = ActivitySplashBinding.inflate(getLayoutInflater());
+        // View binding for the SplashActivity
+        com.softwaredesign.novelreader.databinding.ActivitySplashBinding binding = ActivitySplashBinding.inflate(getLayoutInflater());
 
         // Set the content view to the root of the binding
         setContentView(binding.getRoot());
 
         // after a delay of 2 seconds
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
+        new Handler().postDelayed(() -> {
 
-                // Create an intent to start MainActivity
-                startActivity(new Intent(SplashActivity.this, MainActivity.class));
+            // Create an intent to start MainActivity
+            startActivity(new Intent(SplashActivity.this, MainActivity.class));
 
-                // Finish the SplashActivity so the user can't navigate back to it
-                finish();
-            }
+            // Finish the SplashActivity so the user can't navigate back to it
+            finish();
         }, 2000);
     }
 }

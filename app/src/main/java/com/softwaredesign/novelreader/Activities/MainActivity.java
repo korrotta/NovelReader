@@ -172,19 +172,14 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (lastrunChapterName == null) {
                     showNoPreviousDataDialogBox();
-                }
-                else {
+                } else {
                     showConfirmationDialogBox();
                 }
             }
         });
 
         // Variables for plugins
-        // initialise the list items for the alert dialog
-
-
-        // copy the items from the main list to the selected item list for the preview
-        // if the item is checked then only the item should be displayed for the user
+        // Initialise the list items for the alert dialog
         final List<String> selectedItems = Arrays.asList(pluginList);
 
         // Handle Plugin Button
@@ -212,14 +207,14 @@ public class MainActivity extends AppCompatActivity {
                     File truyencvPluginFile = new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "scraper_truyencvtest_TruyencvScraper.apk");
                     File htmlPluginFile = new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), getNameFromUrl(HTML_PLUGIN));
                     if (pluginChecked[i]) {
-                        if (i==0){
+                        if (i == 0) {
                             //Download truyencv.jar
                             Log.d("Download", "truyencv.jar");
                             if (truyencvPluginFile.exists()) return;
                             StorageReference fileRef = ref.child("scraper_truyencvtest_TruyencvScraper.txt");
                             downloadProcessing(fileRef, truyencvPluginFile);
                         }
-                        if (i==1) {
+                        if (i == 1) {
                             //Download http.jar
                             Log.d("Download", "http.jar");
 
@@ -227,15 +222,14 @@ public class MainActivity extends AppCompatActivity {
                             StorageReference fileRef = ref.child("exporter_htmlexporter_HtmlExportHandler.txt");
                             downloadProcessing(fileRef, htmlPluginFile);
                         }
-                    }
-                    else if (!pluginChecked[i]){
-                        if (i==0){
+                    } else if (!pluginChecked[i]) {
+                        if (i == 0) {
                             //Download truyencv.jar
                             deletePluginFile(truyencvPluginFile);
 
                             int index = -1;
-                            for (INovelScraper scraper:GlobalConfig.Global_Source_List){
-                                if (scraper.getSourceName().equalsIgnoreCase("Truyencv")){
+                            for (INovelScraper scraper : GlobalConfig.Global_Source_List) {
+                                if (scraper.getSourceName().equalsIgnoreCase("Truyencv")) {
                                     index = GlobalConfig.Global_Source_List.indexOf(scraper);
                                 }
                             }
@@ -244,13 +238,13 @@ public class MainActivity extends AppCompatActivity {
                             serverAdapter.notifyDataSetChanged();
 
                         }
-                        if (i==1) {
+                        if (i == 1) {
                             //Download http.jar
                             deletePluginFile(htmlPluginFile);
 
                             int index = -1;
-                            for (IChapterExportHandler exporter:GlobalConfig.Global_Exporter_List){
-                                if (exporter.getExporterName().equalsIgnoreCase("html")){
+                            for (IChapterExportHandler exporter : GlobalConfig.Global_Exporter_List) {
+                                if (exporter.getExporterName().equalsIgnoreCase("html")) {
                                     index = GlobalConfig.Global_Exporter_List.indexOf(exporter);
                                 }
                             }
@@ -280,12 +274,12 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void showConfirmationDialogBox(){
+    private void showConfirmationDialogBox() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
         // Set the title and message
         builder.setTitle("Tiếp tục đọc");
-        builder.setMessage("Lần trước bạn đang đọc " + lastrunName + ", " +lastrunChapterName +". \n \nBạn xác nhận muốn tiếp tục đọc?");
+        builder.setMessage("Lần trước bạn đang đọc " + lastrunName + ", " + lastrunChapterName + ". \n \nBạn xác nhận muốn tiếp tục đọc?");
 
         // Set the "OK" button
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
@@ -293,18 +287,19 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(DialogInterface dialog, int which) {
                 // Handle when the user selects "OK"
                 // Note: Action implementation required
-                for (INovelScraper scraper: GlobalConfig.Global_Source_List){
+                for (INovelScraper scraper : GlobalConfig.Global_Source_List) {
                     if (scraper.getSourceName().equals(lastrunServer)) {
                         GlobalConfig.Global_Current_Scraper = scraper;
                         serverSpinner.setSelection(GlobalConfig.Global_Source_List.indexOf(scraper));
                         break;
                     }
                 }
-                //Note: switch intent den reader mode
+                //Note: switch intent to reader mode
                 ReusableFunction.ChangeActivityWithString(MainActivity.this, ReadActivity.class,
                         "ChapterUrl", lastrunChapterUrl);
             }
         });
+
         // Set the "Cancel" button
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
@@ -319,7 +314,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void showNoPreviousDataDialogBox(){
+    private void showNoPreviousDataDialogBox() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
         // Set the title and message
@@ -390,7 +385,7 @@ public class MainActivity extends AppCompatActivity {
         }.execute();
     }
 
-    private void makeDirectory(String downloadDirPath){
+    private void makeDirectory(String downloadDirPath) {
         // Check if the device is running Android 6.0 (API level 23) or higher
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             // Check if the app has permission to read external storage
@@ -411,11 +406,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //Note: on developing
-    private void loadAllPlugins(File downloadDir){
+    private void loadAllPlugins(File downloadDir) {
         if (!downloadDir.isDirectory()) return;
         File[] files = downloadDir.listFiles();
         if (files == null) return;
-        for (File file: files){
+        for (File file : files) {
             if (file.isDirectory()) return;
             //note: file is file now.
             //check if it's an apk file
@@ -442,7 +437,8 @@ public class MainActivity extends AppCompatActivity {
 
         }
     }
-    private void loadScraperPlugin(String pluginPath, String classPackage, String className){
+
+    private void loadScraperPlugin(String pluginPath, String classPackage, String className) {
         try {
             // Get or create a directory named "dex" in the app's private storage area
             final File tmpDir = getDir("dex", 0);
@@ -450,18 +446,18 @@ public class MainActivity extends AppCompatActivity {
             final DexClassLoader classloader = new DexClassLoader(pluginPath, tmpDir.getAbsolutePath(), null, this.getClass().getClassLoader());
             // Load the specified class from the plugin
             // "com.example."+classPackage+"."+className: Fully qualified class name
-            Class<?> classToLoad = classloader.loadClass("com.example."+classPackage+"."+className);
+            Class<?> classToLoad = classloader.loadClass("com.example." + classPackage + "." + className);
             // Instantiate the loaded class and cast it to INovelScraper
             INovelScraper addedScraperPlugin = (INovelScraper) classToLoad.newInstance();
-            for (INovelScraper scraper: GlobalConfig.Global_Source_List){
-                if (scraper.getSourceName().equals(addedScraperPlugin.getSourceName())){
+            for (INovelScraper scraper : GlobalConfig.Global_Source_List) {
+                if (scraper.getSourceName().equals(addedScraperPlugin.getSourceName())) {
                     Log.d("Add plugin status", "Failed, source exists");
                     return;
                 }
             }
             // Add the new scraper plugin to the global source list
             GlobalConfig.Global_Source_List.add(addedScraperPlugin);
-            pluginChecked[0] =true;
+            pluginChecked[0] = true;
             Log.d("Added plugin: ", addedScraperPlugin.getSourceName());
         } catch (Exception e) {
             e.printStackTrace();
@@ -494,14 +490,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private List<NovelModel> identifyingList(List<Object> list){
+    private List<NovelModel> identifyingList(List<Object> list) {
         List<NovelModel> novels = new ArrayList<>();
-        for (Object item: list){
+        for (Object item : list) {
             if (item instanceof NovelModel) {
                 novels.add((NovelModel) item);
-            }
-
-            else {
+            } else {
                 String[] novelHolder = (String[]) item;
                 NovelModel novel = new NovelModel(novelHolder[0], novelHolder[1], novelHolder[2], novelHolder[3]);
                 novels.add(novel);
@@ -521,21 +515,20 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         if (requestCode == REQUEST_WRITE_PERMISSION) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 //Permission granted
-            }
-            else {
+            } else {
                 //permission denied
             }
         }
     }
 
     //Return to last read Novel
-    private void readLastRunLog(){
+    private void readLastRunLog() {
         //Create a File object representing the "lastrun.log" file in the documents directory within the app's external storage
         File file = new File(MainActivity.this.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), "lastrun.log");
-        if (file.exists()){
-            try (FileInputStream fis = new FileInputStream(file)){
+        if (file.exists()) {
+            try (FileInputStream fis = new FileInputStream(file)) {
                 ObjectInputStream in = new ObjectInputStream(fis);
                 String[] data = (String[]) in.readObject();
 
@@ -544,7 +537,7 @@ public class MainActivity extends AppCompatActivity {
                 lastrunChapterName = data[2];
                 lastrunChapterUrl = data[3];
 
-                Log.d("Last run", lastrunServer + " " + lastrunName + " " + lastrunChapterName+" " + lastrunChapterUrl);
+                Log.d("Last run", lastrunServer + " " + lastrunName + " " + lastrunChapterName + " " + lastrunChapterUrl);
 
             } catch (IOException | ClassNotFoundException e) {
                 throw new RuntimeException(e);
@@ -553,9 +546,9 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private String getNameFromUrl(String url){
+    private String getNameFromUrl(String url) {
         String[] holder = url.split("/");
-        return holder[holder.length-1];
+        return holder[holder.length - 1];
     }
 
     private void deletePluginFile(File file) {
@@ -570,7 +563,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void downloadProcessing(StorageReference reference, File file){
+    private void downloadProcessing(StorageReference reference, File file) {
         progressBar.setVisibility(View.VISIBLE);
         progressBar.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, android.R.anim.fade_in));
         notificationProgressBarInit();
@@ -605,7 +598,7 @@ public class MainActivity extends AppCompatActivity {
 
         mBuilder.setChannelId(CHANNEL_ID);
         mBuilder.setSmallIcon(R.drawable.ic_launcher_foreground);
-        mBuilder.setContentTitle("My app") ;
+        mBuilder.setContentTitle("My app");
         mBuilder.setContentText("Download in progress");
         mBuilder.setSmallIcon(R.drawable.ic_launcher_foreground);
         mBuilder.setPriority(NotificationCompat.PRIORITY_DEFAULT);
@@ -631,7 +624,8 @@ public class MainActivity extends AppCompatActivity {
             notificationManager.createNotificationChannel(channel);
         }
     }
-    private void notificationFinishInit(){
+
+    private void notificationFinishInit() {
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID);
 
