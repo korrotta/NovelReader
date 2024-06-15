@@ -34,7 +34,9 @@ public class TruyencvScraper implements INovelScraper {
     public ArrayList<NovelModel> getSearchPageFromKeywordAndPageNumber(String keyword, int page) {
         ArrayList<NovelModel> novels = new ArrayList<>();
         try {
+            // Construct the search URL using the provided keyword and page number
             Document doc = Jsoup.connect(SEARCH_DEFAULT_URL + keyword + "&page=" + page).get();
+            // Select all <div> elements with the specified item type
             Elements books = doc.select("div.grid[itemtype=" + ITEM_TYPE+ "]");
             for (Element book: books){
                 String url = HOME_PAGE_URL + book.selectFirst("a[href]").attr("href");
@@ -46,6 +48,7 @@ public class TruyencvScraper implements INovelScraper {
                 NovelModel novel = new NovelModel(name, url, author, img);
                 novels.add(novel);
             }
+            // Return the list of novels
             return novels;
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -56,16 +59,22 @@ public class TruyencvScraper implements INovelScraper {
     public int getNumberOfSearchResultPage(String keyword) {
         final String searchUrl = SEARCH_DEFAULT_URL +keyword;
         try {
+            // Connect to the search URL and retrieve the HTML document
             Document doc = Jsoup.connect(searchUrl).get();
+            // Select the first <ul> element with the class 'flex mx-auto'
             Element pagination = doc.selectFirst("ul.flex.mx-auto");
             if (pagination!=null){
+                // Select all <li> elements within the pagination <ul>
                 Elements pages = pagination.select("li");
                 if (pages.size() == 0){
+                    // If there are no pagination <li> elements, check if there is at least one book result
                     Element book = doc.select("div.grid[itemtype=" + ITEM_TYPE+ "]").first();
-                    if (book == null) return 0;
-                    return 1;
+                    if (book == null) return 0; // No book found
+                    return 1; // One page of results
                 }
+                // Get the last <li> element in the pagination
                 Element lastPage = pages.last();
+                // If the last page contains the word "Cuối" (Last), extract the page number from its URL
                 if (lastPage.text().contains("Cuối")) {
                     String holder = lastPage.selectFirst("a[href]").attr("href");
                     int page = Integer.parseInt(parseUrlForPageId(holder));
@@ -75,20 +84,21 @@ public class TruyencvScraper implements INovelScraper {
 
                 if (pages.size() > 2) {
                     ReusableFunction.LogVariable(pages.toString());
+                    // Get the second to last <li> element to ignore ">>" or "Next" links
                     int page = Integer.parseInt(pages.get(pages.size()-2).text());
                     //NOTE: -2 to ignore >>, but can go wrong.
                     return page;
                 }
             }
 
+            // If there is no pagination, check if there is at least one book result
             Element book = doc.select("div.grid[itemtype=" + ITEM_TYPE+ "]").first();
-            if (book == null) return 0;
-            return 1;
+            if (book == null) return 0; // No book found
+            return 1; // One page of results
 
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
     }
 
     @Override
