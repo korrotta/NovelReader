@@ -122,7 +122,6 @@
                 android:layout_marginTop="10dp"
                 android:fontFamily="@font/palatino"
                 android:inputType="textMultiLine|textNoSuggestions"
-                android:lineSpacingMultiplier="1.15"
                 android:textColor="@color/white"
                 android:textSize="22sp"
                 app:layout_constraintEnd_toEndOf="parent"

@@ -1,7 +1,6 @@
 package com.softwaredesign.novelreader.Activities;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
@@ -41,39 +40,24 @@ import com.google.firebase.storage.StorageReference;
 import com.softwaredesign.novelreader.Adapters.NovelAdapter;
 import com.softwaredesign.novelreader.Adapters.ServerSpinnerAdapter;
 import com.softwaredesign.novelreader.BackgroundTask;
-//import com.softwaredesign.novelreader.DownloadBackgroundTask;
 import com.softwaredesign.novelreader.ExportHandlers.EpubExportHandler;
 import com.softwaredesign.novelreader.ExportHandlers.PdfExportHandler;
 import com.softwaredesign.novelreader.Global.GlobalConfig;
 import com.softwaredesign.novelreader.Global.ReusableFunction;
 import com.softwaredesign.novelreader.Models.NovelModel;
 import com.softwaredesign.novelreader.R;
-import com.softwaredesign.novelreader.ScraperFactory.ScraperFactory;
 import com.softwaredesign.novelreader.Scrapers.TangthuvienScraper;
-import com.softwaredesign.novelreader.Scrapers.TruyencvScraper;
 import com.softwaredesign.novelreader.Scrapers.TruyenfullScraper;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import dalvik.system.DexClassLoader;
-import nl.siegmann.epublib.epub.Main;
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.OkHttp;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_CODE_READ_STORAGE = 100;
