@@ -1,11 +1,25 @@
 package com.softwaredesign.novelreader.Activities;
 
 
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+
+import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
+import androidx.core.text.HtmlCompat;
+import androidx.fragment.app.FragmentManager;
+
 import android.annotation.SuppressLint;
+
+
+import android.content.DialogInterface;
+
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
+
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -15,13 +29,16 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.BackgroundColorSpan;
 import android.util.Log;
+
 import android.util.TypedValue;
+
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -35,9 +52,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
-import androidx.core.content.res.ResourcesCompat;
 import androidx.core.text.HtmlCompat;
-import androidx.fragment.app.FragmentManager;
 
 import com.example.exporter_library.IChapterExportHandler;
 import com.example.scraper_library.INovelScraper;
@@ -53,6 +68,10 @@ import com.softwaredesign.novelreader.R;
 import com.softwaredesign.novelreader.ScraperFactory.ScraperFactory;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -199,66 +218,69 @@ public class ReadActivity extends AppCompatActivity {
         });
 
         // Hanlde chapterList Button
-        saveChapterIV.setOnClickListener(view -> {
-            // AlertDialog builder instance to build the alert dialog
-            AlertDialog.Builder alertDialog = new AlertDialog.Builder(ReadActivity.this);
+        saveChapterIV.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Handle chapterList Button
+                saveChapterIV.setOnClickListener(view -> {
+                    // AlertDialog builder instance to build the alert dialog
+                    AlertDialog.Builder alertDialog = new AlertDialog.Builder(ReadActivity.this);
 
-            // Inflate the custom layout for the spinner
-            LayoutInflater inflater = getLayoutInflater();
-            View dialogView = inflater.inflate(R.layout.dialog_spinner, null);
-            alertDialog.setView(dialogView);
+                    // Inflate the custom layout for the spinner
+                    LayoutInflater inflater = getLayoutInflater();
+                    View dialogView = inflater.inflate(R.layout.dialog_spinner, null);
+                    alertDialog.setView(dialogView);
 
-            // Set the custom icon to the alert dialog
-            alertDialog.setIcon(R.drawable.logo);
+                    // set the custom icon to the alert dialog
+                    alertDialog.setIcon(R.drawable.logo);
 
-            // Set the title of the alert dialog
-            alertDialog.setTitle("Tải xuống chương với định dạng");
+                    // title of the alert dialog
+                    alertDialog.setTitle("Tải xuống chương với định dạng");
 
-            // Get the spinner from the custom layout
-            Spinner spinner = dialogView.findViewById(R.id.saveChapterSpinner);
+                    // Get the spinner from the custom layout
+                    Spinner spinner = dialogView.findViewById(R.id.saveChapterSpinner);
 
-            // Create a ExportSpinnerAdapter using the current export list
-            ExporterSpinnerAdapter adapter = new ExporterSpinnerAdapter(
-                    ReadActivity.this,
-                    android.R.layout.simple_spinner_item,
-                    GlobalConfig.Global_Exporter_List
-            );
+                    // List of the items to be displayed in the spinner
+                    final String[] listItems = new String[]{"EPUB", "PDF"};
 
-            // Set the adapter for the spinner
-            spinner.setAdapter(adapter);
+                    // Create an ArrayAdapter using the string array and a default spinner layout
+                    ExporterSpinnerAdapter adapter = new ExporterSpinnerAdapter(ReadActivity.this,
+                            android.R.layout.simple_spinner_item,GlobalConfig.Global_Exporter_List);
 
-            // Set the negative button for the alert dialog
-            alertDialog.setNegativeButton("Hủy", (dialog, which) -> {
-                // Dismiss the dialog
-                dialog.dismiss();
-            });
+                    spinner.setAdapter(adapter);
 
-            // Set the positive button for the alert dialog
-            alertDialog.setPositiveButton("Tải xuống", (dialog, which) -> {
-                // Get the selected item
-                IChapterExportHandler selectedItem = (IChapterExportHandler) spinner.getSelectedItem();
+                    // Set the negative button if the user is not interested to select or change already selected item
+                    alertDialog.setNegativeButton("Cancel", (dialog, which) -> {
+                        // Dismiss the dialog
+                        dialog.dismiss();
+                    });
 
-                // Define the directory path for exporting the chapter
-                String dir = ReadActivity.this.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS).getAbsolutePath() + "/Export";
+                    // Set the positive button to confirm the selection
+                    alertDialog.setPositiveButton("OK", (dialog, which) -> {
+                        // Get the selected item
+                        IChapterExportHandler selectedItem = (IChapterExportHandler) spinner.getSelectedItem();
+                        // Handle the selected item
+                        String dir = ReadActivity.this.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS).getAbsolutePath()+"/Export";
 
-                // Create the necessary directories for exporting the chapter
-                File directory = ReusableFunction.MakeDirectory(dir, novelName);
-                File typeDirectory = ReusableFunction.MakeDirectory(directory.getAbsolutePath(), selectedItem.getExporterName());
+                        File directory = ReusableFunction.MakeDirectory(dir, novelName);
+                        File typeDirectory = ReusableFunction.MakeDirectory(directory.getAbsolutePath(), selectedItem.getExporterName());
 
-                selectedItem.exportChapter(content, typeDirectory, chapterTitle);
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(ReadActivity.this, "Hoàn tất!", Toast.LENGTH_SHORT).show();
-                    }
-                }, 500);
-            });
+                        selectedItem.exportChapter(content, typeDirectory, chapterTitle);
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(ReadActivity.this, "Done!", Toast.LENGTH_SHORT).show();
+                            }
+                        }, 500);
+                    });
 
-            // Create and build the AlertDialog instance
-            AlertDialog customAlertDialog = alertDialog.create();
+                    // Create and build the AlertDialog instance with the AlertDialog builder instance
+                    AlertDialog customAlertDialog = alertDialog.create();
 
-            // Show the alert dialog when the button is clicked
-            customAlertDialog.show();
+                    // Show the alert dialog when the button is clicked
+                    customAlertDialog.show();
+                });
+            }
         });
 
         // Handle Settings Button
@@ -291,14 +313,14 @@ public class ReadActivity extends AppCompatActivity {
     private void performSearch() {
         String query = searchEditText.getText().toString();
         //String content = chapterContentTV.getText().toString();
-        String plainTextContent = HtmlCompat.fromHtml(content, HtmlCompat.FROM_HTML_MODE_LEGACY).toString();
+        String plainTextContent  = HtmlCompat.fromHtml(content, HtmlCompat.FROM_HTML_MODE_LEGACY).toString();
 
 
         searchResults = new ArrayList<>();
-        int index = plainTextContent.indexOf(query);
+        int index = plainTextContent .indexOf(query);
         while (index >= 0) {
             searchResults.add(index);
-            index = plainTextContent.indexOf(query, index + query.length());
+            index = plainTextContent .indexOf(query, index + query.length());
         }
 
         if (!searchResults.isEmpty()) {
@@ -317,25 +339,19 @@ public class ReadActivity extends AppCompatActivity {
 
     // highlight text after found function
     private void highlightText(String searchText) {
-        // Check if searchResults list is empty
         if (searchResults.isEmpty()) {
-            // If no search results, clear previous highlights and return
             clearHighlight();
             return;
         }
-        // Define the color for highlighting
         int highlightColor = ContextCompat.getColor(this, R.color.saddle_brown);
 
-        // Convert the content to a SpannableString to apply spans (formatting)
         Spannable spannable = new SpannableString(HtmlCompat.fromHtml(content, HtmlCompat.FROM_HTML_MODE_LEGACY));
 
         for (int i = 0; i < searchResults.size(); i++) {
             spannable.setSpan(new BackgroundColorSpan(highlightColor), searchResults.get(i), searchResults.get(i) + searchText.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
-        // Set the formatted text (spannable) to the TextView
         chapterContentTV.setText(spannable);
 
-        // Highlight the text corresponding to the current search index
         highlightTextWithCurrentHighlight(searchResults.get(currentSearchIndex));
     }
 
@@ -359,7 +375,7 @@ public class ReadActivity extends AppCompatActivity {
                     int y = layout.getLineTop(line);
 
                     int scrollY = contentScrollView.getScrollY();
-                    int scrollViewHeight = contentScrollView.getHeight() - 2 * bottomAppBar.getHeight() - 2 * searchEditText.getHeight();
+                    int scrollViewHeight = contentScrollView.getHeight() - 2*bottomAppBar.getHeight() - 2*searchEditText.getHeight();
 
                     // Only scroll if the result is not fully visible
                     if (forceScroll || y < scrollY || y > (scrollY + scrollViewHeight - chapterContentTV.getLineHeight())) {
@@ -376,27 +392,21 @@ public class ReadActivity extends AppCompatActivity {
 
     // Highlight text current result, with other color
     private void highlightTextWithCurrentHighlight(int currentPosition) {
-        // Define colors for highlighting
         int highlightColor = ContextCompat.getColor(this, R.color.saddle_brown);
 
-        int currentHighlightColor = ContextCompat.getColor(this, R.color.slate_blue);
-
-        // Convert HTML content to plain text
+        int currentHighlightColor = ContextCompat.getColor(this, R.color.slate_blue);;
         String plainTextContent = HtmlCompat.fromHtml(content, HtmlCompat.FROM_HTML_MODE_LEGACY).toString();
-        // Create a SpannableString from the plain text content
         Spannable spannable = new SpannableString(plainTextContent);
 
         for (int i = 0; i < searchResults.size(); i++) {
             int start = searchResults.get(i);
             int end = start + searchEditText.getText().toString().length();
-            // Apply different background colors based on the current position
             if (start == currentPosition) {
                 spannable.setSpan(new BackgroundColorSpan(currentHighlightColor), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             } else {
                 spannable.setSpan(new BackgroundColorSpan(highlightColor), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
         }
-        // Set the formatted text (spannable) to the TextView
         chapterContentTV.setText(spannable);
     }
 
@@ -493,7 +503,6 @@ public class ReadActivity extends AppCompatActivity {
                 applyFontChange();
                 applyTextSizeChange();
                 applyThemeChange();
-                applyLineSpacingChange();
 
                 nextChapterIV.setVisibility(View.VISIBLE);
                 prevChapterIV.setVisibility(View.VISIBLE);
@@ -502,7 +511,6 @@ public class ReadActivity extends AppCompatActivity {
             }
         }.execute();
     }
-
 
     // Apply Font Change Function
     private void applyFontChange() {
@@ -577,7 +585,7 @@ public class ReadActivity extends AppCompatActivity {
         float lineSpacing = sharedPreferences.getFloat("lineSpacing", 1.0f);
         chapterContentTV.setLineSpacing(1.0f, lineSpacing);
     }
-
+  
     private void getContentFromNameAndChapterTask() {
 
         if (availableSourceList == null) return;
@@ -588,10 +596,13 @@ public class ReadActivity extends AppCompatActivity {
         new BackgroundTask(ReadActivity.this) {
             @Override
             public void onPreExecute() {
-                handler.post(() -> {
-                    Log.d("PB", "PB");
-                    progressBar.setVisibility(View.VISIBLE);
-                    progressBar.startAnimation(AnimationUtils.loadAnimation(ReadActivity.this, android.R.anim.fade_in));
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.d("Reach progress bả", " Bar");
+                        progressBar.setVisibility(View.VISIBLE);
+                        progressBar.startAnimation(AnimationUtils.loadAnimation(ReadActivity.this, android.R.anim.fade_in));
+                    }
                 });
             }
 
@@ -629,9 +640,13 @@ public class ReadActivity extends AppCompatActivity {
 
             @Override
             public void onPostExecute() {
-                handler.post(() -> {
-                    progressBar.setVisibility(View.GONE);
-                    progressBar.startAnimation(AnimationUtils.loadAnimation(ReadActivity.this, android.R.anim.fade_out));
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.d("End progress bả", " Bar");
+                        progressBar.setVisibility(View.GONE);
+                        progressBar.startAnimation(AnimationUtils.loadAnimation(ReadActivity.this, android.R.anim.fade_out));
+                    }
                 });
 
 
@@ -660,7 +675,7 @@ public class ReadActivity extends AppCompatActivity {
                     }
                 });
                 // Set the negative button if the user is not interested to select or change already selected item
-                alertDialog.setNegativeButton("Hủy", (dialog, which) -> {
+                alertDialog.setNegativeButton("Cancel", (dialog, which) -> {
 
                 });
 
@@ -699,4 +714,26 @@ public class ReadActivity extends AppCompatActivity {
             getChapterContentTask();
         }
     };
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        String[] data = new String[4]; //Note: 0 - server, 1 - name, 2 - chaptername, 3 - chapterUrl
+        data[0] = readerServer.getSourceName();
+        data[1] = novelName;
+        data[2] = chapterTitle;
+        data[3] = chapterUrl;
+
+        File file = ReadActivity.this.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
+        File finalFile = new File(file, "lastrun.log");
+        try (FileOutputStream fos = new FileOutputStream(finalFile)) {
+            ObjectOutputStream out = new ObjectOutputStream(fos);
+            out.writeObject(data);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

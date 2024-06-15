@@ -1,16 +1,17 @@
 -- Merging decision tree log ---
 manifest
-ADDED from E:\PullCode\NovelReader\scraper_library\src\main\AndroidManifest.xml:2:1-4:12
-INJECTED from E:\PullCode\NovelReader\scraper_library\src\main\AndroidManifest.xml:2:1-4:12
+ADDED from C:\Users\Admins\AndroidStudioProjects\NovelReader\scraper_library\src\main\AndroidManifest.xml:2:1-4:12
+INJECTED from C:\Users\Admins\AndroidStudioProjects\NovelReader\scraper_library\src\main\AndroidManifest.xml:2:1-4:12
 	package
-		INJECTED from E:\PullCode\NovelReader\scraper_library\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\Admins\AndroidStudioProjects\NovelReader\scraper_library\src\main\AndroidManifest.xml
 	xmlns:android
-		ADDED from E:\PullCode\NovelReader\scraper_library\src\main\AndroidManifest.xml:2:11-69
+		ADDED from C:\Users\Admins\AndroidStudioProjects\NovelReader\scraper_library\src\main\AndroidManifest.xml:2:11-69
 uses-sdk
-INJECTED from E:\PullCode\NovelReader\scraper_library\src\main\AndroidManifest.xml reason: use-sdk injection requested
-INJECTED from E:\PullCode\NovelReader\scraper_library\src\main\AndroidManifest.xml
-INJECTED from E:\PullCode\NovelReader\scraper_library\src\main\AndroidManifest.xml
+INJECTED from C:\Users\Admins\AndroidStudioProjects\NovelReader\scraper_library\src\main\AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from C:\Users\Admins\AndroidStudioProjects\NovelReader\scraper_library\src\main\AndroidManifest.xml
+INJECTED from C:\Users\Admins\AndroidStudioProjects\NovelReader\scraper_library\src\main\AndroidManifest.xml
 	android:targetSdkVersion
-		INJECTED from E:\PullCode\NovelReader\scraper_library\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\Admins\AndroidStudioProjects\NovelReader\scraper_library\src\main\AndroidManifest.xml
 	android:minSdkVersion
-		INJECTED from E:\PullCode\NovelReader\scraper_library\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\Admins\AndroidStudioProjects\NovelReader\scraper_library\src\main\AndroidManifest.xml
+

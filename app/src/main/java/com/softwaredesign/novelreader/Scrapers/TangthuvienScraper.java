@@ -14,6 +14,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -232,6 +233,9 @@ public class TangthuvienScraper implements INovelScraper {
                 novels.add(novel);
             }
             return novels;
+        } catch (SocketTimeoutException e){
+            Log.d("Socket time out", "Socket Time out");
+            return new ArrayList<>();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

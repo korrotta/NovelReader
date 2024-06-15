@@ -1,11 +1,17 @@
 package com.softwaredesign.novelreader.Activities;
 
 import android.Manifest;
+import android.app.Activity;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.AnimationUtils;
@@ -13,21 +19,29 @@ import android.widget.AdapterView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.appcompat.widget.AppCompatSpinner;
 import androidx.appcompat.widget.SearchView;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.exporter_library.IChapterExportHandler;
 import com.example.scraper_library.INovelScraper;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.storage.FileDownloadTask;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.softwaredesign.novelreader.Adapters.NovelAdapter;
 import com.softwaredesign.novelreader.Adapters.ServerSpinnerAdapter;
 import com.softwaredesign.novelreader.BackgroundTask;
+//import com.softwaredesign.novelreader.DownloadBackgroundTask;
 import com.softwaredesign.novelreader.ExportHandlers.EpubExportHandler;
 import com.softwaredesign.novelreader.ExportHandlers.PdfExportHandler;
 import com.softwaredesign.novelreader.Global.GlobalConfig;
@@ -42,18 +56,31 @@ import com.softwaredesign.novelreader.Scrapers.TruyenfullScraper;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import dalvik.system.DexClassLoader;
+import nl.siegmann.epublib.epub.Main;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttp;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_CODE_READ_STORAGE = 100;
     private static final int REQUEST_WRITE_PERMISSION = 111;
     private static final int PERMISSION_REQUEST_CODE = 1;
+
+    private static final String CHANNEL_ID = "9999";
 
     // URL of the website to scrape novels from
     private SearchView searchView; // SearchView for searching novels
@@ -66,10 +93,25 @@ public class MainActivity extends AppCompatActivity {
 
     private String lastrunName, lastrunChapterName, lastrunServer, lastrunChapterUrl;
 
+    private String[] pluginList = new String[]{"Source: Truyencv", "Format: Html"};
+    final boolean[] pluginChecked = new boolean[]{false, false};
+
+    private Handler handler = new Handler(Looper.getMainLooper());
+    private final String TRUYENCV_PLUGIN
+            = "https://raw.githubusercontent.com/nohiup/NovelReaderPluginHost/main/scraper_truyencvtest_TruyencvScraper.apk";
+    private final String HTML_PLUGIN = "https://raw.githubusercontent.com/nohiup/NovelReaderPluginHost/main/exporter_htmlexporter_HtmlExportHandler.apk";
+
+    private final FirebaseStorage storage = FirebaseStorage.getInstance("gs://readerpluginst.appspot.com");
+    private final StorageReference ref = storage.getReference();
+
+    private static File downloadDir;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main); //Set the layout for this activity
+
+        downloadDir = MainActivity.this.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
 
         //Initialize views
         searchView = findViewById(R.id.searchView);
@@ -83,16 +125,11 @@ public class MainActivity extends AppCompatActivity {
         ServerSpinnerAdapter serverAdapter = new ServerSpinnerAdapter(this, android.R.layout.simple_spinner_item, GlobalConfig.Global_Source_List);
         serverSpinner.setAdapter(serverAdapter);
 
-        File downloadDir = MainActivity.this.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
-        //Get the absolute path of the downloads directory as a string
-        //Returns the absolute path of the File object
         String downloadDirPath = downloadDir.getAbsolutePath();
 
         //create document directory for exporting:
         File exportDir = MainActivity.this.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
-        //Create a new folder named "Export" within the documents directory
-        //Custom function to create a directory
-        //Returns the absolute path of the exportDir File object
+
         File newFolder = ReusableFunction.MakeDirectory(exportDir.getAbsolutePath(), "Export");
         Log.d("created", newFolder.getAbsolutePath());
 
@@ -160,12 +197,11 @@ public class MainActivity extends AppCompatActivity {
 
         // Variables for plugins
         // initialise the list items for the alert dialog
-        final String[] listItems = new String[]{"Plugin 1", "Plugin 2", "Plugin 3", "Plugin 4"};
-        final boolean[] checkedItems = new boolean[listItems.length];
+
 
         // copy the items from the main list to the selected item list for the preview
         // if the item is checked then only the item should be displayed for the user
-        final List<String> selectedItems = Arrays.asList(listItems);
+        final List<String> selectedItems = Arrays.asList(pluginList);
 
         // Handle Plugin Button
         pluginButton.setOnClickListener(v -> {
@@ -179,8 +215,8 @@ public class MainActivity extends AppCompatActivity {
             builder.setIcon(R.drawable.logo);
 
             // Sets the alert dialog for multiple item selection
-            builder.setMultiChoiceItems(listItems, checkedItems, (dialog, which, isChecked) -> {
-                checkedItems[which] = isChecked;
+            builder.setMultiChoiceItems(pluginList, pluginChecked, (dialog, which, isChecked) -> {
+                pluginChecked[which] = isChecked;
                 String currentItem = selectedItems.get(which);
             });
 
@@ -188,9 +224,56 @@ public class MainActivity extends AppCompatActivity {
 
             // Handle the positive button of the dialog
             builder.setPositiveButton("Xác nhận", (dialog, which) -> {
-                for (int i = 0; i < checkedItems.length; i++) {
-                    if (checkedItems[i]) {
-                        // Do something
+                for (int i = 0; i < pluginChecked.length; i++) {
+                    File truyencvPluginFile = new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "scraper_truyencvtest_TruyencvScraper.apk");
+                    File htmlPluginFile = new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), getNameFromUrl(HTML_PLUGIN));
+                    if (pluginChecked[i]) {
+                        if (i==0){
+                            //Download truyencv.jar
+                            Log.d("Download", "truyencv.jar");
+                            if (truyencvPluginFile.exists()) return;
+                            StorageReference fileRef = ref.child("scraper_truyencvtest_TruyencvScraper.txt");
+                            downloadProcessing(fileRef, truyencvPluginFile);
+                        }
+                        if (i==1) {
+                            //Download http.jar
+                            Log.d("Download", "http.jar");
+
+                            if (htmlPluginFile.exists()) return;
+                            StorageReference fileRef = ref.child("exporter_htmlexporter_HtmlExportHandler.txt");
+                            downloadProcessing(fileRef, htmlPluginFile);
+                        }
+                    }
+                    else if (!pluginChecked[i]){
+                        if (i==0){
+                            //Download truyencv.jar
+                            deletePluginFile(truyencvPluginFile);
+
+                            int index = -1;
+                            for (INovelScraper scraper:GlobalConfig.Global_Source_List){
+                                if (scraper.getSourceName().equalsIgnoreCase("Truyencv")){
+                                    index = GlobalConfig.Global_Source_List.indexOf(scraper);
+                                }
+                            }
+                            if (index == -1) return;
+                            GlobalConfig.Global_Source_List.remove(index);
+                            serverAdapter.notifyDataSetChanged();
+
+                        }
+                        if (i==1) {
+                            //Download http.jar
+                            deletePluginFile(htmlPluginFile);
+
+                            int index = -1;
+                            for (IChapterExportHandler exporter:GlobalConfig.Global_Exporter_List){
+                                if (exporter.getExporterName().equalsIgnoreCase("html")){
+                                    index = GlobalConfig.Global_Exporter_List.indexOf(exporter);
+                                }
+                            }
+                            if (index == -1) return;
+                            GlobalConfig.Global_Exporter_List.remove(index);
+                            serverAdapter.notifyDataSetChanged();
+                        }
                     }
                 }
             });
@@ -201,7 +284,7 @@ public class MainActivity extends AppCompatActivity {
 
             // Handle the neutral button of the dialog to clear the selected items boolean checkedItem
             builder.setNeutralButton("Bỏ chọn", (dialog, which) -> {
-                Arrays.fill(checkedItems, false);
+                Arrays.fill(pluginChecked, false);
             });
 
             // Create the builder
@@ -218,7 +301,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Set the title and message
         builder.setTitle("Tiếp tục đọc");
-        builder.setMessage("Lần trước bạn đang đọc " + lastrunName + ", " +lastrunChapterName +". \n Bạn xác nhận muốn tiếp tục đọc?");
+        builder.setMessage("Lần trước bạn đang đọc " + lastrunName + ", " +lastrunChapterName +". \n \nBạn xác nhận muốn tiếp tục đọc?");
 
         // Set the "OK" button
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
@@ -394,6 +477,7 @@ public class MainActivity extends AppCompatActivity {
             }
             // Add the new scraper plugin to the global source list
             GlobalConfig.Global_Source_List.add(addedScraperPlugin);
+            pluginChecked[0] =true;
             Log.d("Added plugin: ", addedScraperPlugin.getSourceName());
         } catch (Exception e) {
             e.printStackTrace();
@@ -419,6 +503,7 @@ public class MainActivity extends AppCompatActivity {
             }
             // Add the new exporter plugin to the global exporter list
             GlobalConfig.Global_Exporter_List.add(addedExporterPlugin);
+            pluginChecked[1] = true;
             Log.d("Added plugin: ", addedExporterPlugin.getExporterName());
         } catch (Exception e) {
             e.printStackTrace();
@@ -463,7 +548,6 @@ public class MainActivity extends AppCompatActivity {
 
     //Return to last read Novel
     private void readLastRunLog(){
-
         //Create a File object representing the "lastrun.log" file in the documents directory within the app's external storage
         File file = new File(MainActivity.this.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), "lastrun.log");
         if (file.exists()){
@@ -484,4 +568,93 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
+
+    private String getNameFromUrl(String url){
+        String[] holder = url.split("/");
+        return holder[holder.length-1];
+    }
+
+    private void deletePluginFile(File file) {
+        if (file.exists()) {
+            if (file.delete()) {
+                Toast.makeText(this, "File deleted successfully", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Failed to delete file", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Log.d("No file", "No file");
+        }
+    }
+
+    private void downloadProcessing(StorageReference reference, File file){
+        progressBar.setVisibility(View.VISIBLE);
+        progressBar.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, android.R.anim.fade_in));
+        notificationProgressBarInit();
+        reference.getFile(file).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                //success
+                Log.d("SuccessNotif", file.toString());
+                // Hide and animate the progress bar after the task is completed
+                progressBar.setVisibility(View.GONE);
+                progressBar.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, android.R.anim.fade_out));
+
+                notificationFinishInit();
+
+                loadAllPlugins(downloadDir);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.e("Download Error", e.toString());
+            }
+        });
+    }
+
+    private void notificationProgressBarInit() {
+        createNotificationChannel();
+        int id = 1;
+        Log.w("Method check", "reach here");
+        NotificationManager mNotifyManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID);
+
+        mBuilder.setChannelId(CHANNEL_ID);
+        mBuilder.setSmallIcon(R.drawable.ic_launcher_foreground);
+        mBuilder.setContentTitle("My app") ;
+        mBuilder.setContentText("Download in progress");
+        mBuilder.setSmallIcon(R.drawable.ic_launcher_foreground);
+        mBuilder.setPriority(NotificationCompat.PRIORITY_DEFAULT);
+        mBuilder.setAutoCancel(true);
+        mBuilder.setProgress(0, 100, true);
+
+        // Issues the notification
+        mNotifyManager.notify(id, mBuilder.build());
+    }
+
+    private void createNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is not in the Support Library.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = getString(R.string.novelreader_download);
+            String description = "Plugin downloading";
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
+            channel.setDescription(description);
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this.
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
+    private void notificationFinishInit(){
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID);
+
+        builder.setContentTitle("My app").setContentText("Finished");
+        builder.setSmallIcon(R.drawable.ic_launcher_background);
+        notificationManager.notify(1, builder.build());
+    }
+
+
 }
