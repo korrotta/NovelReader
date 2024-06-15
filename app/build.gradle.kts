@@ -70,4 +70,12 @@ dependencies {
     }
 
     implementation("androidx.test.espresso:espresso-intents:3.5.1")
+
+    implementation("com.squareup.okhttp3:okhttp:4.9.3")
+
+    implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
+
+    // Add the dependency for the Cloud Storage library
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation("com.google.firebase:firebase-storage")
 }
