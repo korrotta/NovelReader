@@ -179,22 +179,23 @@ public class MainActivity extends AppCompatActivity {
             builder.setPositiveButton("Xác nhận", (dialog, which) -> {
                 for (int i = 0; i < pluginChecked.length; i++) {
                     File truyencvPluginFile = new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "scraper_truyencvtest_TruyencvScraper.apk");
-                    File htmlPluginFile = new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), getNameFromUrl(HTML_PLUGIN));
+                    File htmlPluginFile = new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "exporter_htmlexporter_HtmlExportHandler.apk");
                     if (pluginChecked[i]) {
                         if (i == 0) {
                             //Download truyencv.jar
                             Log.d("Download", "truyencv.jar");
-                            if (truyencvPluginFile.exists()) return;
-                            StorageReference fileRef = ref.child("scraper_truyencvtest_TruyencvScraper.txt");
-                            downloadProcessing(fileRef, truyencvPluginFile);
+                            if (!truyencvPluginFile.exists()) {
+                                StorageReference fileRef = ref.child("scraper_truyencvtest_TruyencvScraper.txt");
+                                downloadProcessing(fileRef, truyencvPluginFile);
+                            }
                         }
                         if (i == 1) {
                             //Download http.jar
                             Log.d("Download", "http.jar");
-
-                            if (htmlPluginFile.exists()) return;
-                            StorageReference fileRef = ref.child("exporter_htmlexporter_HtmlExportHandler.txt");
-                            downloadProcessing(fileRef, htmlPluginFile);
+                            if (!htmlPluginFile.exists()) {
+                                StorageReference fileRef = ref.child("exporter_htmlexporter_HtmlExportHandler.txt");
+                                downloadProcessing(fileRef, htmlPluginFile);
+                            }
                         }
                     } else if (!pluginChecked[i]) {
                         if (i == 0) {
@@ -207,10 +208,10 @@ public class MainActivity extends AppCompatActivity {
                                     index = GlobalConfig.Global_Source_List.indexOf(scraper);
                                 }
                             }
-                            if (index == -1) return;
-                            GlobalConfig.Global_Source_List.remove(index);
-                            serverAdapter.notifyDataSetChanged();
-
+                            if (index != -1) {
+                                GlobalConfig.Global_Source_List.remove(index);
+                                serverAdapter.notifyDataSetChanged();
+                            }
                         }
                         if (i == 1) {
                             //Download http.jar
@@ -222,9 +223,10 @@ public class MainActivity extends AppCompatActivity {
                                     index = GlobalConfig.Global_Exporter_List.indexOf(exporter);
                                 }
                             }
-                            if (index == -1) return;
-                            GlobalConfig.Global_Exporter_List.remove(index);
-                            serverAdapter.notifyDataSetChanged();
+                            if (index != -1) {
+                                GlobalConfig.Global_Exporter_List.remove(index);
+                                serverAdapter.notifyDataSetChanged();
+                            }
                         }
                     }
                 }
@@ -296,31 +298,23 @@ public class MainActivity extends AppCompatActivity {
         builder.setMessage("Lần trước bạn đang đọc " + lastrunName + ", " + lastrunChapterName + ". \n \nBạn xác nhận muốn tiếp tục đọc?");
 
         // Set the "OK" button
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                // Handle when the user selects "OK"
-                // Note: Action implementation required
-                for (INovelScraper scraper : GlobalConfig.Global_Source_List) {
-                    if (scraper.getSourceName().equals(lastrunServer)) {
-                        GlobalConfig.Global_Current_Scraper = scraper;
-                        serverSpinner.setSelection(GlobalConfig.Global_Source_List.indexOf(scraper));
-                        break;
-                    }
+        builder.setPositiveButton("OK", (dialog, which) -> {
+            // Handle when the user selects "OK"
+            // Note: Action implementation required
+            for (INovelScraper scraper : GlobalConfig.Global_Source_List) {
+                if (scraper.getSourceName().equals(lastrunServer)) {
+                    GlobalConfig.Global_Current_Scraper = scraper;
+                    serverSpinner.setSelection(GlobalConfig.Global_Source_List.indexOf(scraper));
+                    break;
                 }
-                //Note: switch intent to reader mode
-                ReusableFunction.ChangeActivityWithString(MainActivity.this, ReadActivity.class,
-                        "ChapterUrl", lastrunChapterUrl);
             }
+            //Note: switch intent to reader mode
+            ReusableFunction.ChangeActivityWithString(MainActivity.this, ReadActivity.class,
+                    "ChapterUrl", lastrunChapterUrl);
         });
 
         // Set the "Cancel" button
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
+        builder.setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss());
 
         // Create and display an AlertDialog
         AlertDialog dialog = builder.create();
@@ -442,6 +436,7 @@ public class MainActivity extends AppCompatActivity {
             String fileName = file.getName().split("\\.")[0]; //Name Without Extension
             String[] nameHolder = fileName.split("_");
 
+            file.setReadOnly();
             switch (nameHolder[0]) {
                 case "scraper": {
                     String scraperPath = file.getAbsolutePath();
@@ -579,9 +574,9 @@ public class MainActivity extends AppCompatActivity {
     private void deletePluginFile(File file) {
         if (file.exists()) {
             if (file.delete()) {
-                Toast.makeText(this, "File deleted successfully", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Xóa Plugin thành công", Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(this, "Failed to delete file", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Xóa Plugin thất bại", Toast.LENGTH_SHORT).show();
             }
         } else {
             Log.d("No file", "No file");
