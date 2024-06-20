@@ -11,10 +11,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,12 +28,12 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import com.example.exporter_library.IChapterExportHandler;
 import com.softwaredesign.novelreader.Adapters.ChapterListSpinnerAdapter;
 import com.softwaredesign.novelreader.Adapters.ExporterSpinnerAdapter;
 import com.softwaredesign.novelreader.BackgroundTask;
 import com.softwaredesign.novelreader.Global.GlobalConfig;
 import com.softwaredesign.novelreader.Global.ReusableFunction;
-import com.softwaredesign.novelreader.Interfaces.IChapterExportHandler;
 import com.softwaredesign.novelreader.Models.ChapterContentModel;
 import com.softwaredesign.novelreader.Models.ChapterModel;
 import com.softwaredesign.novelreader.R;
@@ -44,10 +46,11 @@ import java.util.concurrent.Executors;
 
 public class ExportFragment extends Fragment {
 
-    private TextView exportFromChapterLabel, exportToChapterLabel, exportFileFormatLabel;
     private AppCompatSpinner beginPageSpinner, beginChapterSpinner, endPageSpinner, endChapterSpinner, fileFormatSpinner;
     private AppCompatButton exportButton;
     private ProgressBar progressBar;
+    private RelativeLayout overlayProgress;
+    private TextView exportFromChapterLabel, exportToChapterLabel, exportFileFormatLabel;
 
     private static final String ARG_NOVEL_URL = "novel_url";
     private String NovelUrl;
@@ -60,14 +63,10 @@ public class ExportFragment extends Fragment {
     private ArrayAdapter<String> beginPageAdapter, endPageAdapter;
     private ChapterListSpinnerAdapter beginChapterAdapter, endChapterAdapter;
     private int numberOfPage;
-    private List<ChapterModel> chapters;
-    private static List<ChapterModel> tempList;
 
-    private int selectedBeginPage, selectedEndPage;
     private ChapterModel selectedBeginChapter, selectedEndChapter;
-    private int beginPageId, endPageId, beginChapterId, endChapterId;
+    private int beginPageId, endPageId;
 
-    private ExporterSpinnerAdapter exporterAdapter;
     private static final int PERMISSION_REQUEST_CODE = 1;
 
     public static ExportFragment newInstance(String novelUrl) {
@@ -109,66 +108,82 @@ public class ExportFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        // Initialize parentActivity with the activity hosting the fragment
         this.parentActivity = getActivity();
+        // Initialize adapter for the spinners
         initAdapter();
 
+        // Perform initial tasks to get the number of pages
         getNumberOfPagesTask();
 
+        // Hanlde Click Listeners
+        handleListeners();
+    }
+
+    private void handleListeners() {
+        // Set up listener for beginPageSpinner
         beginPageSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                //
+                // Parse selected item to page ID
                 beginPageId = parsePageToId((String) parent.getItemAtPosition(position));
+                // Perform task to get chapter list based on selected begin page ID
                 getChapterListTask(beginChapter, beginChapterAdapter, NovelUrl, beginPageId);
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
+                // Handle case where nothing is selected
             }
         });
 
+        // Set up listener for endPageSpinner
         endPageSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                //
+                // Parse selected item to page ID
                 endPageId = parsePageToId((String) parent.getItemAtPosition(position));
+                // Perform task to get chapter list based on selected end page ID
                 getChapterListTask(endChapter, endChapterAdapter, NovelUrl, endPageId);
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
+                // Handle case where nothing is selected
             }
         });
 
+        // Set up listener for beginChapterSpinner
         beginChapterSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                ChapterModel chapter = (ChapterModel) parent.getItemAtPosition(position);
-                selectedBeginChapter = chapter;
+                // Get selected ChapterModel from spinner
+                selectedBeginChapter = (ChapterModel) parent.getItemAtPosition(position);
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-
+                // Handle case where nothing is selected
             }
         });
 
         endChapterSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                ChapterModel chapter = (ChapterModel) parent.getItemAtPosition(position);
-                selectedEndChapter = chapter;
+                // Get selected ChapterModel from spinner
+                selectedEndChapter = (ChapterModel) parent.getItemAtPosition(position);
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-
+                // Handle case where nothing is selected
             }
         });
 
         exportButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                // Perform task to get and export all selected chapters
                 getAndExportAll();
             }
         });
@@ -176,12 +191,12 @@ public class ExportFragment extends Fragment {
         fileFormatSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-
+                // Handle item selection in file format spinner
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-
+                // Handle case where nothing is selected
             }
         });
     }
@@ -193,6 +208,7 @@ public class ExportFragment extends Fragment {
         endChapterSpinner = view.findViewById(R.id.toChapterSpinner);
         fileFormatSpinner = view.findViewById(R.id.fileFormatSpinner);
         exportButton = view.findViewById(R.id.exportNovelButton);
+        overlayProgress = view.findViewById(R.id.progressOverlay);
         progressBar = view.findViewById(R.id.exportFragmentPB);
         exportFromChapterLabel = view.findViewById(R.id.exportFromChapterLabel);
         exportToChapterLabel = view.findViewById(R.id.exportToChapterLabel);
@@ -219,7 +235,7 @@ public class ExportFragment extends Fragment {
 
         endChapterAdapter = new ChapterListSpinnerAdapter(parentActivity, android.R.layout.simple_spinner_item, endChapter);
 
-        exporterAdapter = new ExporterSpinnerAdapter(parentActivity, android.R.layout.simple_spinner_item, GlobalConfig.Global_Exporter_List);
+        ExporterSpinnerAdapter exporterAdapter = new ExporterSpinnerAdapter(parentActivity, android.R.layout.simple_spinner_item, GlobalConfig.Global_Exporter_List);
 
         beginPageSpinner.setAdapter(beginPageAdapter);
         endPageSpinner.setAdapter(endPageAdapter);
@@ -234,29 +250,32 @@ public class ExportFragment extends Fragment {
         new BackgroundTask(parentActivity) {
             @Override
             public void onPreExecute() {
+                // Show progress bar before executing background task
                 showProgressBar();
+
+                // Hide UI when show ProgressBar
                 hideUI();
             }
 
             @Override
             public void doInBackground() {
+                // Perform background operation to fetch number of pages
                 Log.d("reached here", "read");
                 numberOfPage = GlobalConfig.Global_Current_Scraper.getChapterListNumberOfPages(NovelUrl);
                 Log.d("Reached here", String.valueOf(numberOfPage));
 
+                // Clear existing lists and populate with page numbers
                 beginPage.clear();
                 endPage.clear();
-
                 for (int i = 1; i <= numberOfPage; i++) {
-                    beginPage.add("Trang " + i);
-                    endPage.add("Trang " + i);
+                    beginPage.add("Page " + i);
+                    endPage.add("Page " + i);
                 }
             }
 
             @Override
             public void onPostExecute() {
-                hideProgressBar();
-                showUI();
+                // Notify adapters to update UI with new data
                 beginPageAdapter.notifyDataSetChanged();
                 endPageAdapter.notifyDataSetChanged();
             }
@@ -273,20 +292,22 @@ public class ExportFragment extends Fragment {
 
             @Override
             public void onPreExecute() {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        progressBar.setVisibility(View.VISIBLE);
-                        progressBar.startAnimation(AnimationUtils.loadAnimation(parentActivity, android.R.anim.fade_in));
-                    }
+                handler.post(() -> {
+                    // Disable user interactions
+                    parentActivity.getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+
+                    // Show progress bar with animation
+                    showProgressBar();
                 });
 
+                // Extract selected page IDs and chapters
                 beginPageId = parsePageToId((String) beginPageSpinner.getSelectedItem());
                 endPageId = parsePageToId((String) endPageSpinner.getSelectedItem());
-
                 selectedBeginChapter = (ChapterModel) beginChapterSpinner.getSelectedItem();
                 selectedEndChapter = (ChapterModel) endChapterSpinner.getSelectedItem();
 
+                // Calculate the difference in chapters to determine final delay
                 int begin = 0, end = 0, diff = 0;
                 for (ChapterModel chapter : beginChapter) {
                     if (chapter.getChapterName().equals(selectedBeginChapter.getChapterName())) {
@@ -294,12 +315,14 @@ public class ExportFragment extends Fragment {
                         break;
                     }
                 }
+
                 for (ChapterModel chapter : endChapter) {
                     if (chapter.getChapterName().equals(selectedEndChapter.getChapterName())) {
                         end = endChapter.indexOf(chapter) + 1;
                         break;
                     }
                 }
+
                 if (beginPageId == endPageId) {
                     diff = end - begin + 1;
                 } else {
@@ -307,8 +330,9 @@ public class ExportFragment extends Fragment {
                     final int MAX_CHAPTER = GlobalConfig.Global_Current_Scraper.getNumberOfChaptersPerPage();
                     diff = pageDiff * MAX_CHAPTER + (beginPage.size() - begin + 1) + end;
                 }
+
                 Log.d("diff", String.valueOf(diff));
-                finalDelay = diff * 400L;
+                finalDelay = diff * 400L; // Delay calculation based on chapter count
             }
 
             @Override
@@ -316,6 +340,7 @@ public class ExportFragment extends Fragment {
                 if (beginPageId == 0 || endPageId == 0) return;
                 if (beginPageId > endPageId) return;
 
+                // Export handling for first, middle, and last pages
                 firstPageExportHandling();
                 middlePagesExportHandling();
                 if (beginPageId == endPageId) return;
@@ -324,14 +349,16 @@ public class ExportFragment extends Fragment {
 
             @Override
             public void onPostExecute() {
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        progressBar.setVisibility(View.GONE);
-                        progressBar.startAnimation(AnimationUtils.loadAnimation(parentActivity, android.R.anim.fade_out));
-                        Toast.makeText(parentActivity, "Hoàn tất", Toast.LENGTH_SHORT).show();
-                    }
-                }, finalDelay);
+                handler.postDelayed(() -> {
+                    // Hide progress bar with animation
+                    hideProgressBar();
+
+                    // Enable user interactions
+                    parentActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+
+                    // Show completion message with calculated delay
+                    Toast.makeText(parentActivity, "Hoàn tất!", Toast.LENGTH_SHORT).show();
+                }, finalDelay * 10); // Delayed execution after task completion
             }
 
             private void lastPageExportHandling() {
@@ -387,6 +414,7 @@ public class ExportFragment extends Fragment {
 
             @Override
             public void doInBackground() {
+                // Fetch list of chapters for the given page ID from the novel URL
                 List<Object> tempList = GlobalConfig.Global_Current_Scraper.getChapterListInPage(NovelUrl, pageId);
                 List<ChapterModel> chapters = identifyingList(tempList);
                 // Replace the current list of page items with the fetched list
@@ -395,6 +423,12 @@ public class ExportFragment extends Fragment {
 
             @Override
             public void onPostExecute() {
+                // Hide progress bar after data fetching is complete
+                hideProgressBar();
+
+                // Show UI after Progress Bar is finished
+                showUI();
+
                 if (refChapterAdapter == null) return;
                 refChapterAdapter.notifyDataSetChanged();
             }
@@ -421,12 +455,15 @@ public class ExportFragment extends Fragment {
         new ExecutorBackgroundTask(this.parentActivity) {
             @Override
             public void onPreExecute() {
+                // Preparation before executing the task (e.g., showing progress)
             }
 
             @Override
             public void doInBackground() {
+                // Fetch the original content of the chapter from the scraper
                 Object contentOri = GlobalConfig.Global_Current_Scraper.getChapterContent(chapter.getChapterUrl());
                 ChapterContentModel content;
+                // Check the type of the fetched content and convert if necessary
                 if (contentOri instanceof ChapterContentModel)
                     content = (ChapterContentModel) contentOri;
                 else {
@@ -435,17 +472,22 @@ public class ExportFragment extends Fragment {
                 }
 
                 //NOTE: PERMISSION
+                // Check for WRITE_EXTERNAL_STORAGE permission
                 if (ContextCompat.checkSelfPermission(ExportFragment.this.parentActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                         != PackageManager.PERMISSION_GRANTED) {
+                    // Request WRITE_EXTERNAL_STORAGE permission if not granted
                     ActivityCompat.requestPermissions(ExportFragment.this.parentActivity, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
                 }
+
+                // Proceed with exporting the chapter
                 String dir = parentActivity.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS).getAbsolutePath() + "/Export";
                 File directory = ReusableFunction.MakeDirectory(dir, content.getNovelName());
-
+                // Get the selected exporter from fileFormatSpinner (assuming it's a Spinner)
                 IChapterExportHandler exporter = (IChapterExportHandler) fileFormatSpinner.getSelectedItem();
+                // Create a subdirectory based on the exporter's name
                 File typeDirectory = ReusableFunction.MakeDirectory(directory.getAbsolutePath(), exporter.getExporterName());
-
-                exporter.exportChapter(content.getContent(), typeDirectory, content.getChapterName().toString());
+                // Create a subdirectory based on the exporter's name
+                exporter.exportChapter(content.getContent(), typeDirectory, content.getChapterName());
                 try {
                     Thread.sleep(200);
                     //sleep 2s between each
@@ -456,64 +498,56 @@ public class ExportFragment extends Fragment {
 
             @Override
             public void onPostExecute() {
+                // Post-execution tasks (e.g., update UI, handle completion)
             }
         }.execute();
     }
 
     private void showProgressBar() {
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                progressBar.setVisibility(View.VISIBLE);
-                progressBar.startAnimation(AnimationUtils.loadAnimation(parentActivity, android.R.anim.fade_in));
-            }
+        handler.post(() -> {
+            overlayProgress.setVisibility(View.VISIBLE);
+            progressBar.startAnimation(AnimationUtils.loadAnimation(parentActivity, android.R.anim.fade_in));
         });
     }
 
     private void hideProgressBar() {
         handler.post(() -> {
-            progressBar.setVisibility(View.GONE);
             progressBar.startAnimation(AnimationUtils.loadAnimation(parentActivity, android.R.anim.fade_out));
+            overlayProgress.setVisibility(View.GONE);
         });
     }
 
     private void showUI() {
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                exportFromChapterLabel.setVisibility(View.VISIBLE);
-                exportToChapterLabel.setVisibility(View.VISIBLE);
-                exportFileFormatLabel.setVisibility(View.VISIBLE);
-                beginChapterSpinner.setVisibility(View.VISIBLE);
-                beginPageSpinner.setVisibility(View.VISIBLE);
-                endChapterSpinner.setVisibility(View.VISIBLE);
-                endPageSpinner.setVisibility(View.VISIBLE);
-                fileFormatSpinner.setVisibility(View.VISIBLE);
-                exportButton.setVisibility(View.VISIBLE);
-            }
+        handler.post(() -> {
+            exportFromChapterLabel.setVisibility(View.VISIBLE);
+            exportToChapterLabel.setVisibility(View.VISIBLE);
+            exportFileFormatLabel.setVisibility(View.VISIBLE);
+            beginChapterSpinner.setVisibility(View.VISIBLE);
+            endChapterSpinner.setVisibility(View.VISIBLE);
+            beginPageSpinner.setVisibility(View.VISIBLE);
+            endPageSpinner.setVisibility(View.VISIBLE);
+            fileFormatSpinner.setVisibility(View.VISIBLE);
+            exportButton.setVisibility(View.VISIBLE);
         });
     }
 
     private void hideUI() {
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                exportFromChapterLabel.setVisibility(View.GONE);
-                exportToChapterLabel.setVisibility(View.GONE);
-                exportFileFormatLabel.setVisibility(View.GONE);
-                beginChapterSpinner.setVisibility(View.GONE);
-                beginPageSpinner.setVisibility(View.GONE);
-                endChapterSpinner.setVisibility(View.GONE);
-                endPageSpinner.setVisibility(View.GONE);
-                fileFormatSpinner.setVisibility(View.GONE);
-                exportButton.setVisibility(View.GONE);
-            }
+        handler.post(() -> {
+            exportFromChapterLabel.setVisibility(View.INVISIBLE);
+            exportToChapterLabel.setVisibility(View.INVISIBLE);
+            exportFileFormatLabel.setVisibility(View.INVISIBLE);
+            beginChapterSpinner.setVisibility(View.INVISIBLE);
+            endChapterSpinner.setVisibility(View.INVISIBLE);
+            beginPageSpinner.setVisibility(View.INVISIBLE);
+            endPageSpinner.setVisibility(View.INVISIBLE);
+            fileFormatSpinner.setVisibility(View.INVISIBLE);
+            exportButton.setVisibility(View.INVISIBLE);
         });
     }
 
     //Note: Thread with executor
     public abstract class ExecutorBackgroundTask {
-        private Activity activity;
+        private final Activity activity;
 
         public ExecutorBackgroundTask(Activity activity) {
             this.activity = activity;
@@ -521,17 +555,9 @@ public class ExportFragment extends Fragment {
         }
 
         private void startBackgroundTask() {
-            executorService.execute(new Runnable() {
-                @Override
-                public void run() {
-                    doInBackground();
-                    activity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            onPostExecute();
-                        }
-                    });
-                }
+            executorService.execute(() -> {
+                doInBackground();
+                activity.runOnUiThread(this::onPostExecute);
             });
         }
 

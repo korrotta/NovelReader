@@ -1,5 +1,6 @@
 package com.softwaredesign.novelreader.Adapters;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.view.LayoutInflater;
@@ -21,13 +22,14 @@ import java.util.List;
 public class NovelAdapter extends RecyclerView.Adapter<NovelViewHolder> {
 
     // Context for inflating layout and starting activities
-    private Context context;
+    private final Context context;
 
     // List to hold novel data
     private List<NovelModel> novelList;
 
     // Set List to search result
     // Method to set the list to search results and notify the adapter of data changes
+    @SuppressLint("NotifyDataSetChanged")
     public void setSearchList(List<NovelModel> novelSearchList) {
         this.novelList = novelSearchList;
 
@@ -105,7 +107,6 @@ class NovelViewHolder extends RecyclerView.ViewHolder {
         // Find the ImageView and CardView in the layout
         recImage = itemView.findViewById(R.id.novelImage);
         recLayout = itemView.findViewById(R.id.novelLayout);
-
 
     }
 }

@@ -3,7 +3,6 @@ package com.softwaredesign.novelreader.Fragments;
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,14 +18,12 @@ import androidx.fragment.app.Fragment;
 import com.softwaredesign.novelreader.BackgroundTask;
 import com.softwaredesign.novelreader.Global.GlobalConfig;
 import com.softwaredesign.novelreader.Models.NovelDescriptionModel;
-import com.softwaredesign.novelreader.Models.NovelModel;
 import com.softwaredesign.novelreader.R;
-import com.softwaredesign.novelreader.Scrapers.TruyenfullScraper;
 
 public class DetailNovelFragment extends Fragment {
 
     private TextView detailDescription;
-    private Handler handler = new Handler();
+    private final Handler handler = new Handler();
     private ProgressBar detailNovelFragmentPB;
     private Activity parentActivity;
 
@@ -93,12 +90,9 @@ public class DetailNovelFragment extends Fragment {
             @Override
             public void onPreExecute() {
                 // Show progress bar with fade-in animation before task starts
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        detailNovelFragmentPB.setVisibility(View.VISIBLE);
-                        detailNovelFragmentPB.startAnimation(AnimationUtils.loadAnimation(getContext(), android.R.anim.fade_in));
-                    }
+                handler.post(() -> {
+                    detailNovelFragmentPB.setVisibility(View.VISIBLE);
+                    detailNovelFragmentPB.startAnimation(AnimationUtils.loadAnimation(getContext(), android.R.anim.fade_in));
                 });
             }
 

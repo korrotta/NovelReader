@@ -36,7 +36,7 @@ import java.util.List;
 public class ChapterListFragment extends Fragment {
 
     private ImageView prevChapterPage, nextChapterPage;
-    private TextView pageTextView, chapterListLabel;
+    private TextView pageTextView;
     private RecyclerView chapterListRV;
     private Activity parentActivity;
     private ChapterListItemAdapter chapterListItemAdapter;
@@ -129,7 +129,7 @@ public class ChapterListFragment extends Fragment {
                     public boolean onMenuItemClick(MenuItem item) {
                         // Handle page selection
                         loadPage(item.getItemId());
-                        pageTextView.setText("Trang " + item.getItemId() + " trên " + numberOfPages);
+                        pageTextView.setText("Trang " + item.getItemId() + " trên " + (Math.max(numberOfPages, 1)));
                         return true;
                     }
                 });
@@ -210,7 +210,7 @@ public class ChapterListFragment extends Fragment {
         // Set the visibility of the pagination
         chapterListPageControlLayout.setVisibility(View.VISIBLE);
         // Set the text of the page TextView
-        pageTextView.setText("Trang 1 trên " + numberOfPages);
+        pageTextView.setText("Trang 1 trên " + Math.max(numberOfPages, 1));
     }
 
     // Background task to fetch chapter list
