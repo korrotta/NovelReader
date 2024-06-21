@@ -32,6 +32,7 @@
             android:id="@+id/serverSpinner"
             android:layout_width="wrap_content"
             android:layout_height="45dp"
+            android:padding="5dp"
             android:layout_marginTop="8dp"
             android:background="@drawable/white_transparent_rounded_corner_bg"
             app:layout_constraintBottom_toTopOf="@id/recyclerView"
@@ -86,6 +87,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </ScrollView>

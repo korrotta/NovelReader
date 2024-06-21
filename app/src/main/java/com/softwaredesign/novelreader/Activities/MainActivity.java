@@ -13,10 +13,12 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -69,7 +71,8 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView; // RecyclerView for displaying novels
     private final List<NovelModel> novelList = new ArrayList<>(); // List to hold novel data
     private NovelAdapter novelAdapter; // Adapter for the RecyclerView
-    private ProgressBar progressBar; // ProgressBar to indicate loading
+    private AlertDialog progressDialog; // Alert Dialog to show progress bar
+    private ProgressBar progressBar, dialogProgressBar; // ProgressBar to indicate loading
     private AppCompatSpinner serverSpinner; // Spinner for server sources
     private AppCompatButton pluginButton, continueButton; // Button for download pluins
     private ServerSpinnerAdapter serverAdapter; // Server Spinner Adapter
@@ -529,9 +532,9 @@ public class MainActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permission granted, you can call your export methods here
+                // Permission granted
             } else {
-                // Permission denied, handle the case
+                // Permission denied
             }
         }
         if (requestCode == REQUEST_WRITE_PERMISSION) {
@@ -584,20 +587,38 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void downloadProcessing(StorageReference reference, File file) {
-        progressBar.setVisibility(View.VISIBLE);
-        progressBar.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, android.R.anim.fade_in));
+        showProgressDialog();
         notificationProgressBarInit();
         reference.getFile(file).addOnSuccessListener(taskSnapshot -> {
             // Success
             Log.d("SuccessNotif", file.toString());
             // Hide and animate the progress bar after the task is completed
-            progressBar.setVisibility(View.GONE);
-            progressBar.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, android.R.anim.fade_out));
-
+            hideProgressDialog();
+            Toast.makeText(this, "Hoàn tất!", Toast.LENGTH_SHORT).show();
             notificationFinishInit();
-
             loadAllPlugins(downloadDir);
         }).addOnFailureListener(e -> Log.e("Download Error", e.toString()));
+    }
+
+    private void hideProgressDialog() {
+        progressDialog.dismiss();
+    }
+
+    private void showProgressDialog() {
+        // Inflate the custom layout/view
+        LayoutInflater inflater = this.getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.progress_dialog, null);
+        dialogProgressBar = dialogView.findViewById(R.id.dialogProgressBar);
+        TextView dialogTitle = dialogView.findViewById(R.id.dialogTitle);
+
+        // Build the dialog
+        progressDialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .setCancelable(false) // Prevent the dialog from being canceled by the user
+                .create();
+
+        // Show the dialog
+        progressDialog.show();
     }
 
     private void notificationProgressBarInit() {
@@ -609,10 +630,9 @@ public class MainActivity extends AppCompatActivity {
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID);
 
         mBuilder.setChannelId(CHANNEL_ID);
-        mBuilder.setSmallIcon(R.drawable.ic_launcher_foreground);
-        mBuilder.setContentTitle("My app");
+        mBuilder.setSmallIcon(R.drawable.logo);
+        mBuilder.setContentTitle("Novel Reader");
         mBuilder.setContentText("Download in progress");
-        mBuilder.setSmallIcon(R.drawable.ic_launcher_foreground);
         mBuilder.setPriority(NotificationCompat.PRIORITY_DEFAULT);
         mBuilder.setAutoCancel(true);
         mBuilder.setProgress(0, 100, true);
